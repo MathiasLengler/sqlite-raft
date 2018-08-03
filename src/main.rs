@@ -24,6 +24,10 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serdebug;
 
+extern crate bincode;
+
+mod log_entry;
+
 use log::LevelFilter;
 use raft::prelude::*;
 use raft::storage::MemStorage;
@@ -35,6 +39,9 @@ use std::sync::mpsc::Receiver;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
+use log_entry::LogEntry;
+use log_entry::LogEntryFactory;
+use log_entry::LogEntryKey;
 
 type ProposeCallback = Box<Fn() + Send>;
 
@@ -46,27 +53,21 @@ enum Msg {
 
 #[derive(Serialize)]
 struct Propose {
-    id: u64,
+    pub log_entry: LogEntry,
     #[serde(skip_serializing)]
-    cb: ProposeCallback,
-    data: String,
+    pub cb: ProposeCallback,
 }
 
 impl Propose {
-    fn new(cb: ProposeCallback, data: String) -> Propose {
-        // TODO: generate global unique id
-
-        unimplemented!()
+    fn new(log_entry_factory: &mut LogEntryFactory, text: String, cb: ProposeCallback) -> Propose {
+        Propose {
+            log_entry: log_entry_factory.new_log_entry(text),
+            cb,
+        }
     }
 
-    fn to_log_data(&self) -> Vec<u8> {
-        // TODO: squash together id + data
-
-        unimplemented!()
-    }
-
-    fn parse_log_data(data: &[u8]) -> (u64, String) {
-        unimplemented!()
+    fn into_msg(self) -> Msg {
+        Msg::Propose(self)
     }
 }
 
@@ -118,7 +119,7 @@ impl Router {
 fn main() {
     init_log();
 
-    launch_cluster(1);
+    launch_cluster(3);
 }
 
 fn init_log() {
@@ -189,7 +190,10 @@ fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool) {
 
     if propose {
         // Use another thread to propose a Raft request.
-        send_propose(router.clone_own_sender());
+
+        let log_entry_factory = LogEntryFactory::new(node_id, 0);
+
+        send_propose(router.clone_own_sender(), log_entry_factory);
     }
 
     // Loop forever to drive the Raft.
@@ -201,9 +205,10 @@ fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool) {
 
     loop {
         match router.receiver.recv_timeout(timeout) {
-            Ok(Msg::Propose { id, cb, data }) => {
-                cbs.insert(id, cb);
-                r.propose(vec![], data).unwrap();
+            Ok(Msg::Propose(Propose { log_entry, cb })) => {
+                cbs.insert(log_entry.key(), cb);
+
+                r.propose(vec![], log_entry.to_vec_u8()).unwrap();
             }
             Ok(Msg::Raft(m)) => r.step(m).unwrap(),
             Err(RecvTimeoutError::Timeout) => (),
@@ -224,7 +229,7 @@ fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool) {
     }
 }
 
-fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<u8, ProposeCallback>, router: &Router) {
+fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeCallback>, router: &Router) {
 //    debug!("{} RawNode:\n{}", r.raft.tag, serde_json::to_string_pretty(&r).unwrap());
 
     if !r.has_ready() {
@@ -295,8 +300,13 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<u8, ProposeCallback>,
             if entry.get_entry_type() == EntryType::EntryNormal {
                 // TODO: parse log data
 
-                if let Some(cb) = cbs.remove(entry.get_data().get(0).unwrap()) {
+                let log_entry = LogEntry::try_from(entry.get_data()).unwrap();
+
+                if let Some(cb) = cbs.remove(&log_entry.key()) {
+                    debug!("{} found callback for log entry: {}", r.raft.tag, log_entry.text());
                     cb();
+                } else {
+                    debug!("{} no callback for log entry: {}", r.raft.tag, log_entry.text());
                 }
             }
 
@@ -308,30 +318,48 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<u8, ProposeCallback>,
     r.advance(ready);
 }
 
-fn send_propose(sender: mpsc::Sender<Msg>) {
+fn send_propose(sender: mpsc::Sender<Msg>, mut log_entry_factory: LogEntryFactory) {
     thread::spawn(move || {
         // Wait some time and send the request to the Raft.
         thread::sleep(Duration::from_secs(10));
 
-        let (s1, r1) = mpsc::channel::<u8>();
+        let propose_count = 3;
 
-        println!("propose a request");
+        let mut cb_rxs: Vec<Receiver<u64>> = vec![];
 
-        // Send a command to the Raft, wait for the Raft to apply it
-        // and get the result.
-        sender
-            .send(Msg::Propose {
-                id: 1,
-                cb: Box::new(move || {
-                    s1.send(0).unwrap();
+        for propose_index in 0..propose_count {
+            // Send a command to the Raft, wait for the Raft to apply it
+            // and get the result.
+            println!("propose request {}", propose_index);
+
+            let (cb_tx, cb_rx) = mpsc::channel::<u64>();
+
+            cb_rxs.push(cb_rx);
+
+            let msg = Propose::new(
+                &mut log_entry_factory,
+                "Hello World!".to_string(),
+                Box::new(move || {
+                    cb_tx.send(propose_index).unwrap();
                 }),
-                data: "Hello World!".as_bytes().to_vec(),
-            })
-            .unwrap();
+            ).into_msg();
 
-        let n = r1.recv().unwrap();
-        assert_eq!(n, 0);
+            sender
+                .send(msg)
+                .unwrap();
+        }
 
-        println!("receive the propose callback");
+        let mut results = cb_rxs.into_iter().map(|cb_rx| {
+            let res = cb_rx.recv().unwrap();
+
+            println!("received propose callback {}", res);
+
+            res
+        }).collect::<Vec<_>>();
+
+        results.sort();
+
+        assert_eq!(&results, &(0..propose_count).collect::<Vec<_>>())
+
     });
 }

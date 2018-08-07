@@ -298,8 +298,6 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeC
             }
 
             if entry.get_entry_type() == EntryType::EntryNormal {
-                // TODO: parse log data
-
                 let log_entry = LogEntry::try_from(entry.get_data()).unwrap();
 
                 if let Some(cb) = cbs.remove(&log_entry.key()) {

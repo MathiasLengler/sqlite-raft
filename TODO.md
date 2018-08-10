@@ -16,11 +16,9 @@
     - JSON API
       - rqlite template
     - Protobuf
-    - Cap'n'Proto
-  - RPC
+  - RPC (how to support raft lib messages?)
     - tarpc
     - gRPC
-    - Cap'n Proto RPC
 - Features
   - Runs on every node (no single point of failure)
   - Multiple concurrent clients
@@ -37,10 +35,6 @@
     - Single SQL statement
     - Prepared statements (Batching)
     - Series of different statements
-      - Transaction
-      - Select results?
-        - only last select
-        - Vec< Vec< Value > >
   - Ensure mutability
     - Connection::open_with_flags
       - READ_ONLY
@@ -48,6 +42,7 @@
     - Data Manipulation Language (DML)
       - Select (no side effects)
         - Not in Raft log
+        - Could also be in the log for read consistency
       - Insert / Update / Delete (side effects)
     - Data Definition Language (DDL)
       - Create / Alter / Drop (side effects)
@@ -62,7 +57,6 @@
   - Compaction implementation
     - Online SQLite backup API
     - In Raft Log as BLOB?
-    - TODO: find out who compacts in raft-rs
   - Two separate DBs (Multi-file Commit)
     - User DB
     - Raft Log
@@ -103,6 +97,10 @@
 - Docker TCP cluster
 
 ## Testing hooks
+- Cluster
+  - Single step whole cluster
+  - Get handle of node
+  - Support channel communication
 - Node
   - Availability
     - stop / resume / restart
@@ -111,6 +109,7 @@
   - new request/propose
   - Manual step
   - Inject custom randomness?
+  - State machine application result callback
 - Communication
   - Disable specific channel
   - Isolate single Node
@@ -147,3 +146,5 @@
       - Does prepared statement validate before executing? (alternative)
 - SQL user defined functions
   - Usecase?
+- When/how to compact in raft-rs
+  - MemStorageCore template

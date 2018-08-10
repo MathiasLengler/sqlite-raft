@@ -33,6 +33,7 @@ impl LogEntryFactory {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LogEntry {
+    // TODO: timestamp?
     key: LogEntryKey,
     /// The text stored in the raft log, e.g. SQL-Statement.
     text: String,

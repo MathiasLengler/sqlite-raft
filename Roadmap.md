@@ -1,4 +1,4 @@
-# TODO
+# Roadmap
 
 ## Rust CLI client
 - PoC use case of DB
@@ -148,3 +148,18 @@
   - Usecase?
 - When/how to compact in raft-rs
   - MemStorageCore template
+  
+## Other Ideas
+
+### Query a specific state
+- user db on disk is the last snapshot
+- only reference to snapshot in raft db
+- on startup apply all committed log entries inside a transaction and keep it open
+  - slow with long log
+- can a separate connection rebuild the state of db to a specific log index while the other transaction is open?
+  - even if there has been write access?
+- this would allow deterministic queries against a known time stamp
+- allows views of the db at any timestamp between the last snapshot and the most recently committed log entry
+- alternative: keep multiple user dbs
+  - committed user db
+  - snapshot user db

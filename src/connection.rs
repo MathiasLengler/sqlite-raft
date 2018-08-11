@@ -40,10 +40,6 @@ impl<A: Access> AccessConnection<A> {
             access: self.access.clone(),
         })
     }
-
-    pub(crate) fn inner_mut(&mut self) -> &mut Connection {
-        &mut self.conn
-    }
 }
 
 pub struct AccessTransaction<'conn, A: Access> {
@@ -52,8 +48,12 @@ pub struct AccessTransaction<'conn, A: Access> {
 }
 
 impl<'conn, A: Access> AccessTransaction<'conn, A> {
-    pub(crate) fn inner_mut(&mut self) -> &mut Transaction<'conn> {
+    pub(crate) fn as_mut(&mut self) -> &mut Transaction<'conn> {
         &mut self.tx
+    }
+
+    pub(crate) fn into_inner(self) -> Transaction<'conn> {
+        self.tx
     }
 }
 

@@ -12,6 +12,7 @@ use rusqlite::types::ToSql;
 use rusqlite::types::Value;
 use std::result;
 use connection::AccessTransaction;
+use rusqlite::Statement;
 
 pub mod connection;
 pub mod error;
@@ -24,7 +25,7 @@ pub mod error;
 ///
 /// serde
 
-
+/// Bulk execution of a series of SQL commands. Each command can have a queue of parameters.
 pub enum BulkSqliteCommands {
     BulkExecute(BulkExecute),
     BulkQuery(BulkQuery),
@@ -35,12 +36,17 @@ pub struct BulkExecute {
 }
 
 impl BulkExecute {
-    fn apply(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<Vec<ExecuteResult>>> {
+    // TODO: refactor duplicate code
+    pub fn apply(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<Vec<ExecuteResult>>> {
         let mut tx = conn.access_transaction()?;
 
-        self.executes.iter().map(|execute| {
+        let res = self.executes.iter().map(|execute| {
             execute.apply(&mut tx)
-        }).collect()
+        }).collect::<Result<Vec<_>>>()?;
+
+        tx.into_inner().commit()?;
+
+        Ok(res)
     }
 }
 
@@ -49,12 +55,17 @@ pub struct BulkQuery {
 }
 
 impl BulkQuery {
+    // TODO: refactor duplicate code
     fn apply(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<Vec<QueryResult>>> {
         let mut tx = conn.access_transaction()?;
 
-        self.queries.iter().map(|query| {
+        let res = self.queries.iter().map(|query| {
             query.apply(&mut tx)
-        }).collect()
+        }).collect::<Result<Vec<_>>>()?;
+
+        tx.into_inner().commit()?;
+
+        Ok(res)
     }
 }
 
@@ -71,35 +82,31 @@ pub struct Execute {
 }
 
 impl Execute {
-    // TODO: refactor duplicate logic between Query/Execute
     fn apply(&self, tx: &mut AccessTransaction<ReadWrite>) -> Result<Vec<ExecuteResult>> {
-        let tx = tx.inner_mut();
+        let tx = tx.as_mut();
         let mut stmt = tx.prepare(&self.sql)?;
 
-        let res = match self.queued_parameters {
-            QueuedParameters::Indexed(ref queued_indexed_parameters) => {
-                queued_indexed_parameters.iter().map(|parameters| {
-                    let changes = stmt.execute(
-                        &parameters.as_arg(),
-                    )?;
+        let res = self.queued_parameters.map_parameter_variants(
+            &mut stmt,
+            |stmt: &mut Statement, parameters: &IndexedParameters| {
+                let changes = stmt.execute(
+                    &parameters.as_arg(),
+                )?;
 
-                    Ok(ExecuteResult {
-                        changes,
-                    })
-                }).collect()
-            }
-            QueuedParameters::Named(ref queued_named_parameters) => {
-                queued_named_parameters.iter().map(|parameters| {
-                    let changes = stmt.execute_named(
-                        &parameters.as_arg(),
-                    )?;
+                Ok(ExecuteResult {
+                    changes,
+                })
+            },
+            |stmt: &mut Statement, parameters: &NamedParameters| {
+                let changes = stmt.execute_named(
+                    &parameters.as_arg(),
+                )?;
 
-                    Ok(ExecuteResult {
-                        changes,
-                    })
-                }).collect()
-            }
-        };
+                Ok(ExecuteResult {
+                    changes,
+                })
+            },
+        );
 
         res
     }
@@ -112,37 +119,33 @@ pub struct ExecuteResult {
 
 pub struct Query {
     sql: String,
-    parameters: QueuedParameters,
+    queued_parameters: QueuedParameters,
 }
 
 impl Query {
-    // TODO: refactor duplicate logic between Query/Execute
     fn apply(&self, tx: &mut AccessTransaction<ReadOnly>) -> Result<Vec<QueryResult>> {
-        let tx = tx.inner_mut();
+        let tx = tx.as_mut();
         let mut stmt = tx.prepare(&self.sql)?;
 
-        let res = match self.parameters {
-            QueuedParameters::Indexed(ref queued_indexed_parameters) => {
-                queued_indexed_parameters.iter().map(|parameters| {
-                    let rows = stmt.query_map(
-                        &parameters.as_arg(),
-                        QueryResultRow::query_map_arg(),
-                    )?;
+        let res = self.queued_parameters.map_parameter_variants(
+            &mut stmt,
+            |stmt: &mut Statement, parameters: &IndexedParameters| {
+                let rows = stmt.query_map(
+                    &parameters.as_arg(),
+                    QueryResultRow::query_map_arg(),
+                )?;
 
-                    QueryResult::try_from(rows)
-                }).collect()
-            }
-            QueuedParameters::Named(ref queued_named_parameters) => {
-                queued_named_parameters.iter().map(|parameters| {
-                    let rows = stmt.query_map_named(
-                        &parameters.as_arg(),
-                        QueryResultRow::query_map_arg(),
-                    )?;
+                QueryResult::try_from(rows)
+            },
+            |stmt: &mut Statement, parameters: &NamedParameters| {
+                let rows = stmt.query_map_named(
+                    &parameters.as_arg(),
+                    QueryResultRow::query_map_arg(),
+                )?;
 
-                    QueryResult::try_from(rows)
-                }).collect()
-            }
-        };
+                QueryResult::try_from(rows)
+            },
+        );
 
         res
     }
@@ -153,7 +156,8 @@ pub struct QueryResult {
 }
 
 impl QueryResult {
-    fn try_from(rows_iter: impl Iterator<Item=result::Result<QueryResultRow, rusqlite::Error>>) -> Result<QueryResult> {
+    fn try_from(rows_iter: impl Iterator<Item=result::Result<QueryResultRow, rusqlite::Error>>)
+                -> Result<QueryResult> {
         let rows: result::Result<Vec<QueryResultRow>, rusqlite::Error> = rows_iter.collect();
 
         Ok(QueryResult {
@@ -181,6 +185,32 @@ impl QueryResultRow {
 enum QueuedParameters {
     Indexed(Vec<IndexedParameters>),
     Named(Vec<NamedParameters>),
+}
+
+impl QueuedParameters {
+    fn new() -> QueuedParameters {
+        // TODO: ensure at least one parameter set in each variant.
+        unimplemented!()
+    }
+
+    fn map_parameter_variants<T>(&self,
+                                 stmt: &mut Statement,
+                                 mut indexed: impl FnMut(&mut Statement, &IndexedParameters) -> Result<T>,
+                                 mut named: impl FnMut(&mut Statement, &NamedParameters) -> Result<T>)
+                                 -> Result<Vec<T>> {
+        match self {
+            QueuedParameters::Indexed(ref queued_indexed_parameters) => {
+                queued_indexed_parameters.iter().map(|parameters| {
+                    indexed(stmt, parameters)
+                }).collect()
+            }
+            QueuedParameters::Named(ref queued_named_parameters) => {
+                queued_named_parameters.iter().map(|parameters| {
+                    named(stmt, parameters)
+                }).collect()
+            }
+        }
+    }
 }
 
 pub struct IndexedParameters {

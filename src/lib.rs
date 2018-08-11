@@ -27,14 +27,16 @@ pub mod parameter;
 /// match SELECT / INSERT
 /// inline random()/etc.
 ///
-/// serde
+/// serde/protobuf
 
 /// Bulk execution of a series of SQL commands. Each command can have a queue of parameters.
+#[derive(Debug, Clone, PartialEq)]
 pub enum BulkSqliteCommands {
     BulkExecute(BulkExecute),
     BulkQuery(BulkQuery),
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct BulkExecute {
     executes: Vec<Execute>,
 }
@@ -49,6 +51,7 @@ impl BulkExecute {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct BulkQuery {
     queries: Vec<Query>,
 }
@@ -63,6 +66,7 @@ impl BulkQuery {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum SqliteCommand {
     /// Execute a statement once or multiple times with different parameters.
     Execute(Execute),
@@ -70,6 +74,7 @@ pub enum SqliteCommand {
     Query(Query),
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Execute {
     sql: String,
     queued_parameters: QueuedParameters,
@@ -106,17 +111,33 @@ impl Execute {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExecuteResult {
     /// The number of rows that were changed or inserted or deleted.
     changes: i32
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Query {
     sql: String,
     queued_parameters: QueuedParameters,
 }
 
 impl Query {
+    pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Query> {
+        Ok(Query {
+            sql: sql.to_string(),
+            queued_parameters: QueuedParameters::new_indexed(queued_indexed_parameters)?,
+        })
+    }
+
+    pub fn new_named(sql: &str, queued_named_parameters: &[&[(&str, &ToSql)]]) -> Result<Query> {
+        Ok(Query {
+            sql: sql.to_string(),
+            queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
+        })
+    }
+
     fn apply(&self, tx: &mut AccessTransaction<ReadOnly>) -> Result<Vec<QueryResult>> {
         let tx = tx.as_mut();
         let mut stmt = tx.prepare(&self.sql)?;
@@ -145,6 +166,7 @@ impl Query {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct QueryResult {
     rows: Vec<QueryResultRow>,
 }
@@ -160,6 +182,7 @@ impl QueryResult {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct QueryResultRow {
     row: Vec<Value>
 }

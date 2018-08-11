@@ -4,9 +4,16 @@ version = "0.1.0"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 
 [dependencies]
-rusqlite = "0.13.0"
 failure = "0.1.2"
+
+
+[dependencies.rusqlite]
+version = "0.13.0"
+features = ["bundled"]
 
 [features]
 default = []
 blob = ["rusqlite/blob"]
+
+[dev-dependencies]
+tempfile = "3.0.3"

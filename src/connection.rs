@@ -10,27 +10,12 @@ pub struct AccessConnection<A: Access> {
 }
 
 impl<A: Access> AccessConnection<A> {
-    pub fn open_read_only<P: AsRef<Path>>(path: P) -> Result<AccessConnection<ReadOnly>> {
-        let conn = Connection::open_with_flags(
-            path,
-            OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_CREATE,
-        )?;
+    pub fn open<P: AsRef<Path>>(access: A, path: P) -> Result<AccessConnection<A>> {
+        let conn = access.open(path)?;
 
         Ok(AccessConnection {
             conn,
-            access: ReadOnly,
-        })
-    }
-
-    pub fn open_read_write<P: AsRef<Path>>(path: P) -> Result<AccessConnection<ReadWrite>> {
-        let conn = Connection::open_with_flags(
-            path,
-            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE,
-        )?;
-
-        Ok(AccessConnection {
-            conn,
-            access: ReadWrite,
+            access,
         })
     }
 
@@ -42,20 +27,19 @@ impl<A: Access> AccessConnection<A> {
         access_tx.into_inner().commit()?;
 
         Ok(res)
-
     }
 
     fn access_transaction(&mut self) -> Result<AccessTransaction<A>> {
         Ok(AccessTransaction {
             tx: self.conn.transaction()?,
-            access: self.access.clone(),
+            _access: self.access.clone(),
         })
     }
 }
 
-pub struct AccessTransaction<'conn, A: Access> {
+pub(crate) struct AccessTransaction<'conn, A: Access> {
     tx: Transaction<'conn>,
-    access: A,
+    _access: A,
 }
 
 impl<'conn, A: Access> AccessTransaction<'conn, A> {
@@ -69,14 +53,34 @@ impl<'conn, A: Access> AccessTransaction<'conn, A> {
 }
 
 
-pub trait Access: Clone {}
+pub trait Access: Copy {
+    fn open<P: AsRef<Path>>(&self, path: P) -> Result<Connection>;
+}
 
-#[derive(Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct ReadOnly;
 
-impl Access for ReadOnly {}
+impl Access for ReadOnly {
+    fn open<P: AsRef<Path>>(&self, path: P) -> Result<Connection> {
+        let conn = Connection::open_with_flags(
+            path,
+            OpenFlags::SQLITE_OPEN_READ_ONLY,
+        )?;
 
-#[derive(Clone)]
+        Ok(conn)
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 pub struct ReadWrite;
 
-impl Access for ReadWrite {}
+impl Access for ReadWrite {
+    fn open<P: AsRef<Path>>(&self, path: P) -> Result<Connection> {
+        let conn = Connection::open_with_flags(
+            path,
+            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE,
+        )?;
+
+        Ok(conn)
+    }
+}

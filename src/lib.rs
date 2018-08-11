@@ -13,9 +13,13 @@ use rusqlite::types::Value;
 use std::result;
 use connection::AccessTransaction;
 use rusqlite::Statement;
+use parameter::QueuedParameters;
+use parameter::IndexedParameters;
+use parameter::NamedParameters;
 
 pub mod connection;
 pub mod error;
+pub mod parameter;
 
 /// TODO:
 ///
@@ -169,75 +173,5 @@ impl QueryResultRow {
                 row,
             }
         }
-    }
-}
-
-enum QueuedParameters {
-    Indexed(Vec<IndexedParameters>),
-    Named(Vec<NamedParameters>),
-}
-
-impl QueuedParameters {
-    fn new() -> QueuedParameters {
-        // TODO: ensure at least one parameter set in each variant.
-        unimplemented!()
-    }
-
-    fn map_parameter_variants<T>(&self,
-                                 stmt: &mut Statement,
-                                 mut indexed: impl FnMut(&mut Statement, &IndexedParameters) -> Result<T>,
-                                 mut named: impl FnMut(&mut Statement, &NamedParameters) -> Result<T>)
-                                 -> Result<Vec<T>> {
-        match self {
-            QueuedParameters::Indexed(ref queued_indexed_parameters) => {
-                queued_indexed_parameters.iter().map(|parameters| {
-                    indexed(stmt, parameters)
-                }).collect()
-            }
-            QueuedParameters::Named(ref queued_named_parameters) => {
-                queued_named_parameters.iter().map(|parameters| {
-                    named(stmt, parameters)
-                }).collect()
-            }
-        }
-    }
-}
-
-pub struct IndexedParameters {
-    parameters: Vec<Value>
-}
-
-impl IndexedParameters {
-    fn as_arg(&self) -> Vec<&ToSql> {
-        self.parameters.iter().map(|value| value as &ToSql).collect()
-    }
-}
-
-pub struct NamedParameters {
-    parameters: Vec<NamedParameter>
-}
-
-impl NamedParameters {
-    fn as_arg(&self) -> Vec<(&str, &ToSql)> {
-        self.parameters.iter().map(
-            |NamedParameter {
-                 name,
-                 value,
-             }| {
-                (name.as_str(), value as &ToSql)
-            }).collect()
-    }
-}
-
-pub struct NamedParameter {
-    name: String,
-    value: Value,
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
     }
 }

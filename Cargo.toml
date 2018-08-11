@@ -6,3 +6,7 @@ authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 [dependencies]
 rusqlite = "0.13.0"
 failure = "0.1.2"
+
+[features]
+default = []
+blob = ["rusqlite/blob"]

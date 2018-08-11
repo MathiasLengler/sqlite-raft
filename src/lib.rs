@@ -36,17 +36,12 @@ pub struct BulkExecute {
 }
 
 impl BulkExecute {
-    // TODO: refactor duplicate code
     pub fn apply(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<Vec<ExecuteResult>>> {
-        let mut tx = conn.access_transaction()?;
-
-        let res = self.executes.iter().map(|execute| {
-            execute.apply(&mut tx)
-        }).collect::<Result<Vec<_>>>()?;
-
-        tx.into_inner().commit()?;
-
-        Ok(res)
+        conn.inside_transaction(|mut tx| {
+            self.executes.iter().map(|execute| {
+                execute.apply(&mut tx)
+            }).collect::<Result<Vec<_>>>()
+        })
     }
 }
 
@@ -55,17 +50,12 @@ pub struct BulkQuery {
 }
 
 impl BulkQuery {
-    // TODO: refactor duplicate code
     fn apply(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<Vec<QueryResult>>> {
-        let mut tx = conn.access_transaction()?;
-
-        let res = self.queries.iter().map(|query| {
-            query.apply(&mut tx)
-        }).collect::<Result<Vec<_>>>()?;
-
-        tx.into_inner().commit()?;
-
-        Ok(res)
+        conn.inside_transaction(|mut tx| {
+            self.queries.iter().map(|query| {
+                query.apply(&mut tx)
+            }).collect::<Result<Vec<_>>>()
+        })
     }
 }
 

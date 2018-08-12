@@ -119,10 +119,16 @@ impl Execute {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct ExecuteResult {
-    /// The number of rows that were changed or inserted or deleted.
     changes: i32
+}
+
+impl ExecuteResult {
+    /// The number of rows that were changed or inserted or deleted.
+    pub fn changes(&self) -> i32 {
+        self.changes
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -188,7 +194,7 @@ pub struct QueryResult {
 }
 
 impl QueryResult {
-    // TODO: MappedRows replacement
+    // TODO: MappedRows replacement (Iterator/Vec)
 
     fn try_from(rows_iter: impl Iterator<Item=result::Result<QueryResultRow, rusqlite::Error>>)
                 -> Result<QueryResult> {

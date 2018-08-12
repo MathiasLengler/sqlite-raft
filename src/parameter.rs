@@ -21,7 +21,7 @@ impl QueuedParameters {
     }
 
     pub(crate) fn new_indexed(queued_indexed_parameters: &[&[&ToSql]]) -> Result<QueuedParameters> {
-        QueuedParameters::assert_slice(queued_indexed_parameters)?;
+        Self::assert_slice(queued_indexed_parameters)?;
 
         let queued_vec = queued_indexed_parameters.iter()
             .map(|parameter| IndexedParameters::new(parameter))
@@ -31,7 +31,7 @@ impl QueuedParameters {
     }
 
     pub(crate) fn new_named(queued_named_parameters: &[&[(&str, &ToSql)]]) -> Result<QueuedParameters> {
-        QueuedParameters::assert_slice(queued_named_parameters)?;
+        Self::assert_slice(queued_named_parameters)?;
 
         let queued_vec = queued_named_parameters.iter()
             .map(|parameter| NamedParameters::new(parameter))

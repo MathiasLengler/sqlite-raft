@@ -42,10 +42,12 @@ pub struct BulkExecute {
 }
 
 impl BulkExecute {
+    // TODO: new
+
     pub fn apply(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<Vec<ExecuteResult>>> {
-        conn.inside_transaction(|mut tx| {
+        conn.inside_transaction(|tx| {
             self.executes.iter().map(|execute| {
-                execute.apply(&mut tx)
+                execute.apply_to_tx(tx)
             }).collect::<Result<Vec<_>>>()
         })
     }
@@ -57,10 +59,12 @@ pub struct BulkQuery {
 }
 
 impl BulkQuery {
+    // TODO: new
+
     fn apply(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<Vec<QueryResult>>> {
-        conn.inside_transaction(|mut tx| {
+        conn.inside_transaction(|tx| {
             self.queries.iter().map(|query| {
-                query.apply(&mut tx)
+                query.apply_to_tx(tx)
             }).collect::<Result<Vec<_>>>()
         })
     }
@@ -81,7 +85,11 @@ pub struct Execute {
 }
 
 impl Execute {
-    fn apply(&self, tx: &mut AccessTransaction<ReadWrite>) -> Result<Vec<ExecuteResult>> {
+    // TODO: new_indexed
+    // TODO: new_named
+    // TODO: apply_to_conn
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<ReadWrite>) -> Result<Vec<ExecuteResult>> {
         let tx = tx.as_mut();
         let mut stmt = tx.prepare(&self.sql)?;
 
@@ -124,6 +132,8 @@ pub struct Query {
 }
 
 impl Query {
+    // TODO: add single non-queued parameter convenience constructor
+
     pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Query> {
         Ok(Query {
             sql: sql.to_string(),
@@ -138,7 +148,13 @@ impl Query {
         })
     }
 
-    fn apply(&self, tx: &mut AccessTransaction<ReadOnly>) -> Result<Vec<QueryResult>> {
+    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<QueryResult>> {
+        conn.inside_transaction(|tx| {
+            self.apply_to_tx(tx)
+        })
+    }
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<ReadOnly>) -> Result<Vec<QueryResult>> {
         let tx = tx.as_mut();
         let mut stmt = tx.prepare(&self.sql)?;
 
@@ -172,6 +188,8 @@ pub struct QueryResult {
 }
 
 impl QueryResult {
+    // TODO: MappedRows replacement
+
     fn try_from(rows_iter: impl Iterator<Item=result::Result<QueryResultRow, rusqlite::Error>>)
                 -> Result<QueryResult> {
         let rows: result::Result<Vec<QueryResultRow>, rusqlite::Error> = rows_iter.collect();

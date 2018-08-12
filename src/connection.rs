@@ -47,7 +47,7 @@ impl<'conn, A: Access> AccessTransaction<'conn, A> {
         &mut self.tx
     }
 
-    pub(crate) fn into_inner(self) -> Transaction<'conn> {
+    fn into_inner(self) -> Transaction<'conn> {
         self.tx
     }
 }

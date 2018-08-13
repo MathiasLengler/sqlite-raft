@@ -31,15 +31,21 @@ fn test_query_indexed() {
         let mut expected_conn = Connection::open(&expected_db_path).unwrap();
         let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
 
-        queued_params.iter().map(|params| {
-            let mapped_rows = expected_stmt.query_map(queued_params, unimplemented!()).unwrap();
+        // TODO: collect
+        let expected_result = queued_params.iter().map(|params| {
+            let mapped_rows = expected_stmt.query_map(params, |_| {
+                // TODO
+                1
+            }).unwrap();
 
-            // TODO: collect
-        });
+            mapped_rows.map(|row| row.unwrap()).collect::<Vec<_>>()
+        }).collect::<Vec<_>>();
 
 
         // TODO: assert query result equal (using mapped rows on QueryResult)
-        // TODO: assert dbs equal
+
+
+        common::sqldiff::assert_db_eq(&test_db_path, &expected_db_path);
     });
 }
 

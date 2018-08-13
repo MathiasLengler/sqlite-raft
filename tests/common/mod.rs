@@ -2,10 +2,9 @@ use tempfile;
 use rusqlite;
 use std::panic;
 use std::path::PathBuf;
-use std::path::Path;
 use rusqlite::Connection;
 
-mod sqldiff;
+pub mod sqldiff;
 
 pub fn run_test<S, T, D, TParam, DParam>(
     setup: S,

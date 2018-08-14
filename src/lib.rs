@@ -87,9 +87,25 @@ pub struct Execute {
 }
 
 impl Execute {
-    // TODO: new_indexed
-    // TODO: new_named
-    // TODO: apply_to_conn
+    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<ExecuteResult>> {
+        conn.inside_transaction(|tx| {
+            self.apply_to_tx(tx)
+        })
+    }
+
+    pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Execute> {
+        Ok(Execute {
+            sql: sql.to_string(),
+            queued_parameters: QueuedParameters::new_indexed(queued_indexed_parameters)?,
+        })
+    }
+
+    pub fn new_named(sql: &str, queued_named_parameters: &[&[(&str, &ToSql)]]) -> Result<Execute> {
+        Ok(Execute {
+            sql: sql.to_string(),
+            queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
+        })
+    }
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<ReadWrite>) -> Result<Vec<ExecuteResult>> {
         let tx = tx.as_mut();
@@ -222,7 +238,7 @@ pub struct QueryResultRow {
 }
 
 impl QueryResultRow {
-    // TODO: named index (via Statement::column_names)
+    // TODO: named column index (via Statement::column_names field)
     // TODO: get checked
 
     pub fn get<T: FromSql>(&self, idx: usize) -> T {

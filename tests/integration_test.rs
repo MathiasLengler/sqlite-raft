@@ -10,6 +10,8 @@ use sqlite_commands::Query;
 use sqlite_commands::QueryResultRow;
 use common::temp_db::with_test_db_connections;
 use std::panic::AssertUnwindSafe;
+use sqlite_commands::Execute;
+use sqlite_commands::connection::ReadWrite;
 
 mod common;
 
@@ -47,9 +49,6 @@ fn test_query_indexed() {
                 mapped_rows.map(|row| row.unwrap()).collect::<Vec<_>>()
             }).collect::<Vec<_>>();
 
-            eprintln!("expected: {:?}", expected_results);
-            eprintln!("actual:   {:?}", mapped_query_results);
-
             assert_eq!(expected_results, mapped_query_results);
         });
     }
@@ -72,8 +71,47 @@ fn test_query_indexed() {
     }
 }
 
+#[test]
+fn test_execute_indexed() {
+    fn test_execute_indexed_parameters(sql: &str, queued_params: AssertUnwindSafe<&[&[&(ToSql)]]>) {
+        with_test_db_connections(ReadWrite, |mut test_conn: AccessConnection<ReadWrite>, expected_conn: Connection| {
+            let queued_params = queued_params.0;
+
+            let execute = Execute::new_indexed(&sql, queued_params).unwrap();
+
+            let query_results = execute.apply_to_conn(&mut test_conn).unwrap();
+
+            let mapped_query_results: Vec<_> = query_results.into_iter().map(|query_result| query_result.changes()).collect();
+
+            let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
+
+            let expected_results = queued_params.iter().map(|params| {
+                expected_stmt.execute(params).unwrap()
+            }).collect::<Vec<_>>();
+
+            assert_eq!(expected_results, mapped_query_results);
+        });
+    }
+
+    let no_param = include_str!("res/sql/test_execute_no_param.sql");
+    let indexed_param = include_str!("res/sql/test_execute_indexed_param.sql");
+    let indexed_params = include_str!("res/sql/test_execute_indexed_params.sql");
+
+    let test_cases: Vec<(&str, Vec<Vec<&ToSql>>)> = vec![
+        (no_param, vec![vec![]]),
+        (indexed_param, vec![vec![&"cn"]]),
+        (indexed_param, vec![vec![&"cn"], vec![&"j_"]]),
+        (indexed_params, vec![vec![&"a_", &10], vec![&"b_", &60]]),
+    ];
+
+    for (sql, queued_params) in test_cases {
+        let queued_params_slices: Vec<_> = queued_params.iter().map(|vec| vec.as_slice()).collect();
+
+        test_execute_indexed_parameters(sql, AssertUnwindSafe(&queued_params_slices));
+    }
+}
+
 // TODO: test_query_named
-// TODO: test_execute_indexed
 // TODO: test_execute_named
 
 // TODO: test_bulk_query

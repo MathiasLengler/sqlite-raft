@@ -15,7 +15,6 @@ CREATE TABLE test_types (
   no BLOB      -- no affinity by rule 3
 );
 
--- TODO: get real data (without duplicates)
 INSERT INTO countries (rank, name, alpha_2, alpha_3)
 VALUES (4, 'Afghanistan', 'af', 'afg'),
        (248, 'Åland Islands', 'ax', 'ala'),

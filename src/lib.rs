@@ -16,6 +16,8 @@ use rusqlite::Statement;
 use parameter::QueuedParameters;
 use parameter::IndexedParameters;
 use parameter::NamedParameters;
+use rusqlite::types::FromSql;
+use rusqlite::types::ValueRef;
 
 pub mod connection;
 pub mod error;
@@ -196,6 +198,14 @@ pub struct QueryResult {
 impl QueryResult {
     // TODO: MappedRows replacement (Iterator/Vec)
 
+    pub fn into_vec(self) -> Vec<QueryResultRow> {
+        self.rows
+    }
+
+    pub fn as_slice(&self) -> &[QueryResultRow] {
+        &self.rows
+    }
+
     fn try_from(rows_iter: impl Iterator<Item=result::Result<QueryResultRow, rusqlite::Error>>)
                 -> Result<QueryResult> {
         let rows: result::Result<Vec<QueryResultRow>, rusqlite::Error> = rows_iter.collect();
@@ -212,6 +222,24 @@ pub struct QueryResultRow {
 }
 
 impl QueryResultRow {
+    // TODO: named index (via Statement::column_names)
+    // TODO: get checked
+
+    pub fn get<T: FromSql>(&self, idx: usize) -> T {
+        let value = &self.row[idx];
+        let value_ref: ValueRef = From::from(value);
+
+        FromSql::column_result(value_ref).unwrap()
+    }
+
+    pub fn into_vec(self) -> Vec<Value> {
+        self.row
+    }
+
+    pub fn as_slice(&self) -> &[Value] {
+        &self.row
+    }
+
     fn query_map_arg() -> impl FnMut(&Row) -> QueryResultRow {
         |row: &Row| {
             let row: Vec<_> = (0..row.column_count())

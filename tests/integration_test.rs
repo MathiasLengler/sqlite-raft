@@ -7,46 +7,69 @@ use rusqlite::types::ToSql;
 use sqlite_commands::connection::AccessConnection;
 use sqlite_commands::connection::ReadOnly;
 use sqlite_commands::Query;
-use std::path::PathBuf;
+use sqlite_commands::QueryResultRow;
+use common::temp_db::with_test_db_connections;
+use std::panic::AssertUnwindSafe;
 
 mod common;
 
 #[test]
 fn test_query_indexed() {
-    common::with_test_db(|test_db_path: PathBuf, expected_db_path: PathBuf| {
-        let mut test_conn = AccessConnection::open(ReadOnly, &test_db_path).unwrap();
+    fn test_query_indexed_parameters(sql: &str, queued_params: AssertUnwindSafe<&[&[&(ToSql)]]>) {
+        with_test_db_connections(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
+            let queued_params = queued_params.0;
 
-        let sql = include_str!("res/sql/test_query_indexed.sql");
+            let query = Query::new_indexed(&sql, queued_params).unwrap();
 
-        let queued_params: &[&[&ToSql]] = &[&[]];
+            let query_results = query.apply_to_conn(&mut test_conn).unwrap();
 
-        let query = Query::new_indexed(&sql, queued_params).unwrap();
+            let mapped_query_results: Vec<Vec<_>> = query_results.into_iter().map(|query_result| {
+                query_result.as_slice().iter().map(|row: &QueryResultRow| {
+                    let rank: i32 = row.get(0);
+                    let name: String = row.get(1);
+                    let alpha_2: String = row.get(2);
+                    let alpha_3: String = row.get(3);
+                    (rank, name, alpha_2, alpha_3, )
+                }).collect()
+            }).collect();
 
-        eprintln!("query = {:?}", query);
+            let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
 
-        let query_result = query.apply_to_conn(&mut test_conn).unwrap();
+            let expected_results = queued_params.iter().map(|params| {
+                let mapped_rows = expected_stmt.query_map(params, |row| {
+                    let rank: i32 = row.get(0);
+                    let name: String = row.get(1);
+                    let alpha_2: String = row.get(2);
+                    let alpha_3: String = row.get(3);
+                    (rank, name, alpha_2, alpha_3, )
+                }).unwrap();
 
-        eprintln!("query_result = {:?}", query_result);
+                mapped_rows.map(|row| row.unwrap()).collect::<Vec<_>>()
+            }).collect::<Vec<_>>();
 
-        let mut expected_conn = Connection::open(&expected_db_path).unwrap();
-        let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
+            eprintln!("expected: {:?}", expected_results);
+            eprintln!("actual:   {:?}", mapped_query_results);
 
-        // TODO: collect
-        let expected_result = queued_params.iter().map(|params| {
-            let mapped_rows = expected_stmt.query_map(params, |_| {
-                // TODO
-                1
-            }).unwrap();
+            assert_eq!(expected_results, mapped_query_results);
+        });
+    }
 
-            mapped_rows.map(|row| row.unwrap()).collect::<Vec<_>>()
-        }).collect::<Vec<_>>();
+    let no_param = include_str!("res/sql/test_query_no_param.sql");
+    let indexed_param = include_str!("res/sql/test_query_indexed_param.sql");
+    let indexed_params = include_str!("res/sql/test_query_indexed_params.sql");
 
+    let test_cases: Vec<(&str, Vec<Vec<&ToSql>>)> = vec![
+        (no_param, vec![vec![]]),
+        (indexed_param, vec![vec![&"cn"]]),
+        (indexed_param, vec![vec![&"cn"], vec![&"j_"]]),
+        (indexed_params, vec![vec![&"a_", &10], vec![&"b_", &60]]),
+    ];
 
-        // TODO: assert query result equal (using mapped rows on QueryResult)
+    for (sql, queued_params) in test_cases {
+        let queued_params_slices: Vec<_> = queued_params.iter().map(|vec| vec.as_slice()).collect();
 
-
-        common::sqldiff::assert_db_eq(&test_db_path, &expected_db_path);
-    });
+        test_query_indexed_parameters(sql, AssertUnwindSafe(&queued_params_slices));
+    }
 }
 
 // TODO: test_query_named
@@ -55,6 +78,8 @@ fn test_query_indexed() {
 
 // TODO: test_bulk_query
 // TODO: test_bulk_execute
+
+// Negative tests:
 
 // TODO: test_query_err
 // TODO: test_execute_err

@@ -2,17 +2,18 @@ extern crate rusqlite;
 extern crate sqlite_commands;
 extern crate tempfile;
 
+use common::query_helper::Country;
+use common::temp_db::with_test_db_connections;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
+use sqlite_commands::BulkQuery;
 use sqlite_commands::connection::AccessConnection;
 use sqlite_commands::connection::ReadOnly;
-use sqlite_commands::Query;
-use common::temp_db::with_test_db_connections;
-use std::panic::AssertUnwindSafe;
-use sqlite_commands::Execute;
 use sqlite_commands::connection::ReadWrite;
-use common::query_helper::Country;
-use sqlite_commands::BulkQuery;
+use sqlite_commands::Execute;
+use sqlite_commands::Query;
+use sqlite_commands::error::Error;
+use std::panic::AssertUnwindSafe;
 
 mod common;
 
@@ -224,6 +225,14 @@ fn test_bulk_query() {
 }
 
 // TODO: test_bulk_execute
+
+#[test]
+fn test_zero_parameters() {
+    use std::mem::discriminant;
+
+    assert_eq!(discriminant(&Query::new_indexed("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
+    assert_eq!(discriminant(&Query::new_named("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
+}
 
 // Negative tests:
 

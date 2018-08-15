@@ -1,4 +1,3 @@
-use common::run_test;
 use rusqlite;
 use rusqlite::Connection;
 use std::panic;
@@ -7,6 +6,36 @@ use tempfile;
 use sqlite_commands::connection::Access;
 use sqlite_commands::connection::AccessConnection;
 use common;
+
+pub fn run_test<S, T, D, TParam, DParam>(
+    setup: S,
+    test: T,
+    teardown: D,
+) -> ()
+    where S: FnOnce() -> ((TParam, DParam)),
+          T: FnOnce(TParam) -> () + panic::UnwindSafe,
+          D: FnOnce(DParam) -> () + panic::UnwindSafe,
+          TParam: panic::UnwindSafe,
+          DParam: panic::UnwindSafe,
+{
+    let (test_param, teardown_param) = setup();
+
+    let test_result = panic::catch_unwind(|| {
+        test(test_param)
+    });
+
+    let teardown_result = panic::catch_unwind(|| {
+        teardown(teardown_param);
+    });
+
+    if let Err(err) = test_result {
+        panic::resume_unwind(err);
+    }
+
+    if let Err(err) = teardown_result {
+        panic::resume_unwind(err);
+    }
+}
 
 pub fn with_test_db_paths(f: impl FnOnce(PathBuf, PathBuf) -> () + panic::UnwindSafe) {
     run_test(|| {

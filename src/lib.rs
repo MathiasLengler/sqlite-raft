@@ -4,20 +4,20 @@ extern crate rusqlite;
 
 
 use connection::AccessConnection;
+use connection::AccessTransaction;
 use connection::ReadOnly;
 use connection::ReadWrite;
 use error::Result;
-use rusqlite::Row;
-use rusqlite::types::ToSql;
-use rusqlite::types::Value;
-use std::result;
-use connection::AccessTransaction;
-use rusqlite::Statement;
-use parameter::QueuedParameters;
 use parameter::IndexedParameters;
 use parameter::NamedParameters;
+use parameter::QueuedParameters;
+use rusqlite::Row;
+use rusqlite::Statement;
 use rusqlite::types::FromSql;
+use rusqlite::types::ToSql;
+use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
+use std::result;
 
 pub mod connection;
 pub mod error;
@@ -33,7 +33,7 @@ pub mod parameter;
 
 /// Bulk execution of a series of SQL commands. Each command can have a queue of parameters.
 #[derive(Debug, Clone, PartialEq)]
-pub enum BulkSqliteCommands {
+pub enum BulkSqliteCommand {
     BulkExecute(BulkExecute),
     BulkQuery(BulkQuery),
 }
@@ -44,9 +44,13 @@ pub struct BulkExecute {
 }
 
 impl BulkExecute {
-    // TODO: new
+    pub fn new(executes: Vec<Execute>) -> BulkExecute {
+        BulkExecute {
+            executes,
+        }
+    }
 
-    pub fn apply(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<Vec<ExecuteResult>>> {
+    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<Vec<ExecuteResult>>> {
         conn.inside_transaction(|tx| {
             self.executes.iter().map(|execute| {
                 execute.apply_to_tx(tx)
@@ -61,9 +65,13 @@ pub struct BulkQuery {
 }
 
 impl BulkQuery {
-    // TODO: new
+    pub fn new(queries: Vec<Query>) -> BulkQuery {
+        BulkQuery {
+            queries,
+        }
+    }
 
-    fn apply(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<Vec<QueryResult>>> {
+    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<Vec<QueryResult>>> {
         conn.inside_transaction(|tx| {
             self.queries.iter().map(|query| {
                 query.apply_to_tx(tx)
@@ -87,12 +95,6 @@ pub struct Execute {
 }
 
 impl Execute {
-    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<ExecuteResult>> {
-        conn.inside_transaction(|tx| {
-            self.apply_to_tx(tx)
-        })
-    }
-
     pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Execute> {
         Ok(Execute {
             sql: sql.to_string(),
@@ -104,6 +106,12 @@ impl Execute {
         Ok(Execute {
             sql: sql.to_string(),
             queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
+        })
+    }
+
+    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<ExecuteResult>> {
+        conn.inside_transaction(|tx| {
+            self.apply_to_tx(tx)
         })
     }
 

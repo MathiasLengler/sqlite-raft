@@ -12,6 +12,7 @@ use std::panic::AssertUnwindSafe;
 use sqlite_commands::Execute;
 use sqlite_commands::connection::ReadWrite;
 use common::query_helper::Country;
+use sqlite_commands::BulkQuery;
 
 mod common;
 
@@ -178,7 +179,50 @@ fn test_execute_named() {
     }
 }
 
-// TODO: test_bulk_query
+#[test]
+fn test_bulk_query() {
+    with_test_db_connections(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
+        let no_param =
+            include_str!("res/sql/test_query_no_param.sql");
+        let indexed_param =
+            include_str!("res/sql/test_query_indexed_param.sql");
+        let indexed_params =
+            include_str!("res/sql/test_query_indexed_params.sql");
+
+
+        // Test
+        let test_queries = indexed_test_cases(no_param, indexed_param, indexed_params).iter().map(|(sql, queued_params)| {
+            let queued_params_slices: Vec<_> = queued_params.iter().map(|vec| vec.as_slice()).collect();
+
+            Query::new_indexed(&sql, &queued_params_slices).unwrap()
+        }).collect();
+
+        let bulk_query = BulkQuery::new(test_queries);
+
+        let bulk_query_results = bulk_query.apply_to_conn(&mut test_conn).unwrap();
+
+        let mapped_bulk_query_results: Vec<_> = bulk_query_results.into_iter().map(|query_results| {
+            let mapped_query_results: Vec<Vec<_>> = query_results.into_iter().map(|query_result| {
+                query_result.as_slice().iter().map(Country::from_indexed_query_result_row).collect()
+            }).collect();
+            mapped_query_results
+        }).collect();
+
+
+        //Expected
+        let bulk_expected_results: Vec<_> = indexed_test_cases(no_param, indexed_param, indexed_params).iter().map(|(sql, queued_params)| {
+            let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
+            let expected_results = queued_params.iter().map(|params| {
+                let mapped_rows = expected_stmt.query_map(params, Country::from_indexed_rusqlite_row).unwrap();
+                mapped_rows.map(|row| row.unwrap()).collect::<Vec<_>>()
+            }).collect::<Vec<_>>();
+            expected_results
+        }).collect();
+
+        assert_eq!(mapped_bulk_query_results, bulk_expected_results);
+    });
+}
+
 // TODO: test_bulk_execute
 
 // Negative tests:

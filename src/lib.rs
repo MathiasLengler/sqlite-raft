@@ -220,8 +220,6 @@ pub struct QueryResult {
 }
 
 impl QueryResult {
-    // TODO: MappedRows replacement (Iterator/Vec)
-
     pub fn into_vec(self) -> Vec<QueryResultRow> {
         self.rows
     }

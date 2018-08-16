@@ -1,4 +1,5 @@
 use connection::AccessTransaction;
+use connection::Command;
 use connection::ReadWrite;
 use error::Result;
 use parameter::IndexedParameters;
@@ -6,9 +7,8 @@ use parameter::NamedParameters;
 use parameter::QueuedParameters;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
-use connection::Command;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BulkExecute {
     executes: Vec<Execute>,
 }
@@ -33,7 +33,7 @@ impl Command for BulkExecute {
 }
 
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Execute {
     sql: String,
     queued_parameters: QueuedParameters,

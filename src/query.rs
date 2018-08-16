@@ -1,4 +1,5 @@
 use connection::AccessTransaction;
+use connection::Command;
 use connection::ReadOnly;
 use error::Result;
 use parameter::IndexedParameters;
@@ -12,9 +13,8 @@ use rusqlite::types::ToSql;
 use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
 use std::result;
-use connection::Command;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BulkQuery {
     queries: Vec<Query>,
 }
@@ -38,7 +38,7 @@ impl Command for BulkQuery {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Query {
     sql: String,
     queued_parameters: QueuedParameters,
@@ -94,7 +94,7 @@ impl Command for Query {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct QueryResult {
     rows: Vec<QueryResultRow>,
 }
@@ -118,8 +118,9 @@ impl QueryResult {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct QueryResultRow {
+    #[serde(with = "::value_serde")]
     row: Vec<Value>
 }
 
@@ -145,7 +146,10 @@ impl QueryResultRow {
     fn query_map_arg() -> impl FnMut(&Row) -> QueryResultRow {
         |row: &Row| {
             let row: Vec<_> = (0..row.column_count())
-                .map(|row_index| row.get(row_index)).collect();
+                .map(|row_index| {
+                    let value: Value = row.get(row_index);
+                    value
+                }).collect();
             QueryResultRow {
                 row,
             }

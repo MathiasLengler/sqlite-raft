@@ -5,7 +5,8 @@ authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 
 [dependencies]
 failure = "0.1.2"
-
+serde = "1.0.71"
+serde_derive = "1.0.71"
 
 [dependencies.rusqlite]
 version = "0.13.0"

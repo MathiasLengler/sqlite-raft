@@ -11,6 +11,9 @@
 #[macro_use]
 extern crate failure;
 extern crate rusqlite;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 
 use execute::BulkExecute;
 use execute::Execute;
@@ -22,9 +25,10 @@ pub mod error;
 pub mod parameter;
 pub mod query;
 pub mod execute;
+mod value_serde;
 
 /// Every possible SQLite command. Used as a serialization root point for transferring SQLite commands.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteCommand {
     Execute(SqliteExecute),
     Query(SqliteQuery),
@@ -32,7 +36,7 @@ pub enum SqliteCommand {
 
 /// A single SQLite query or a series of them.
 /// A query is a SQL-Command which can't modify the DB and requires `ReadOnly` access to be run, e.g. a `SELECT` statement.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteQuery {
     /// Execute a single query once or multiple times with different parameters.
     Single(Query),
@@ -42,7 +46,7 @@ pub enum SqliteQuery {
 
 /// A single SQLite statement or a series of them.
 /// A statement is a SQL-Command which can modify the DB and requires `ReadWrite` access to be run, e.g. everything but a query.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteExecute {
     /// Execute a single statement once or multiple times with different parameters.
     Single(Execute),

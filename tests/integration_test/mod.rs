@@ -1,6 +1,7 @@
 use rusqlite::types::ToSql;
 use sqlite_commands::Query;
 use sqlite_commands::error::Error;
+use sqlite_commands::Execute;
 
 mod query;
 mod execute;
@@ -32,11 +33,13 @@ fn named_test_cases<'a>(no_param: &'a str,
 
 
 #[test]
-fn test_zero_parameters() {
+fn test_no_queued_parameters_err() {
     use std::mem::discriminant;
 
     assert_eq!(discriminant(&Query::new_indexed("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
     assert_eq!(discriminant(&Query::new_named("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
+    assert_eq!(discriminant(&Execute::new_indexed("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
+    assert_eq!(discriminant(&Execute::new_named("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
 }
 
 

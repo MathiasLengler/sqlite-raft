@@ -24,20 +24,20 @@ pub mod query;
 pub mod execute;
 
 #[derive(Debug, Clone, PartialEq)]
-enum SqliteCommand {
+pub enum SqliteCommand {
     Execute(SqliteExecute),
     Query(SqliteQuery),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-enum SqliteQuery {
+pub enum SqliteQuery {
     /// Execute a single query once or multiple times with different parameters.
     Single(Query),
     Bulk(BulkQuery),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-enum SqliteExecute {
+pub enum SqliteExecute {
     /// Execute a single statement once or multiple times with different parameters.
     Single(Execute),
     Bulk(BulkExecute),

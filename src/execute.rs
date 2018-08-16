@@ -1,4 +1,3 @@
-use connection::AccessConnection;
 use connection::AccessTransaction;
 use connection::ReadWrite;
 use error::Result;
@@ -7,6 +6,7 @@ use parameter::NamedParameters;
 use parameter::QueuedParameters;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
+use connection::Command;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BulkExecute {
@@ -19,15 +19,19 @@ impl BulkExecute {
             executes,
         }
     }
+}
 
-    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<Vec<ExecuteResult>>> {
-        conn.inside_transaction(|tx| {
-            self.executes.iter().map(|execute| {
-                execute.apply_to_tx(tx)
-            }).collect::<Result<Vec<_>>>()
-        })
+impl Command for BulkExecute {
+    type Access = ReadWrite;
+    type Return = Vec<Vec<ExecuteResult>>;
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+        self.executes.iter().map(|execute| {
+            execute.apply_to_tx(tx)
+        }).collect::<Result<Vec<_>>>()
     }
 }
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Execute {
@@ -49,15 +53,14 @@ impl Execute {
             queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
         })
     }
+}
 
-    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadWrite>) -> Result<Vec<ExecuteResult>> {
-        conn.inside_transaction(|tx| {
-            self.apply_to_tx(tx)
-        })
-    }
+impl Command for Execute {
+    type Access = ReadWrite;
+    type Return = Vec<ExecuteResult>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<ReadWrite>) -> Result<Vec<ExecuteResult>> {
-        let tx = tx.as_mut();
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+        let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 
         let res = self.queued_parameters.map_parameter_variants(
@@ -85,6 +88,7 @@ impl Execute {
         res
     }
 }
+
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct ExecuteResult {

@@ -19,9 +19,9 @@ impl<A: Access> AccessConnection<A> {
         })
     }
 
-    pub fn run<T>(&mut self, command: T) -> T::Return
+    pub fn run<T>(&mut self, command: &T) -> Result<T::Return>
         where T: Command<Access=A> {
-        command.run_on_conn(self)
+        self.inside_transaction(|tx| command.apply_to_tx(tx))
     }
 
     pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessTransaction<A>) -> Result<T>) -> Result<T> {
@@ -42,17 +42,17 @@ impl<A: Access> AccessConnection<A> {
     }
 }
 
-pub(crate) struct AccessTransaction<'conn, A: Access> {
+pub struct AccessTransaction<'conn, A: Access> {
     tx: Transaction<'conn>,
     _access: A,
 }
 
 impl<'conn, A: Access> AccessTransaction<'conn, A> {
-    pub(crate) fn as_mut(&mut self) -> &mut Transaction<'conn> {
+    pub fn as_mut_inner(&mut self) -> &mut Transaction<'conn> {
         &mut self.tx
     }
 
-    fn into_inner(self) -> Transaction<'conn> {
+    pub fn into_inner(self) -> Transaction<'conn> {
         self.tx
     }
 }
@@ -94,5 +94,5 @@ pub trait Command {
     type Access: Access;
     type Return;
 
-    fn run_on_conn(&self, conn: &mut AccessConnection<Self::Access>) -> Self::Return;
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return>;
 }

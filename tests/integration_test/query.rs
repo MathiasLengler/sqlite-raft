@@ -18,7 +18,8 @@ fn test_query_indexed() {
             let queued_params = queued_params.0;
 
             let query = Query::new_indexed(&sql, queued_params).unwrap();
-            let query_results = query.apply_to_conn(&mut test_conn).unwrap();
+
+            let query_results = test_conn.run(&query).unwrap();
             let mapped_query_results: Vec<Vec<_>> = query_results.into_iter().map(|query_result| {
                 query_result.as_slice().iter().map(Country::from_indexed_query_result_row).collect()
             }).collect();
@@ -54,7 +55,7 @@ fn test_query_named() {
             let queued_params = queued_params.0;
 
             let query = Query::new_named(&sql, queued_params).unwrap();
-            let query_results = query.apply_to_conn(&mut test_conn).unwrap();
+            let query_results = test_conn.run(&query).unwrap();
             let mapped_query_results: Vec<Vec<_>> = query_results.into_iter().map(|query_result| {
                 query_result.as_slice().iter().map(Country::from_indexed_query_result_row).collect()
             }).collect();
@@ -103,8 +104,7 @@ fn test_bulk_query() {
 
         let bulk_query = BulkQuery::new(test_queries);
 
-        let bulk_query_results = bulk_query.apply_to_conn(&mut test_conn).unwrap();
-
+        let bulk_query_results = test_conn.run(&bulk_query).unwrap();
         let mapped_bulk_query_results: Vec<_> = bulk_query_results.into_iter().map(|query_results| {
             let mapped_query_results: Vec<Vec<_>> = query_results.into_iter().map(|query_result| {
                 query_result.as_slice().iter().map(Country::from_indexed_query_result_row).collect()

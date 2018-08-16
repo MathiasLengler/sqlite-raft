@@ -1,4 +1,3 @@
-use connection::AccessConnection;
 use connection::AccessTransaction;
 use connection::ReadOnly;
 use error::Result;
@@ -13,6 +12,7 @@ use rusqlite::types::ToSql;
 use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
 use std::result;
+use connection::Command;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BulkQuery {
@@ -25,16 +25,18 @@ impl BulkQuery {
             queries,
         }
     }
-
-    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<Vec<QueryResult>>> {
-        conn.inside_transaction(|tx| {
-            self.queries.iter().map(|query| {
-                query.apply_to_tx(tx)
-            }).collect::<Result<Vec<_>>>()
-        })
-    }
 }
 
+impl Command for BulkQuery {
+    type Access = ReadOnly;
+    type Return = Vec<Vec<QueryResult>>;
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+        self.queries.iter().map(|query| {
+            query.apply_to_tx(tx)
+        }).collect::<Result<Vec<_>>>()
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Query {
@@ -43,7 +45,7 @@ pub struct Query {
 }
 
 impl Query {
-    // TODO: add single non-queued parameter convenience constructor
+    // TODO: add single non-queued parameter convenience constructor (return value?)
 
     pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Query> {
         Ok(Query {
@@ -58,15 +60,14 @@ impl Query {
             queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
         })
     }
+}
 
-    pub fn apply_to_conn(&self, conn: &mut AccessConnection<ReadOnly>) -> Result<Vec<QueryResult>> {
-        conn.inside_transaction(|tx| {
-            self.apply_to_tx(tx)
-        })
-    }
+impl Command for Query {
+    type Access = ReadOnly;
+    type Return = Vec<QueryResult>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<ReadOnly>) -> Result<Vec<QueryResult>> {
-        let tx = tx.as_mut();
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+        let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 
         let res = self.queued_parameters.map_parameter_variants(

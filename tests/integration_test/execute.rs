@@ -16,7 +16,7 @@ fn test_execute_indexed() {
             let queued_params = queued_params.0;
 
             let execute = Execute::new_indexed(&sql, queued_params).unwrap();
-            let execute_results = execute.apply_to_conn(&mut test_conn).unwrap();
+            let execute_results = test_conn.run(&execute).unwrap();
             let mapped_execute_results: Vec<_> = execute_results.into_iter().map(|execute_result| execute_result.changes()).collect();
 
             let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
@@ -49,7 +49,7 @@ fn test_execute_named() {
             let queued_params = queued_params.0;
 
             let execute = Execute::new_named(&sql, queued_params).unwrap();
-            let execute_results = execute.apply_to_conn(&mut test_conn).unwrap();
+            let execute_results = test_conn.run(&execute).unwrap();
             let mapped_execute_results: Vec<_> = execute_results.into_iter().map(|execute_result| execute_result.changes()).collect();
 
             let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
@@ -95,7 +95,7 @@ fn test_bulk_execute() {
 
         let bulk_execute = BulkExecute::new(test_queries);
 
-        let bulk_execute_results = bulk_execute.apply_to_conn(&mut test_conn).unwrap();
+        let bulk_execute_results = test_conn.run(&bulk_execute).unwrap();
 
         let mapped_bulk_execute_results: Vec<_> = bulk_execute_results.into_iter().map(|execute_results| {
             let mapped_execute_results: Vec<_> = execute_results.into_iter().map(|execute_result| {

@@ -4,10 +4,10 @@ use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use sqlite_commands::connection::AccessConnection;
 use sqlite_commands::connection::ReadWrite;
-use sqlite_commands::Execute;
+use sqlite_commands::execute::BulkExecute;
+use sqlite_commands::execute::Execute;
 use std::panic::AssertUnwindSafe;
 use utils::temp_db::with_test_db_connections;
-use sqlite_commands::BulkExecute;
 
 #[test]
 fn test_execute_indexed() {

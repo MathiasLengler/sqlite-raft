@@ -1,11 +1,11 @@
-use std::result;
 use rusqlite;
+use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "")]
+    #[fail(display = "No queued parameters for SQLite command. At least one (empty) parameter list must be given.")]
     NoQueuedParameters,
 
     #[fail(display = "{}", _0)]

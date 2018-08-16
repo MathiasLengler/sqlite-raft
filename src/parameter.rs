@@ -1,9 +1,9 @@
-use error::Result;
-use rusqlite::types::ToSql;
-use rusqlite::types::Value;
-use rusqlite::Statement;
-use rusqlite::types::ToSqlOutput;
 use error::Error;
+use error::Result;
+use rusqlite::Statement;
+use rusqlite::types::ToSql;
+use rusqlite::types::ToSqlOutput;
+use rusqlite::types::Value;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum QueuedParameters {

@@ -1,8 +1,8 @@
+use error::Result;
 use rusqlite::Connection;
 use rusqlite::OpenFlags;
-use std::path::Path;
-use error::Result;
 use rusqlite::Transaction;
+use std::path::Path;
 
 pub struct AccessConnection<A: Access> {
     conn: Connection,

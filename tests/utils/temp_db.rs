@@ -1,10 +1,10 @@
 use rusqlite;
 use rusqlite::Connection;
+use sqlite_commands::connection::Access;
+use sqlite_commands::connection::AccessConnection;
 use std::panic;
 use std::path::PathBuf;
 use tempfile;
-use sqlite_commands::connection::Access;
-use sqlite_commands::connection::AccessConnection;
 use utils::sqldiff::assert_db_eq;
 
 pub fn run_test<S, T, D, TParam, DParam>(

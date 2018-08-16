@@ -1,5 +1,5 @@
-use sqlite_commands::QueryResultRow;
 use rusqlite::Row;
+use sqlite_commands::query::QueryResultRow;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Country {

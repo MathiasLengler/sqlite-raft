@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use tempfile;
 use sqlite_commands::connection::Access;
 use sqlite_commands::connection::AccessConnection;
-use common;
+use utils::sqldiff::assert_db_eq;
 
 pub fn run_test<S, T, D, TParam, DParam>(
     setup: S,
@@ -68,6 +68,6 @@ pub fn with_test_db_connections<A: Access + panic::RefUnwindSafe>(
     with_test_db_paths(|test_db_path: PathBuf, expected_db_path: PathBuf| {
         f(AccessConnection::open(access, &test_db_path).unwrap(), Connection::open(&expected_db_path).unwrap());
 
-        common::sqldiff::assert_db_eq(&test_db_path, &expected_db_path);
+        assert_db_eq(&test_db_path, &expected_db_path);
     })
 }

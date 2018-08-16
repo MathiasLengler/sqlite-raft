@@ -36,7 +36,6 @@ impl BulkQuery {
 }
 
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Query {
     sql: String,

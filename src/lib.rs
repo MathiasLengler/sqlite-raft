@@ -24,39 +24,21 @@ pub mod query;
 pub mod execute;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum SqliteCommand {
-    Single(SingleSqliteCommand),
-    Bulk(BulkSqliteCommand),
-}
-
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum SingleSqliteCommand {
-    /// Execute a statement once or multiple times with different parameters.
-    Execute(Execute),
-    /// Execute a query once or multiple times with different parameters.
-    Query(Query),
-}
-
-/// Bulk execution of a series of SQL commands. Each command can have a queue of parameters.
-#[derive(Debug, Clone, PartialEq)]
-pub enum BulkSqliteCommand {
-    BulkExecute(BulkExecute),
-    BulkQuery(BulkQuery),
-}
-
-// TODO: decide between the tow structures
-enum TestSqliteCommand {
+enum SqliteCommand {
     Execute(SqliteExecute),
     Query(SqliteQuery),
 }
 
+#[derive(Debug, Clone, PartialEq)]
 enum SqliteQuery {
+    /// Execute a single query once or multiple times with different parameters.
     Single(Query),
     Bulk(BulkQuery),
 }
 
+#[derive(Debug, Clone, PartialEq)]
 enum SqliteExecute {
+    /// Execute a single statement once or multiple times with different parameters.
     Single(Execute),
     Bulk(BulkExecute),
 }

@@ -1,3 +1,13 @@
+//! # TODO
+//!
+//! ## Sanitize input using sqlpop:
+//! match SELECT / INSERT
+//! inline random()/etc.
+//!
+//! ## Serializaction
+//! - serde
+//! - protobuf
+
 #[macro_use]
 extern crate failure;
 extern crate rusqlite;
@@ -7,27 +17,18 @@ use execute::Execute;
 use query::BulkQuery;
 use query::Query;
 
-
 pub mod connection;
 pub mod error;
 pub mod parameter;
 pub mod query;
 pub mod execute;
 
-/// TODO:
-///
-/// Sanitize input using sqlpop:
-/// match SELECT / INSERT
-/// inline random()/etc.
-///
-/// serde/protobuf
-
-/// Bulk execution of a series of SQL commands. Each command can have a queue of parameters.
 #[derive(Debug, Clone, PartialEq)]
-pub enum BulkSqliteCommand {
-    BulkExecute(BulkExecute),
-    BulkQuery(BulkQuery),
+pub enum SqliteCommand {
+    Single(SingleSqliteCommand),
+    Bulk(BulkSqliteCommand),
 }
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SingleSqliteCommand {
@@ -37,3 +38,25 @@ pub enum SingleSqliteCommand {
     Query(Query),
 }
 
+/// Bulk execution of a series of SQL commands. Each command can have a queue of parameters.
+#[derive(Debug, Clone, PartialEq)]
+pub enum BulkSqliteCommand {
+    BulkExecute(BulkExecute),
+    BulkQuery(BulkQuery),
+}
+
+// TODO: decide between the tow structures
+enum TestSqliteCommand {
+    Execute(SqliteExecute),
+    Query(SqliteQuery),
+}
+
+enum SqliteQuery {
+    Single(Query),
+    Bulk(BulkQuery),
+}
+
+enum SqliteExecute {
+    Single(Execute),
+    Bulk(BulkExecute),
+}

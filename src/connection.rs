@@ -19,6 +19,11 @@ impl<A: Access> AccessConnection<A> {
         })
     }
 
+    pub fn run<T>(&mut self, command: T) -> T::Return
+        where T: Command<Access=A> {
+        command.run_on_conn(self)
+    }
+
     pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessTransaction<A>) -> Result<T>) -> Result<T> {
         let mut access_tx = self.access_transaction()?;
 
@@ -83,4 +88,11 @@ impl Access for ReadWrite {
 
         Ok(conn)
     }
+}
+
+pub trait Command {
+    type Access: Access;
+    type Return;
+
+    fn run_on_conn(&self, conn: &mut AccessConnection<Self::Access>) -> Self::Return;
 }

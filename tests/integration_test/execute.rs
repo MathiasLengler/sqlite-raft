@@ -8,6 +8,7 @@ use sqlite_commands::execute::BulkExecute;
 use sqlite_commands::execute::Execute;
 use std::panic::AssertUnwindSafe;
 use utils::temp_db::with_test_db_connections;
+use integration_test::queued_params_as_arg;
 
 #[test]
 fn test_execute_indexed() {
@@ -36,7 +37,7 @@ fn test_execute_indexed() {
         include_str!("../res/sql/test_execute_indexed_params.sql");
 
     for (sql, queued_params) in indexed_test_cases(no_param, indexed_param, indexed_params) {
-        let queued_params_slices: Vec<_> = queued_params.iter().map(|vec| vec.as_slice()).collect();
+        let queued_params_slices: Vec<_> = queued_params_as_arg(&queued_params);
 
         test_execute_indexed_parameters(sql, AssertUnwindSafe(&queued_params_slices));
     }
@@ -69,7 +70,7 @@ fn test_execute_named() {
         include_str!("../res/sql/test_execute_named_params.sql");
 
     for (sql, queued_params) in named_test_cases(no_param, named_param, named_params) {
-        let queued_params_slices: Vec<_> = queued_params.iter().map(|vec| vec.as_slice()).collect();
+        let queued_params_slices: Vec<_> = queued_params_as_arg(&queued_params);;
 
         test_execute_named_parameters(sql, AssertUnwindSafe(&queued_params_slices));
     }
@@ -88,7 +89,7 @@ fn test_bulk_execute() {
 
         // Test
         let test_queries = indexed_test_cases(no_param, indexed_param, indexed_params).iter().map(|(sql, queued_params)| {
-            let queued_params_slices: Vec<_> = queued_params.iter().map(|vec| vec.as_slice()).collect();
+            let queued_params_slices: Vec<_> = queued_params_as_arg(&queued_params);;
 
             Execute::new_indexed(&sql, &queued_params_slices).unwrap()
         }).collect();

@@ -27,6 +27,8 @@ pub mod query;
 pub mod execute;
 mod value_serde;
 
+// TODO: Naming: SqliteQuery/Query vs Query/SingleQuery
+
 /// Every possible SQLite command. Used as a serialization root point for transferring SQLite commands.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteCommand {

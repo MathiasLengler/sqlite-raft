@@ -5,6 +5,7 @@ use sqlite_commands::query::Query;
 
 mod query;
 mod execute;
+mod serde;
 
 fn indexed_test_cases<'a>(no_param: &'a str,
                           indexed_param: &'a str,
@@ -31,6 +32,9 @@ fn named_test_cases<'a>(no_param: &'a str,
     ]
 }
 
+fn queued_params_as_arg<T>(queued_params: &[Vec<T>]) -> Vec<&[T]> {
+    queued_params.iter().map(|vec| vec.as_slice()).collect()
+}
 
 #[test]
 fn test_no_queued_parameters_err() {

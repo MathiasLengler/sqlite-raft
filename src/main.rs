@@ -4,22 +4,48 @@
 /// Timeout behaviour
 /// Propose a sql command -> get back response from node
 ///
+/// ## API
+///
+/// `run(enum SqliteCommand) -> ?`
+///
+/// vs
+///
+/// Separate methods for each command type:
+/// - Query
+/// - Execute
+/// - BulkQuery
+/// - BulkExecute
+///
 /// # Node <-> Node
 /// Pass raft-rs messages
-/// Bidirectional
-/// Two send endpoints
+/// Bidirectional / Two send endpoints
 ///
 /// ## Testing
-/// Communication Trait
-/// `send(Msg) -> ()`
+/// Communication Trait (for channel transport)
+/// `send(Msg) -> ()` (async)
+///
+/// # Node
+///
+/// client request -> raft propose -> wait for raft commit -> find callback -> complete client request
+///
+/// Must bridge Future/Raft stepping API
 ///
 /// # sqlite-commands
 /// - port data structures to protobuf
 ///     - How to add functionality to generated structs?
-/// - transpile data structures to profobuf
-///     - serde?
-/// - Custom wrapper around serde bincode
-///     - use only transport infrastructure
+///     - sqlite-commands already implemented in rust
+/// - Custom wrapper around serde payload
+///     - use gRPC transport infrastructure (timeout, compression, ...)
+///     - NodeToNode as bincode, ClientToNode as JSON
+///     - mixed client experience
+///         - has to generate JSON and gRPC
+///         - plain JSON better? HTTP Server?
+///         - bad for bandwidth/performance
+/// - Hybrid
+///     - port only the API layer for Clients
+///         - big percentage of sqlite-commands
+///     - NodeToNode still bincode
+///     - ClientToNode pure protobuf/grpc
 ///
 
 fn main() {

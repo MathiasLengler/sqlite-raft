@@ -46,7 +46,8 @@
 ///         - big percentage of sqlite-commands
 ///     - NodeToNode still bincode
 ///     - ClientToNode pure protobuf/grpc
-///
+
+// TODO: compile grpcio on windows
 
 fn main() {
     println!("Hello, world!");

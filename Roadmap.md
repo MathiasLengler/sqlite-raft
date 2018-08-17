@@ -6,18 +6,17 @@
   - Map/Reduce query
     - quite complex
     - makes use of replication
+    - At specific commit index?
   - Talk to multiple nodes
     - Avoid redirected traffic when proposing to a follower
 
 ## Remote database API
 - Transport
-  - bincode over TCP
   - HTTP server
     - JSON API
       - rqlite template
     - Protobuf
   - RPC (how to support raft lib messages?)
-    - tarpc
     - gRPC
 - Features
   - Runs on every node (no single point of failure)
@@ -134,7 +133,6 @@
   - Could be useful for testing hooks
 
 ## Unresolved Questions
-- SQL Transactions / Multiple Statements / Intermediate results
 - SQL Statement Validation before state machine application
   - Fundamental problem: race condition with other proposed statements
     - eg ALTER TABLE followed by INSERT against old schema
@@ -144,6 +142,8 @@
     - Useful for sanity/syntax check
     - Fast fail of request
       - Does prepared statement validate before executing? (alternative)
+    - Could be slow
+  - Parse SQL syntax 
 - SQL user defined functions
   - Usecase?
 - When/how to compact in raft-rs

@@ -5,7 +5,6 @@
 //! inline random()/etc.
 //!
 //! ## Serialization
-//! - serde
 //! - protobuf
 
 #[macro_use]

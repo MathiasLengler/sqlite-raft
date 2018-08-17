@@ -36,6 +36,30 @@ pub enum SqliteCommand {
     Query(SqliteQuery),
 }
 
+impl From<Query> for SqliteCommand {
+    fn from(query: Query) -> Self {
+        SqliteCommand::Query(SqliteQuery::Single(query))
+    }
+}
+
+impl From<BulkQuery> for SqliteCommand {
+    fn from(bulk_query: BulkQuery) -> Self {
+        SqliteCommand::Query(SqliteQuery::Bulk(bulk_query))
+    }
+}
+
+impl From<Execute> for SqliteCommand {
+    fn from(execute: Execute) -> Self {
+        SqliteCommand::Execute(SqliteExecute::Single(execute))
+    }
+}
+
+impl From<BulkExecute> for SqliteCommand {
+    fn from(bulk_execute: BulkExecute) -> Self {
+        SqliteCommand::Execute(SqliteExecute::Bulk(bulk_execute))
+    }
+}
+
 /// A single SQLite query or a series of them.
 /// A query is a SQL-Command which can't modify the DB and requires `ReadOnly` access to be run, e.g. a `SELECT` statement.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

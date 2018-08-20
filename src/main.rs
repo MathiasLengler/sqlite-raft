@@ -46,7 +46,7 @@ use log_entry::LogEntryKey;
 type ProposeCallback = Box<Fn() + Send>;
 
 #[derive(Serialize, SerDebug)]
-enum Msg {
+enum TransportMessage {
     Propose(Propose),
     Raft(Message),
 }
@@ -66,14 +66,14 @@ impl Propose {
         }
     }
 
-    fn into_msg(self) -> Msg {
-        Msg::Propose(self)
+    fn into_msg(self) -> TransportMessage {
+        TransportMessage::Propose(self)
     }
 }
 
 struct Router {
-    senders: Vec<Sender<Msg>>,
-    receiver: Receiver<Msg>,
+    senders: Vec<Sender<TransportMessage>>,
+    receiver: Receiver<TransportMessage>,
     own_node_id: u64,
 }
 
@@ -81,9 +81,9 @@ impl Router {
     pub fn new_mesh(node_count: u64) -> Vec<Router> {
         let node_ids = 1..=node_count;
 
-        let (senders, receivers): (Vec<Sender<Msg>>, Vec<Receiver<Msg>>) =
+        let (senders, receivers): (Vec<Sender<TransportMessage>>, Vec<Receiver<TransportMessage>>) =
             node_ids
-                .map(|_| mpsc::channel::<Msg>())
+                .map(|_| mpsc::channel::<TransportMessage>())
                 .unzip();
 
         receivers.into_iter().enumerate().map(|(i, receiver)| {
@@ -102,14 +102,14 @@ impl Router {
             panic!("Tried to send message to own node: {:?} ", msg)
         }
 
-        self.get_sender(msg.to).send(Msg::Raft(msg)).unwrap();
+        self.get_sender(msg.to).send(TransportMessage::Raft(msg)).unwrap();
     }
 
-    fn get_sender(&self, node_id: u64) -> &Sender<Msg> {
+    fn get_sender(&self, node_id: u64) -> &Sender<TransportMessage> {
         &self.senders[(node_id - 1) as usize]
     }
 
-    pub fn clone_own_sender(&self) -> Sender<Msg> {
+    pub fn clone_own_sender(&self) -> Sender<TransportMessage> {
         self.get_sender(self.own_node_id).clone()
     }
 }
@@ -205,12 +205,12 @@ fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool) {
 
     loop {
         match router.receiver.recv_timeout(timeout) {
-            Ok(Msg::Propose(Propose { log_entry, cb })) => {
+            Ok(TransportMessage::Propose(Propose { log_entry, cb })) => {
                 cbs.insert(log_entry.key(), cb);
 
                 r.propose(vec![], log_entry.to_vec_u8()).unwrap();
             }
-            Ok(Msg::Raft(m)) => r.step(m).unwrap(),
+            Ok(TransportMessage::Raft(m)) => r.step(m).unwrap(),
             Err(RecvTimeoutError::Timeout) => (),
             Err(RecvTimeoutError::Disconnected) => return,
         }
@@ -316,7 +316,7 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeC
     r.advance(ready);
 }
 
-fn send_propose(sender: mpsc::Sender<Msg>, mut log_entry_factory: LogEntryFactory) {
+fn send_propose(sender: mpsc::Sender<TransportMessage>, mut log_entry_factory: LogEntryFactory) {
     thread::spawn(move || {
         // Wait some time and send the request to the Raft.
         thread::sleep(Duration::from_secs(10));

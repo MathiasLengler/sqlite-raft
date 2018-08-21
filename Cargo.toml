@@ -2,6 +2,18 @@
 name = "grpc-experiments"
 version = "0.1.0"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
+autobins = true
 
 [dependencies]
 grpcio = "0.3.0"
+futures = "^0.1.15"
+log = "0.4.4"
+slog = "2.3.2"
+slog-async = "2.3.0"
+slog-scope = "4.0.1"
+slog-stdlog = "3.0.2"
+slog-term = "2.4.0"
+protobuf = "2.0.4"
+
+[build-dependencies]
+protoc-grpcio = "0.2.0"

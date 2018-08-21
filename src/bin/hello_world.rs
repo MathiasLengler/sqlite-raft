@@ -47,6 +47,8 @@
 ///     - NodeToNode still bincode
 ///     - ClientToNode pure protobuf/grpc
 
+extern crate grpcio;
+
 // TODO: compile grpcio on windows
 
 fn main() {

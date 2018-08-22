@@ -44,13 +44,25 @@
 /// - Hybrid
 ///     - port only the API layer for Clients
 ///         - big percentage of sqlite-commands
-///     - NodeToNode still bincode
-///     - ClientToNode pure protobuf/grpc
+///     - mirror API and provide from impls
 
 extern crate grpcio;
+extern crate grpc_experiments;
 
-// TODO: compile grpcio on windows
+use grpc_experiments::proto_gen::helloworld::QueryRequest;
+use grpc_experiments::proto_gen::helloworld::SerdeContainer_oneof_format;
 
 fn main() {
+    let request = QueryRequest::new();
+
+    match request.get_payload().format {
+        Some(SerdeContainer_oneof_format::json(json)) => {},
+        Some(SerdeContainer_oneof_format::rust_bincode(json)) => {},
+        None => {},
+    }
+
+
     println!("Hello, world!");
+
+
 }

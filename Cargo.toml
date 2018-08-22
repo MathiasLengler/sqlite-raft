@@ -2,7 +2,6 @@
 name = "grpc-experiments"
 version = "0.1.0"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
-autobins = true
 
 [dependencies]
 grpcio = "0.3.0"

@@ -1,0 +1,6 @@
+# Ignore everything
+*
+# But not this file
+!.gitignore
+# And not the root mod.rs
+!mod.rs

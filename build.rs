@@ -9,27 +9,18 @@ fn main() {
     let proto_root = "src/proto";
     println!("cargo:rerun-if-changed={}", proto_root);
 
-    let current_dir = env::current_dir().unwrap();
-    eprintln!("current_dir = {:?}", current_dir);
+    let proto_files = ["helloworld.proto"];
 
-    let out_dir = env::var("OUT_DIR").unwrap();
-    eprintln!("out_dir = {:?}", out_dir);
+    for proto_file in proto_files.iter() {
+        println!("cargo:rerun-if-changed={}/{}", proto_root, proto_file);
+    }
 
-    let output_dir: path::PathBuf = [&out_dir].iter().collect();
-
-    let mod_rs = output_dir.join("mod.rs");
-    let mut module = File::create(mod_rs).unwrap();
-
-    module.write_all(
-        r#"
-pub mod helloworld_grpc;
-pub mod helloworld;
-"#.as_bytes()
-    ).unwrap();
+    let proto_gen_output = "src/proto_gen";
 
     protoc_grpcio::compile_grpc_protos(
-        &["helloworld.proto"],
+        &proto_files,
         &[proto_root],
-        &output_dir
+        &proto_gen_output,
     ).expect("Failed to compile gRPC definitions!");
+
 }

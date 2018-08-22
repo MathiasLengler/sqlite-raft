@@ -56,4 +56,6 @@ fn test_serde() {
 
     assert_eq!(commands, bincode_deserialized);
     assert_eq!(commands, json_deserialized);
+
+    // TODO: execute and test result sets
 }

@@ -1,15 +1,10 @@
 extern crate protoc_grpcio;
 
-use std::env;
-use std::path;
-use std::fs::File;
-use std::io::prelude::*;
-
 fn main() {
     let proto_root = "src/proto";
     println!("cargo:rerun-if-changed={}", proto_root);
 
-    let proto_files = ["helloworld.proto"];
+    let proto_files = ["helloworld.proto", "eraftpb.proto", "raftsqlite.proto"];
 
     for proto_file in proto_files.iter() {
         println!("cargo:rerun-if-changed={}/{}", proto_root, proto_file);

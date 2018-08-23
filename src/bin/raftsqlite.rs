@@ -49,20 +49,11 @@
 extern crate grpcio;
 extern crate grpc_experiments;
 
-use grpc_experiments::proto_gen::helloworld::QueryRequest;
-use grpc_experiments::proto_gen::helloworld::SerdeContainer_oneof_format;
+use grpc_experiments::proto_gen::raftsqlite::QueryRequest;
 
 fn main() {
-    let request = QueryRequest::new();
-
-    match request.get_payload().format {
-        Some(SerdeContainer_oneof_format::json(json)) => {},
-        Some(SerdeContainer_oneof_format::rust_bincode(json)) => {},
-        None => {},
-    }
 
 
     println!("Hello, world!");
-
 
 }

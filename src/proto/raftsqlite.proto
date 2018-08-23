@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+import "eraftpb.proto";
+
+package helloworld;
+
+service RaftNode {
+  // TODO: impl conversions between this generated eraftpb and the raft-rs version
+  rpc accept (eraftpb.Message) returns (Empty);
+}
+
+message Empty {
+}
+
+service RaftSqliteAPI {
+  rpc Query (QueryRequest) returns (QueryResponse);
+  rpc Execute (ExecuteRequest) returns (ExecuteResponse);
+  rpc BulkQuery (BulkQueryRequest) returns (BulkQueryResponse);
+  rpc BulkExecute (BulkExecuteRequest) returns (BulkExecuteResponse);
+}
+
+message QueryRequest {
+  string sql = 1;
+  QueuedParameters queued_parameters = 2;
+}
+
+message QueuedParameters {
+  oneof queued_parameters {
+    QueuedIndexedParameters queued_indexed_parameters = 1;
+    QueuedNamedParameters queued_named_parameters = 2;
+  }
+}
+
+message QueuedIndexedParameters {
+  repeated IndexedParameters queued_indexed_parameters = 1;
+}
+
+message QueuedNamedParameters {
+  repeated NamedParameters queued_named_parameters = 1;
+}
+
+message IndexedParameters {
+  repeated Value parameters = 1;
+}
+
+message NamedParameters {
+  repeated Value parameters = 1;
+}
+
+message Value {
+  oneof value {
+    /// The value is a `NULL` value.
+    Null null = 1;
+    /// The value is a signed integer.
+    int64 integer  = 2;
+    /// The value is a floating point number.
+    double real  = 3;
+    /// The value is a text string.
+    string text  = 4;
+    /// The value is a blob of data
+    bytes blob  = 5;
+  }
+}
+
+message Null {
+
+}
+
+message QueryResponse {
+  repeated QueryResult query_result = 1;
+}
+
+message QueryResult {
+  repeated QueryResultRow rows = 1;
+}
+
+message QueryResultRow {
+  repeated Value row = 1;
+}
+
+message ExecuteRequest {
+  string sql = 1;
+  QueuedParameters queued_parameters = 2;
+}
+
+message ExecuteResponse {
+  repeated ExecuteResult execute_result = 1;
+}
+
+message ExecuteResult {
+  int32 changes = 1;
+}
+
+
+message BulkExecuteRequest {
+
+}
+message BulkExecuteResponse {
+
+}
+message BulkQueryRequest {
+
+}
+message BulkQueryResponse {
+
+}

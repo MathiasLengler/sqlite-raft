@@ -92,12 +92,12 @@ impl Command for Execute {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct ExecuteResult {
-    changes: i32
+    changes: usize
 }
 
 impl ExecuteResult {
     /// The number of rows that were changed or inserted or deleted.
-    pub fn changes(&self) -> i32 {
+    pub fn changes(&self) -> usize {
         self.changes
     }
 }

@@ -4,16 +4,21 @@ version = "0.1.0"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 
 [dependencies]
-grpcio = "0.3.0"
-futures = "^0.1.15"
-log = "0.4.4"
-slog = "2.3.2"
+futures = "0.1.24"
+log = "0.4.5"
+slog = "2.3.3"
 slog-async = "2.3.0"
 slog-scope = "4.0.1"
 slog-stdlog = "3.0.2"
 slog-term = "2.4.0"
 protobuf = "2.0.4"
 raft = { path = "../raft-rs" }
+sqlite-commands = { path = "../sqlite-commands"}
+
+[dependencies.grpcio]
+version = "0.3.1"
+default-features = false
+features = ["protobuf-codec"]
 
 [build-dependencies]
 protoc-grpcio = "0.2.0"

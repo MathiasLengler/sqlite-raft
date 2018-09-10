@@ -13,9 +13,10 @@ impl From<Query> for ProtoQueryRequest {
 
 impl From<ProtoQueryRequest> for Query {
     fn from(mut query_request: ProtoQueryRequest) -> Self {
-        Query {
-            sql: query_request.take_sql(),
-            queued_parameters: QueuedParameters::,
-        }
+//        Query {
+//            sql: query_request.take_sql(),
+//            queued_parameters: QueuedParameters::new_indexed(&[&[]]).unwrap(),
+//        }
+        unimplemented!()
     }
 }

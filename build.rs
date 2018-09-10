@@ -1,10 +1,13 @@
-extern crate protoc_grpcio;
-
 fn main() {
     let proto_root = "src/proto";
-    println!("cargo:rerun-if-changed={}", proto_root);
 
-    let proto_files = ["helloworld.proto", "eraftpb.proto", "raftsqlite.proto"];
+    let includes = [proto_root, "../raft-rs/proto"];
+
+    for include in includes.iter() {
+        println!("cargo:rerun-if-changed={}", include);
+    }
+
+    let proto_files = ["helloworld.proto", "raftsqlite.proto"];
 
     for proto_file in proto_files.iter() {
         println!("cargo:rerun-if-changed={}/{}", proto_root, proto_file);
@@ -14,8 +17,9 @@ fn main() {
 
     protoc_grpcio::compile_grpc_protos(
         &proto_files,
-        &[proto_root],
+        &includes,
         &proto_gen_output,
     ).expect("Failed to compile gRPC definitions!");
-
 }
+
+extern crate protoc_grpcio;

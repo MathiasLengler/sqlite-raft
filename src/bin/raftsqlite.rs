@@ -49,11 +49,7 @@
 extern crate grpcio;
 extern crate grpc_experiments;
 
-use grpc_experiments::proto_gen::raftsqlite::QueryRequest;
-
 fn main() {
-
-
     println!("Hello, world!");
 
 }

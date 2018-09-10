@@ -4,3 +4,4 @@
 !.gitignore
 # And not the root mod.rs
 !mod.rs
+!/eraftpb.rs

@@ -13,7 +13,7 @@ message Empty {
 }
 
 // Public Client API
-service RaftSqliteAPI {
+service RaftSqliteClientAPI {
   rpc Query (ProtoQueryRequest) returns (ProtoQueryResponse);
   rpc Execute (ProtoExecuteRequest) returns (ProtoExecuteResponse);
   rpc BulkQuery (ProtoBulkQueryRequest) returns (ProtoBulkQueryResponse);

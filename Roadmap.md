@@ -12,40 +12,16 @@
 
 ## Remote database API
 - Transport
-  - HTTP server
-    - JSON API
-      - rqlite template
-    - Protobuf
-  - RPC (how to support raft lib messages?)
-    - gRPC
+  - gRPC
+    - rqlite template
 - Features
   - Runs on every node (no single point of failure)
   - Multiple concurrent clients
   - Query leader/follower (OLTP/OLAP)
     - Redirect to leader?
+    - Should be a setting (consistency settings rqlite)
   - Return result set
-    - Statement::query_map
-      - f: (&Row) -> Vec< rusqlite::types::Value >
-        - Vec length == Row::column_count
-      - MappedRows iterator returns Vec< Value >
-    - Transpose result set? Type Affinity reliable?
 - SQLite command data structure
-  - Different SQL statement types
-    - Single SQL statement
-    - Prepared statements (Batching)
-    - Series of different statements
-  - Ensure mutability
-    - Connection::open_with_flags
-      - READ_ONLY
-      - READ_WRITE
-    - Data Manipulation Language (DML)
-      - Select (no side effects)
-        - Not in Raft log
-        - Could also be in the log for read consistency
-      - Insert / Update / Delete (side effects)
-    - Data Definition Language (DDL)
-      - Create / Alter / Drop (side effects)
-    - Nested statements?
   - Ensure deterministic execution
     - replace random()
     - etc
@@ -77,7 +53,7 @@
 ## Node communication trait
 - Implementations
   - Channel
-  - TCP
+  - grpc
 - Node only has knowledge of the trait
 
 ## Node launch API
@@ -86,7 +62,7 @@
     - Mesh (Implemented)
     - Message Bus
       - allows centralized interception of messages (hooks)
-  - TCP node
+  - grpc node
     - Parameters
       - Peer ids?
       - Peer urls
@@ -144,10 +120,9 @@
       - Does prepared statement validate before executing? (alternative)
     - Could be slow
   - Parse SQL syntax 
-- SQL user defined functions
-  - Usecase?
 - When/how to compact in raft-rs
-  - MemStorageCore template
+  - MemStorageCore template / Node `WriteStorage` trait
+  
   
 ## Other Ideas
 
@@ -158,8 +133,8 @@
   - slow with long log
 - can a separate connection rebuild the state of db to a specific log index while the other transaction is open?
   - even if there has been write access?
-- this would allow deterministic queries against a known time stamp
-- allows views of the db at any timestamp between the last snapshot and the most recently committed log entry
+  - this would allow deterministic queries against a known time stamp
+  - allows views of the db at any timestamp between the last snapshot and the most recently committed log entry
 - alternative: keep multiple user dbs
   - committed user db
   - snapshot user db

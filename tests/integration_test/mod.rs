@@ -6,6 +6,7 @@ use sqlite_commands::query::Query;
 mod query;
 mod execute;
 mod serde;
+mod proto;
 
 fn indexed_test_cases<'a>(no_param: &'a str,
                           indexed_param: &'a str,

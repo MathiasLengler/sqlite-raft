@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package sqlite_commands;
+
+message ProtoQueryRequest {
+  string sql = 1;
+  ProtoQueuedParameters queued_parameters = 2;
+}
+
+message ProtoQueuedParameters {
+  oneof queued_parameters {
+    ProtoQueuedIndexedParameters queued_indexed_parameters = 1;
+    ProtoQueuedNamedParameters queued_named_parameters = 2;
+  }
+}
+
+message ProtoQueuedIndexedParameters {
+  repeated ProtoIndexedParameters queued_indexed_parameters = 1;
+}
+
+message ProtoQueuedNamedParameters {
+  repeated ProtoNamedParameters queued_named_parameters = 1;
+}
+
+message ProtoIndexedParameters {
+  repeated ProtoValue parameters = 1;
+}
+
+message ProtoNamedParameters {
+  repeated ProtoNamedParameter parameters = 1;
+}
+
+message ProtoNamedParameter {
+  string name = 1;
+  ProtoValue value = 2;
+}
+
+message ProtoValue {
+  oneof value {
+    /// The value is a `NULL` value.
+    ProtoNull null = 1;
+    /// The value is a signed integer.
+    int64 integer = 2;
+    /// The value is a floating point number.
+    double real = 3;
+    /// The value is a text string.
+    string text = 4;
+    /// The value is a blob of data
+    bytes blob = 5;
+  }
+}
+
+message ProtoNull {
+}
+
+message ProtoQueryResponse {
+  repeated ProtoQueryResult query_result = 1;
+}
+
+message ProtoQueryResult {
+  repeated ProtoQueryResultRow rows = 1;
+}
+
+message ProtoQueryResultRow {
+  repeated ProtoValue row = 1;
+}
+
+message ProtoExecuteRequest {
+  string sql = 1;
+  ProtoQueuedParameters queued_parameters = 2;
+}
+
+message ProtoExecuteResponse {
+  repeated ProtoExecuteResult execute_result = 1;
+}
+
+message ProtoExecuteResult {
+  int32 changes = 1;
+}
+
+
+message ProtoBulkExecuteRequest {
+
+}
+message ProtoBulkExecuteResponse {
+
+}
+message ProtoBulkQueryRequest {
+
+}
+message ProtoBulkQueryResponse {
+
+}

@@ -6,6 +6,8 @@ use rusqlite::types::ToSqlOutput;
 use rusqlite::types::Value;
 use value_serde::ValueDef;
 
+mod convert;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum QueuedParameters {
     Indexed(Vec<IndexedParameters>),

@@ -13,6 +13,7 @@ extern crate rusqlite;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate protobuf;
 
 use execute::BulkExecute;
 use execute::Execute;
@@ -24,6 +25,7 @@ pub mod error;
 pub mod parameter;
 pub mod query;
 pub mod execute;
+pub mod proto;
 mod value_serde;
 
 // TODO: Naming: SqliteQuery/Query vs Query/SingleQuery

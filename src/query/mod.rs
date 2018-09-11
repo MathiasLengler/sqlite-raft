@@ -14,6 +14,8 @@ use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
 use std::result;
 
+mod convert;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BulkQuery {
     queries: Vec<Query>,

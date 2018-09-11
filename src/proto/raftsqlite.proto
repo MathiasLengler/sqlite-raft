@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "eraftpb.proto";
 
-package helloworld;
+package raftsqlite;
 
 // Internal Node to Node Cluster API
 service RaftNode {

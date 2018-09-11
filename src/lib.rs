@@ -7,5 +7,3 @@ extern crate raft;
 pub mod log_util;
 
 pub mod proto_gen;
-
-pub mod sqlite_commands_pb;

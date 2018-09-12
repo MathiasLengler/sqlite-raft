@@ -54,7 +54,7 @@ message ProtoNull {
 }
 
 message ProtoQueryResponse {
-  repeated ProtoQueryResult query_result = 1;
+  repeated ProtoQueryResult query_results = 1;
 }
 
 message ProtoQueryResult {

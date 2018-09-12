@@ -5,14 +5,11 @@ use parameter::QueuedParameters;
 use proto::ProtoIndexedParameters;
 use proto::ProtoNamedParameter;
 use proto::ProtoNamedParameters;
-use proto::ProtoNull;
 use proto::ProtoQueuedIndexedParameters;
 use proto::ProtoQueuedNamedParameters;
 use proto::ProtoQueuedParameters;
 use proto::ProtoQueuedParameters_oneof_queued_parameters;
 use proto::ProtoValue;
-use proto::ProtoValue_oneof_value;
-use rusqlite::types::Value;
 
 impl From<QueuedParameters> for ProtoQueuedParameters {
     fn from(queued_parameters: QueuedParameters) -> Self {
@@ -147,35 +144,6 @@ impl From<ProtoNamedParameter> for NamedParameter {
         NamedParameter {
             name: proto_named_parameter.take_name(),
             value: proto_named_parameter.take_value().into(),
-        }
-    }
-}
-
-// TODO: move to value module
-impl From<Value> for ProtoValue {
-    fn from(value: Value) -> Self {
-        let mut proto_value = ProtoValue::new();
-
-        match value {
-            Value::Null => proto_value.set_null(ProtoNull::new()),
-            Value::Integer(i) => proto_value.set_integer(i),
-            Value::Real(f) => proto_value.set_real(f),
-            Value::Text(text) => proto_value.set_text(text),
-            Value::Blob(blob) => proto_value.set_blob(blob),
-        };
-
-        proto_value
-    }
-}
-
-impl From<ProtoValue> for Value {
-    fn from(proto_value: ProtoValue) -> Self {
-        match proto_value.value.unwrap() {
-            ProtoValue_oneof_value::null(_) => Value::Null,
-            ProtoValue_oneof_value::integer(i) => Value::Integer(i),
-            ProtoValue_oneof_value::real(f) => Value::Real(f),
-            ProtoValue_oneof_value::text(text) => Value::Text(text),
-            ProtoValue_oneof_value::blob(blob) => Value::Blob(blob),
         }
     }
 }

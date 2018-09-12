@@ -26,7 +26,7 @@ pub mod parameter;
 pub mod query;
 pub mod execute;
 pub mod proto;
-mod value_serde;
+mod value;
 
 // TODO: Naming: SqliteQuery/Query vs Query/SingleQuery
 

@@ -14,7 +14,7 @@ use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
 use std::result;
 
-mod convert;
+mod proto_convert;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BulkQuery {
@@ -122,7 +122,7 @@ impl QueryResult {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct QueryResultRow {
-    #[serde(with = "::value_serde")]
+    #[serde(with = "::value::serde")]
     row: Vec<Value>
 }
 

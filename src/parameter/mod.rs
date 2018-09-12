@@ -4,9 +4,9 @@ use rusqlite::Statement;
 use rusqlite::types::ToSql;
 use rusqlite::types::ToSqlOutput;
 use rusqlite::types::Value;
-use value_serde::ValueDef;
+use value::serde::ValueDef;
 
-mod convert;
+mod proto_convert;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum QueuedParameters {
@@ -81,7 +81,7 @@ impl<'a> IntoValue for ToSqlOutput<'a> {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IndexedParameters {
-    #[serde(with = "::value_serde")]
+    #[serde(with = "::value::serde")]
     parameters: Vec<Value>
 }
 

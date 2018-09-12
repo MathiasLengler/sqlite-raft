@@ -48,6 +48,7 @@ type ProposeCallback = Box<Fn() + Send>;
 #[derive(Serialize, SerDebug)]
 enum TransportMessage {
     Propose(Propose),
+    #[serde(skip_serializing)]
     Raft(Message),
 }
 

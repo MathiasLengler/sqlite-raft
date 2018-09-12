@@ -8,6 +8,8 @@ use parameter::QueuedParameters;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
 
+mod proto_convert;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BulkExecute {
     executes: Vec<Execute>,

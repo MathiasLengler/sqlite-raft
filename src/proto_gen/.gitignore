@@ -1,7 +1,7 @@
 # Ignore everything
 *
-# But not this file
-!.gitignore
-# And not the root mod.rs
-!mod.rs
+# But not:
+!/.gitignore
+!/mod.rs
 !/eraftpb.rs
+!/sqlite_commands.rs

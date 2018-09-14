@@ -3,3 +3,4 @@ pub mod helloworld;
 pub mod raftsqlite;
 pub mod raftsqlite_grpc;
 pub mod eraftpb;
+pub mod sqlite_commands;

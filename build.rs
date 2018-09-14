@@ -1,7 +1,7 @@
 fn main() {
     let proto_root = "src/proto";
 
-    let includes = [proto_root, "../raft-rs/proto"];
+    let includes = [proto_root, "../raft-rs/proto", "../sqlite-commands/proto"];
 
     for include in includes.iter() {
         println!("cargo:rerun-if-changed={}", include);

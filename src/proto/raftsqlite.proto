@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "eraftpb.proto";
+import "sqlite_commands.proto";
 
 package raftsqlite;
 
@@ -14,93 +15,8 @@ message Empty {
 
 // Public Client API
 service RaftSqliteClientAPI {
-  rpc Query (ProtoQueryRequest) returns (ProtoQueryResponse);
-  rpc Execute (ProtoExecuteRequest) returns (ProtoExecuteResponse);
-  rpc BulkQuery (ProtoBulkQueryRequest) returns (ProtoBulkQueryResponse);
-  rpc BulkExecute (ProtoBulkExecuteRequest) returns (ProtoBulkExecuteResponse);
-}
-
-message ProtoQueryRequest {
-  string sql = 1;
-  ProtoQueuedParameters queued_parameters = 2;
-}
-
-message ProtoQueuedParameters {
-  oneof queued_parameters {
-    ProtoQueuedIndexedParameters queued_indexed_parameters = 1;
-    ProtoQueuedNamedParameters queued_named_parameters = 2;
-  }
-}
-
-message ProtoQueuedIndexedParameters {
-  repeated ProtoIndexedParameters queued_indexed_parameters = 1;
-}
-
-message ProtoQueuedNamedParameters {
-  repeated ProtoNamedParameters queued_named_parameters = 1;
-}
-
-message ProtoIndexedParameters {
-  repeated ProtoValue parameters = 1;
-}
-
-message ProtoNamedParameters {
-  repeated ProtoValue parameters = 1;
-}
-
-message ProtoValue {
-  oneof value {
-    /// The value is a `NULL` value.
-    ProtoNull null = 1;
-    /// The value is a signed integer.
-    int64 integer = 2;
-    /// The value is a floating point number.
-    double real = 3;
-    /// The value is a text string.
-    string text = 4;
-    /// The value is a blob of data
-    bytes blob = 5;
-  }
-}
-
-message ProtoNull {
-}
-
-message ProtoQueryResponse {
-  repeated ProtoQueryResult query_result = 1;
-}
-
-message ProtoQueryResult {
-  repeated ProtoQueryResultRow rows = 1;
-}
-
-message ProtoQueryResultRow {
-  repeated ProtoValue row = 1;
-}
-
-message ProtoExecuteRequest {
-  string sql = 1;
-  ProtoQueuedParameters queued_parameters = 2;
-}
-
-message ProtoExecuteResponse {
-  repeated ProtoExecuteResult execute_result = 1;
-}
-
-message ProtoExecuteResult {
-  int32 changes = 1;
-}
-
-
-message ProtoBulkExecuteRequest {
-
-}
-message ProtoBulkExecuteResponse {
-
-}
-message ProtoBulkQueryRequest {
-
-}
-message ProtoBulkQueryResponse {
-
+  rpc Query (sqlite_commands.ProtoQueryRequest) returns (sqlite_commands.ProtoQueryResponse);
+  rpc Execute (sqlite_commands.ProtoExecuteRequest) returns (sqlite_commands.ProtoExecuteResponse);
+  rpc BulkQuery (sqlite_commands.ProtoBulkQueryRequest) returns (sqlite_commands.ProtoBulkQueryResponse);
+  rpc BulkExecute (sqlite_commands.ProtoBulkExecuteRequest) returns (sqlite_commands.ProtoBulkExecuteResponse);
 }

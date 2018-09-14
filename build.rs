@@ -1,5 +1,7 @@
 fn main() {
-    let proto_root = "src/proto";
+    eprintln!("{}", ::std::env::current_dir().unwrap().display());
+
+    let proto_root = "proto";
 
     let includes = [proto_root, "../raft-rs/proto", "../sqlite-commands/proto"];
 
@@ -13,7 +15,7 @@ fn main() {
         println!("cargo:rerun-if-changed={}/{}", proto_root, proto_file);
     }
 
-    let proto_gen_output = "src/proto_gen";
+    let proto_gen_output = "src/proto";
 
     protoc_grpcio::compile_grpc_protos(
         &proto_files,

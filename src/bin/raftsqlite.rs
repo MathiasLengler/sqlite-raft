@@ -48,6 +48,36 @@
 
 extern crate grpcio;
 extern crate grpc_experiments;
+extern crate sqlite_commands;
+
+use sqlite_commands::proto::*;
+use grpc_experiments::proto::raftsqlite_grpc::RaftSqliteClientApi;
+use grpcio::RpcContext;
+use grpcio::UnarySink;
+use sqlite_commands::query::Query;
+
+#[derive(Clone)]
+struct RaftSqliteClientAPIService;
+
+impl RaftSqliteClientApi for RaftSqliteClientAPIService {
+    fn query(&self, ctx: RpcContext, req: ProtoQueryRequest, sink: UnarySink<ProtoQueryResponse>) {
+        let query: Query = req.into();
+
+        eprintln!("query = {:?}", query);
+    }
+
+    fn execute(&self, ctx: RpcContext, req: ProtoExecuteRequest, sink: UnarySink<ProtoExecuteResponse>) {
+        unimplemented!()
+    }
+
+    fn bulk_query(&self, ctx: RpcContext, req: ProtoBulkQueryRequest, sink: UnarySink<ProtoBulkQueryResponse>) {
+        unimplemented!()
+    }
+
+    fn bulk_execute(&self, ctx: RpcContext, req: ProtoBulkExecuteRequest, sink: UnarySink<ProtoBulkExecuteResponse>) {
+        unimplemented!()
+    }
+}
 
 fn main() {
     println!("Hello, world!");

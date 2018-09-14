@@ -25,6 +25,8 @@
   - Ensure deterministic execution
     - replace random()
     - etc
+- Testing
+  - Same API for cluster and a single node for A/B testing
 
 ## Storage
 - SQLite storage trait implementation

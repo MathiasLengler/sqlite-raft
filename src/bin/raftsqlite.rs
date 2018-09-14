@@ -1,3 +1,4 @@
+extern crate grpc_experiments;
 /// Evaluate:
 ///
 /// # Client <-> Node
@@ -47,23 +48,47 @@
 ///     - mirror API and provide from impls
 
 extern crate grpcio;
-extern crate grpc_experiments;
+#[macro_use]
+extern crate log;
 extern crate sqlite_commands;
+extern crate futures;
 
-use sqlite_commands::proto::*;
 use grpc_experiments::proto::raftsqlite_grpc::RaftSqliteClientApi;
 use grpcio::RpcContext;
 use grpcio::UnarySink;
+use sqlite_commands::connection::AccessConnection;
+use sqlite_commands::connection::ReadOnly;
+use sqlite_commands::connection::ReadWrite;
+use sqlite_commands::proto::*;
 use sqlite_commands::query::Query;
+use std::sync::Arc;
+use std::sync::Mutex;
+use futures::Future;
 
 #[derive(Clone)]
-struct RaftSqliteClientAPIService;
+struct RaftSqliteClientAPIService {
+    read_write_conn: Arc<Mutex<AccessConnection<ReadWrite>>>,
+    read_only_conn: Arc<Mutex<AccessConnection<ReadOnly>>>,
+}
 
 impl RaftSqliteClientApi for RaftSqliteClientAPIService {
     fn query(&self, ctx: RpcContext, req: ProtoQueryRequest, sink: UnarySink<ProtoQueryResponse>) {
         let query: Query = req.into();
 
         eprintln!("query = {:?}", query);
+
+
+        let query_result = {
+            let mut conn = self.read_only_conn.lock().unwrap();
+
+            // TODO: error handling: modify ProtoQueryResponse? Has UnarySink built in error passing?
+            conn.run(&query).unwrap()
+        };
+
+        let f = sink.success(query_result.into())
+            .map_err(move |e| error!("failed to reply {:?}: {:?}", query, e));
+
+        ctx.spawn(f)
     }
 
     fn execute(&self, ctx: RpcContext, req: ProtoExecuteRequest, sink: UnarySink<ProtoExecuteResponse>) {
@@ -81,5 +106,4 @@ impl RaftSqliteClientApi for RaftSqliteClientAPIService {
 
 fn main() {
     println!("Hello, world!");
-
 }

@@ -29,8 +29,8 @@ use futures::sync::oneshot;
 use futures::Future;
 use grpcio::{Environment, RpcContext, ServerBuilder, UnarySink};
 
-use grpc_experiments::proto_gen::helloworld::{HelloReply, HelloRequest};
-use grpc_experiments::proto_gen::helloworld_grpc::{self, Greeter};
+use grpc_experiments::proto::helloworld::{HelloReply, HelloRequest};
+use grpc_experiments::proto::helloworld_grpc::{self, Greeter};
 
 #[derive(Clone)]
 struct GreeterService;

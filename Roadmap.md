@@ -20,6 +20,8 @@
   - Query leader/follower (OLTP/OLAP)
     - Redirect to leader?
     - Should be a setting (consistency settings rqlite)
+    - PoC: consistent (no special case for query)
+      - Also "Optimization of query request flow"
   - Return result set
 - SQLite command data structure
   - Ensure deterministic execution
@@ -51,7 +53,19 @@
 - Node `WriteStorage` trait
   - template MemStorageCore
   - node should be agnostic which storage type is used
-
+- Synchronization
+  - raft stepping <=> applying (expensive) sql command
+    - can/should the raft stepping logic be blocked by db operations?
+      - if the leader is unresponsive for too long, followers will hold an election
+  - Two stage commit
+    - Raft stepping thread persists storage in Raft log DB
+    - Worker thread applies newly committed commands to user DB
+    - Raft DB must contain two committed index pointers
+      - current raft index 
+      - current state of the potential trailing user DB
+    - Worker thread uses multi-file commit
+    - Does that work in the context of fetching/querying snapshots at specific log index?
+  
 ## Node communication trait
 - Implementations
   - Channel
@@ -124,8 +138,7 @@
   - Parse SQL syntax 
 - When/how to compact in raft-rs
   - MemStorageCore template / Node `WriteStorage` trait
-  
-  
+
 ## Other Ideas
 
 ### Query a specific state
@@ -140,3 +153,14 @@
 - alternative: keep multiple user dbs
   - committed user db
   - snapshot user db
+  
+### Optimization of query request flow
+Client requests query to follower ->
+Follower proposes append query to leader ->
+Leader appends to own log ->
+Leader replicates to majority of followers ->
+Leader commits entry to log. Does not have to apply the query to state machine, e.g. executing the query, because he has no need for the QueryResult ->
+Leader replicates committed log entry to followers ->
+Follower which received client request sees, that his proposed query has been committed in the log ->
+Follower executes query against the DB at the committed index ->
+Returns QueryResult to client

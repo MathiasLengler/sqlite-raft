@@ -2,42 +2,50 @@ use rusqlite;
 use rusqlite::Connection;
 use sqlite_commands::connection::Access;
 use sqlite_commands::connection::AccessConnection;
+use sqlite_commands::connection::ReadOnly;
+use sqlite_commands::connection::ReadWrite;
 use std::panic;
+use std::panic::UnwindSafe;
+use std::panic::AssertUnwindSafe;
 use std::path::PathBuf;
 use tempfile;
 use utils::sqldiff::assert_db_eq;
 
-pub fn run_test<S, T, D, TParam, DParam>(
+pub fn run_test<S, T, D, TParam, DParam, TRet>(
     setup: S,
     test: T,
     teardown: D,
-) -> ()
+) -> TRet
     where S: FnOnce() -> ((TParam, DParam)),
-          T: FnOnce(TParam) -> () + panic::UnwindSafe,
-          D: FnOnce(DParam) -> () + panic::UnwindSafe,
-          TParam: panic::UnwindSafe,
-          DParam: panic::UnwindSafe,
+          T: FnOnce(TParam) -> TRet,
+          D: FnOnce(DParam) -> () + UnwindSafe,
+          DParam: UnwindSafe,
 {
     let (test_param, teardown_param) = setup();
 
-    let test_result = panic::catch_unwind(|| {
+    let test_result = panic::catch_unwind(AssertUnwindSafe(|| {
         test(test_param)
-    });
+    }));
 
     let teardown_result = panic::catch_unwind(|| {
         teardown(teardown_param);
     });
 
-    if let Err(err) = test_result {
-        panic::resume_unwind(err);
-    }
+    let test_return = match test_result {
+        Ok(test_return) => test_return,
+        Err(err) => {
+            panic::resume_unwind(err);
+        }
+    };
 
     if let Err(err) = teardown_result {
         panic::resume_unwind(err);
     }
+
+    test_return
 }
 
-pub fn with_test_db_paths(f: impl FnOnce(PathBuf, PathBuf) -> () + panic::UnwindSafe) {
+pub fn with_test_db_paths<T>(f: impl FnOnce(PathBuf, PathBuf) -> T) -> T {
     run_test(|| {
         let temp_dir_root: PathBuf = [env!("CARGO_MANIFEST_DIR"), "tests", "res", "temp"].iter().collect();
 
@@ -59,14 +67,13 @@ pub fn with_test_db_paths(f: impl FnOnce(PathBuf, PathBuf) -> () + panic::Unwind
         f(test_db_path, expected_db_path)
     }, |temp_dir| {
         temp_dir.close().unwrap();
-    });
+    })
 }
 
-pub fn with_test_db_connections<A: Access + panic::RefUnwindSafe>(
-    access: A,
-    f: impl FnOnce(AccessConnection<A>, Connection, ) -> () + panic::UnwindSafe) {
+pub fn with_test_dbs<A: Access>(access: A, f: impl FnOnce(AccessConnection<A>, Connection) -> ()) {
     with_test_db_paths(|test_db_path: PathBuf, expected_db_path: PathBuf| {
-        f(AccessConnection::open(access, &test_db_path).unwrap(), Connection::open(&expected_db_path).unwrap());
+        f(AccessConnection::open(access, &test_db_path).unwrap(),
+          Connection::open(&expected_db_path).unwrap());
 
         assert_db_eq(&test_db_path, &expected_db_path);
     })

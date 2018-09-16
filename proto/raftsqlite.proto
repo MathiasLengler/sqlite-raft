@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "eraftpb.proto";
-import "sqlite_commands.proto";
+import "sqlite-commands/proto/sqlite_requests.proto";
 
 package raftsqlite;
 

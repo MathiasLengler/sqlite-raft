@@ -7,7 +7,7 @@ extern crate grpc_experiments;
 ///
 /// ## API
 ///
-/// `run(enum SqliteCommand) -> ?`
+/// `run(enum SqliteRequest) -> ?`
 ///
 /// vs
 ///

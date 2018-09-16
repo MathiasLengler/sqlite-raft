@@ -92,7 +92,7 @@ impl Command for Execute {
 }
 
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ExecuteResult {
     changes: usize
 }

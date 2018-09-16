@@ -75,7 +75,7 @@ message ProtoExecuteResponse {
 }
 
 message ProtoExecuteResult {
-  int32 changes = 1;
+  uint64 changes = 1;
 }
 
 // TODO:

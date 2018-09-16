@@ -2,7 +2,7 @@ use execute::Execute;
 use proto::ProtoExecuteRequest;
 use proto::ProtoExecuteResponse;
 use proto::ProtoExecuteResult;
-use execute::ExecuteResult;
+use execute::ExecuteResponse;
 
 impl From<Execute> for ProtoExecuteRequest {
     fn from(execute: Execute) -> Self {
@@ -22,8 +22,8 @@ impl From<ProtoExecuteRequest> for Execute {
     }
 }
 
-impl From<Vec<ExecuteResult>> for ProtoExecuteResponse {
-    fn from(vec_execute_result: Vec<ExecuteResult>) -> Self {
+impl From<Vec<ExecuteResponse>> for ProtoExecuteResponse {
+    fn from(vec_execute_result: Vec<ExecuteResponse>) -> Self {
         let mut proto_execute_response = ProtoExecuteResponse::new();
         let vec_proto_execute_result: Vec<ProtoExecuteResult> =
             vec_execute_result.into_iter().map(Into::into).collect();
@@ -32,7 +32,7 @@ impl From<Vec<ExecuteResult>> for ProtoExecuteResponse {
     }
 }
 
-impl From<ProtoExecuteResponse> for Vec<ExecuteResult> {
+impl From<ProtoExecuteResponse> for Vec<ExecuteResponse> {
     fn from(mut proto_execute_response: ProtoExecuteResponse) -> Self {
         proto_execute_response
             .take_execute_result()
@@ -43,17 +43,17 @@ impl From<ProtoExecuteResponse> for Vec<ExecuteResult> {
     }
 }
 
-impl From<ExecuteResult> for ProtoExecuteResult {
-    fn from(execute_result: ExecuteResult) -> Self {
+impl From<ExecuteResponse> for ProtoExecuteResult {
+    fn from(execute_result: ExecuteResponse) -> Self {
         let mut proto_execute_result = ProtoExecuteResult::new();
         proto_execute_result.set_changes(execute_result.changes as u64);
         proto_execute_result
     }
 }
 
-impl From<ProtoExecuteResult> for ExecuteResult {
+impl From<ProtoExecuteResult> for ExecuteResponse {
     fn from(proto_execute_result: ProtoExecuteResult) -> Self {
-        ExecuteResult {
+        ExecuteResponse {
             changes: proto_execute_result.get_changes() as usize,
         }
     }

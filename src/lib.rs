@@ -19,10 +19,10 @@ use connection::ReadWrite;
 use error::Result;
 use execute::BulkExecute;
 use execute::Execute;
-use execute::ExecuteResult;
+use execute::ExecuteResponse;
 use query::BulkQuery;
 use query::Query;
-use query::QueryResult;
+use query::QueryResponse;
 
 pub mod connection;
 pub mod error;
@@ -34,9 +34,7 @@ mod value;
 
 // TODO: move to modules (command?)
 
-// TODO: Naming: SqliteQuery/Query vs Query/SingleQuery
 // TODO: Naming: (Sqlite)Request vs (Sqlite)Command
-// TODO: Naming: Response vs Result
 // TODO: Naming: "Command" trait
 
 /// Every possible SQLite command.
@@ -72,9 +70,9 @@ impl From<BulkExecute> for SqliteCommand {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum SqliteCommandResult {
-    Query(SqliteQueryResult),
-    Execute(SqliteExecuteResult),
+pub enum SqliteCommandResponse {
+    Query(SqliteQueryResponse),
+    Execute(SqliteExecuteResponse),
 }
 
 /// A single SQLite query or a series of them.
@@ -88,21 +86,21 @@ pub enum SqliteQuery {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum SqliteQueryResult {
-    Single(Vec<QueryResult>),
-    Bulk(Vec<Vec<QueryResult>>),
+pub enum SqliteQueryResponse {
+    Single(Vec<QueryResponse>),
+    Bulk(Vec<Vec<QueryResponse>>),
 }
 
 impl Command for SqliteQuery {
     type Access = ReadOnly;
-    type Return = SqliteQueryResult;
+    type Return = SqliteQueryResponse;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
         Ok(match self {
             SqliteQuery::Single(query) =>
-                SqliteQueryResult::Single(query.apply_to_tx(tx)?),
+                SqliteQueryResponse::Single(query.apply_to_tx(tx)?),
             SqliteQuery::Bulk(bulk_query) =>
-                SqliteQueryResult::Bulk(bulk_query.apply_to_tx(tx)?),
+                SqliteQueryResponse::Bulk(bulk_query.apply_to_tx(tx)?),
         })
     }
 }
@@ -119,21 +117,21 @@ pub enum SqliteExecute {
 
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum SqliteExecuteResult {
-    Single(Vec<ExecuteResult>),
-    Bulk(Vec<Vec<ExecuteResult>>),
+pub enum SqliteExecuteResponse {
+    Single(Vec<ExecuteResponse>),
+    Bulk(Vec<Vec<ExecuteResponse>>),
 }
 
 impl Command for SqliteExecute {
     type Access = ReadWrite;
-    type Return = SqliteExecuteResult;
+    type Return = SqliteExecuteResponse;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
         Ok(match self {
             SqliteExecute::Single(execute) =>
-                SqliteExecuteResult::Single(execute.apply_to_tx(tx)?),
+                SqliteExecuteResponse::Single(execute.apply_to_tx(tx)?),
             SqliteExecute::Bulk(bulk_execute) =>
-                SqliteExecuteResult::Bulk(bulk_execute.apply_to_tx(tx)?),
+                SqliteExecuteResponse::Bulk(bulk_execute.apply_to_tx(tx)?),
         })
     }
 }

@@ -25,7 +25,7 @@ impl BulkExecute {
 
 impl Command for BulkExecute {
     type Access = ReadWrite;
-    type Return = Vec<Vec<ExecuteResult>>;
+    type Return = Vec<Vec<ExecuteResponse>>;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
         self.executes.iter().map(|execute| {
@@ -59,7 +59,7 @@ impl Execute {
 
 impl Command for Execute {
     type Access = ReadWrite;
-    type Return = Vec<ExecuteResult>;
+    type Return = Vec<ExecuteResponse>;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
         let tx = tx.as_mut_inner();
@@ -72,7 +72,7 @@ impl Command for Execute {
                     &parameters.as_arg(),
                 )?;
 
-                Ok(ExecuteResult {
+                Ok(ExecuteResponse {
                     changes,
                 })
             },
@@ -81,7 +81,7 @@ impl Command for Execute {
                     &parameters.as_arg(),
                 )?;
 
-                Ok(ExecuteResult {
+                Ok(ExecuteResponse {
                     changes,
                 })
             },
@@ -93,11 +93,11 @@ impl Command for Execute {
 
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct ExecuteResult {
+pub struct ExecuteResponse {
     changes: usize
 }
 
-impl ExecuteResult {
+impl ExecuteResponse {
     /// The number of rows that were changed or inserted or deleted.
     pub fn changes(&self) -> usize {
         self.changes

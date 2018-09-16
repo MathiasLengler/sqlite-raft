@@ -94,8 +94,8 @@ message ProtoBulkQueryResponse {
 
 // TODO: is there a need for the following messages?
 // SqliteCommand
-// SqliteCommandResult
+// SqliteCommandResponse
 // SqliteQuery
-// SqliteQueryResult
+// SqliteQueryResponse
 // SqliteExecute
-// SqliteExecuteResult
+// SqliteExecuteResponse

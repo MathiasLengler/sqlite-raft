@@ -31,7 +31,7 @@ impl BulkQuery {
 
 impl Command for BulkQuery {
     type Access = ReadOnly;
-    type Return = Vec<Vec<QueryResult>>;
+    type Return = Vec<Vec<QueryResponse>>;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
         self.queries.iter().map(|query| {
@@ -66,7 +66,7 @@ impl Query {
 
 impl Command for Query {
     type Access = ReadOnly;
-    type Return = Vec<QueryResult>;
+    type Return = Vec<QueryResponse>;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
         let tx = tx.as_mut_inner();
@@ -80,7 +80,7 @@ impl Command for Query {
                     QueryResultRow::query_map_arg(),
                 )?;
 
-                QueryResult::try_from(rows)
+                QueryResponse::try_from(rows)
             },
             |stmt: &mut Statement, parameters: &NamedParameters| {
                 let rows = stmt.query_map_named(
@@ -88,7 +88,7 @@ impl Command for Query {
                     QueryResultRow::query_map_arg(),
                 )?;
 
-                QueryResult::try_from(rows)
+                QueryResponse::try_from(rows)
             },
         );
 
@@ -97,11 +97,11 @@ impl Command for Query {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct QueryResult {
+pub struct QueryResponse {
     rows: Vec<QueryResultRow>,
 }
 
-impl QueryResult {
+impl QueryResponse {
     pub fn into_vec(self) -> Vec<QueryResultRow> {
         self.rows
     }
@@ -111,10 +111,10 @@ impl QueryResult {
     }
 
     fn try_from(rows_iter: impl Iterator<Item=result::Result<QueryResultRow, rusqlite::Error>>)
-                -> Result<QueryResult> {
+                -> Result<QueryResponse> {
         let rows: result::Result<Vec<QueryResultRow>, rusqlite::Error> = rows_iter.collect();
 
-        Ok(QueryResult {
+        Ok(QueryResponse {
             rows: rows?,
         })
     }

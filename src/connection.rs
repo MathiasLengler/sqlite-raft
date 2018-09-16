@@ -90,6 +90,7 @@ impl Access for ReadWrite {
     }
 }
 
+// TODO: move to request module
 pub trait Request {
     type Access: Access;
     type Response;

@@ -78,3 +78,10 @@ pub fn with_test_dbs<A: Access>(access: A, f: impl FnOnce(AccessConnection<A>, C
         assert_db_eq(&test_db_path, &expected_db_path);
     })
 }
+
+pub fn with_single_test_db<T>(f: impl FnOnce(AccessConnection<ReadOnly>, AccessConnection<ReadWrite>) -> T) -> T {
+    with_test_db_paths(|test_db_path: PathBuf, _: PathBuf| {
+        f(AccessConnection::open(ReadOnly, &test_db_path).unwrap(),
+          AccessConnection::open(ReadWrite, &test_db_path).unwrap())
+    })
+}

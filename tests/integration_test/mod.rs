@@ -5,8 +5,7 @@ use sqlite_commands::query::Query;
 
 mod query;
 mod execute;
-mod serde;
-mod proto;
+mod serialization;
 
 fn indexed_test_cases<'a>(no_param: &'a str,
                           indexed_param: &'a str,
@@ -37,6 +36,7 @@ fn queued_params_as_arg<T>(queued_params: &[Vec<T>]) -> Vec<&[T]> {
     queued_params.iter().map(|vec| vec.as_slice()).collect()
 }
 
+// TODO: convert to unit tests
 #[test]
 fn test_no_queued_parameters_err() {
     use std::mem::discriminant;
@@ -45,6 +45,8 @@ fn test_no_queued_parameters_err() {
     assert_eq!(discriminant(&Query::new_named("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
     assert_eq!(discriminant(&Execute::new_indexed("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
     assert_eq!(discriminant(&Execute::new_named("foo", &[]).unwrap_err()), discriminant(&Error::NoQueuedParameters));
+
+    // TODO: test proto/serde variants (new Proto... -> Query should fail (TryFrom?))
 }
 
 

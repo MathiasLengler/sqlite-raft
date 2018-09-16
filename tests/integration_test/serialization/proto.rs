@@ -1,17 +1,15 @@
-use bincode;
 use integration_test::indexed_test_cases;
 use integration_test::named_test_cases;
 use integration_test::queued_params_as_arg;
-use serde_json;
-use sqlite_commands::execute::BulkExecute;
 use sqlite_commands::execute::Execute;
-use sqlite_commands::query::BulkQuery;
+use sqlite_commands::proto::ProtoExecuteRequest;
+use sqlite_commands::proto::ProtoQueryRequest;
 use sqlite_commands::query::Query;
-use sqlite_commands::SqliteCommand;
 
+// TODO: refactor using sqlite_commands()
 
 #[test]
-fn test_serde() {
+fn test_proto_query() {
     let indexed_test_cases = indexed_test_cases("foo", "bar", "baz");
     let named_test_cases = named_test_cases("foo", "bar", "baz");
 
@@ -27,7 +25,20 @@ fn test_serde() {
             })
         ).collect();
 
-    let executes: Vec<Execute> = indexed_test_cases.iter()
+    let converted_queries: Vec<Query> = queries.clone().into_iter()
+        .map(Into::<ProtoQueryRequest>::into)
+        .map(Into::into)
+        .collect();
+
+    assert_eq!(queries, converted_queries);
+}
+
+#[test]
+fn test_proto_execute() {
+    let indexed_test_cases = indexed_test_cases("foo", "bar", "baz");
+    let named_test_cases = named_test_cases("foo", "bar", "baz");
+
+    let queries: Vec<Execute> = indexed_test_cases.iter()
         .map(|(sql, queued_params)| {
             let queued_params = queued_params_as_arg(queued_params);
             Execute::new_indexed(sql, &queued_params).unwrap()
@@ -37,25 +48,12 @@ fn test_serde() {
                 let queued_params = queued_params_as_arg(queued_params);
                 Execute::new_named(sql, &queued_params).unwrap()
             })
-        )
+        ).collect();
+
+    let converted_queries: Vec<Execute> = queries.clone().into_iter()
+        .map(Into::<ProtoExecuteRequest>::into)
+        .map(Into::into)
         .collect();
 
-    let bulk_query = BulkQuery::new(queries.clone());
-    let bulk_execute = BulkExecute::new(executes.clone());
-
-    let mut commands: Vec<SqliteCommand> = vec![bulk_execute.into(), bulk_query.into(), ];
-
-    commands.extend(queries.into_iter().map(Into::into));
-    commands.extend(executes.into_iter().map(Into::into));
-
-    let bincode_serialized = bincode::serialize(&commands).unwrap();
-    let bincode_deserialized: Vec<SqliteCommand> = bincode::deserialize(&bincode_serialized).unwrap();
-
-    let json_serialized = serde_json::to_string(&commands).unwrap();
-    let json_deserialized: Vec<SqliteCommand> = serde_json::from_str(&json_serialized).unwrap();
-
-    assert_eq!(commands, bincode_deserialized);
-    assert_eq!(commands, json_deserialized);
-
-    // TODO: execute and test result sets
+    assert_eq!(queries, converted_queries);
 }

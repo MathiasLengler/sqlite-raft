@@ -50,17 +50,17 @@ extern crate grpc_experiments;
 extern crate grpcio;
 #[macro_use]
 extern crate log;
-extern crate sqlite_commands;
+extern crate sqlite_requests;
 extern crate futures;
 
 use grpc_experiments::proto::raftsqlite_grpc::RaftSqliteClientApi;
 use grpcio::RpcContext;
 use grpcio::UnarySink;
-use sqlite_commands::connection::AccessConnection;
-use sqlite_commands::connection::ReadOnly;
-use sqlite_commands::connection::ReadWrite;
-use sqlite_commands::proto::*;
-use sqlite_commands::query::Query;
+use sqlite_requests::connection::AccessConnection;
+use sqlite_requests::connection::ReadOnly;
+use sqlite_requests::connection::ReadWrite;
+use sqlite_requests::proto::*;
+use sqlite_requests::query::Query;
 use std::sync::Arc;
 use std::sync::Mutex;
 use futures::Future;

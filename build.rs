@@ -3,7 +3,7 @@ fn main() {
 
     let proto_root = "proto";
 
-    let includes = [proto_root, "../raft-rs/proto", "../sqlite-commands/proto"];
+    let includes = [proto_root, "../raft-rs/proto", "../sqlite-requests/proto"];
 
     for include in includes.iter() {
         println!("cargo:rerun-if-changed={}", include);

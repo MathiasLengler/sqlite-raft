@@ -13,7 +13,7 @@ slog-stdlog = "3.0.2"
 slog-term = "2.4.0"
 protobuf = "2.0.4"
 raft = { path = "../raft-rs" }
-sqlite-commands = { path = "../sqlite-commands"}
+sqlite-requests = { path = "../sqlite-requests"}
 
 [dependencies.grpcio]
 version = "0.3.1"

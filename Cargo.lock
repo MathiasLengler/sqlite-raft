@@ -133,7 +133,7 @@ dependencies = [
  "slog-scope 4.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog-stdlog 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog-term 2.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sqlite-commands 0.1.0",
+ "sqlite-requests 0.1.0",
 ]
 
 [[package]]
@@ -500,7 +500,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sqlite-commands"
+name = "sqlite-requests"
 version = "0.1.0"
 dependencies = [
  "bincode 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",

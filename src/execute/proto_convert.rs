@@ -1,8 +1,11 @@
+use execute::BulkExecute;
 use execute::Execute;
+use execute::ExecuteResponse;
 use proto::ProtoExecuteRequest;
 use proto::ProtoExecuteResponse;
 use proto::ProtoExecuteResult;
-use execute::ExecuteResponse;
+use proto::ProtoBulkExecuteRequest;
+use proto::ProtoBulkExecuteResponse;
 
 impl From<Execute> for ProtoExecuteRequest {
     fn from(execute: Execute) -> Self {
@@ -56,5 +59,50 @@ impl From<ProtoExecuteResult> for ExecuteResponse {
         ExecuteResponse {
             changes: proto_execute_result.get_changes() as usize,
         }
+    }
+}
+
+
+impl From<BulkExecute> for ProtoBulkExecuteRequest {
+    fn from(bulk_execute: BulkExecute) -> Self {
+        let mut proto_bulk_execute_request = ProtoBulkExecuteRequest::new();
+        let vec_proto_execute_request: Vec<ProtoExecuteRequest> =
+            bulk_execute.executes.into_iter().map(Into::into).collect();
+        proto_bulk_execute_request.set_executes(vec_proto_execute_request.into());
+        proto_bulk_execute_request
+    }
+}
+
+impl From<ProtoBulkExecuteRequest> for BulkExecute {
+    fn from(mut proto_bulk_execute_request: ProtoBulkExecuteRequest) -> Self {
+        BulkExecute {
+            executes: proto_bulk_execute_request
+                .take_executes()
+                .into_vec()
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        }
+    }
+}
+
+impl From<Vec<Vec<ExecuteResponse>>> for ProtoBulkExecuteResponse {
+    fn from(vec_vec_execute_response: Vec<Vec<ExecuteResponse>>) -> Self {
+        let mut proto_bulk_execute_response = ProtoBulkExecuteResponse::new();
+        let vec_proto_execute_response: Vec<ProtoExecuteResponse> =
+            vec_vec_execute_response.into_iter().map(Into::into).collect();
+        proto_bulk_execute_response.set_execute_responses(vec_proto_execute_response.into());
+        proto_bulk_execute_response
+    }
+}
+
+impl From<ProtoBulkExecuteResponse> for Vec<Vec<ExecuteResponse>> {
+    fn from(mut proto_bulk_execute_response: ProtoBulkExecuteResponse) -> Self {
+        proto_bulk_execute_response
+            .take_execute_responses()
+            .into_vec()
+            .into_iter()
+            .map(Into::into)
+            .collect()
     }
 }

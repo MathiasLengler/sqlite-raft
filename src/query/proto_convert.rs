@@ -2,10 +2,13 @@ use proto::ProtoQueryRequest;
 use proto::ProtoQueryResponse;
 use proto::ProtoQueryResult;
 use proto::ProtoQueryResultRow;
+use proto::ProtoBulkQueryRequest;
+use proto::ProtoBulkQueryResponse;
 use proto::ProtoValue;
 use query::Query;
 use query::QueryResponse;
 use query::QueryResultRow;
+use query::BulkQuery;
 
 impl From<Query> for ProtoQueryRequest {
     fn from(query: Query) -> Self {
@@ -89,6 +92,50 @@ impl From<ProtoQueryResultRow> for QueryResultRow {
                 .map(Into::into)
                 .collect(),
         }
+    }
+}
+
+impl From<BulkQuery> for ProtoBulkQueryRequest {
+    fn from(bulk_query: BulkQuery) -> Self {
+        let mut proto_bulk_query_request = ProtoBulkQueryRequest::new();
+        let vec_proto_query_request: Vec<ProtoQueryRequest> =
+            bulk_query.queries.into_iter().map(Into::into).collect();
+        proto_bulk_query_request.set_queries(vec_proto_query_request.into());
+        proto_bulk_query_request
+    }
+}
+
+impl From<ProtoBulkQueryRequest> for BulkQuery {
+    fn from(mut proto_bulk_query_request: ProtoBulkQueryRequest) -> Self {
+        BulkQuery {
+            queries: proto_bulk_query_request
+                .take_queries()
+                .into_vec()
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        }
+    }
+}
+
+impl From<Vec<Vec<QueryResponse>>> for ProtoBulkQueryResponse {
+    fn from(vec_vec_query_response: Vec<Vec<QueryResponse>>) -> Self {
+        let mut proto_bulk_query_response = ProtoBulkQueryResponse::new();
+        let vec_proto_query_response: Vec<ProtoQueryResponse> =
+            vec_vec_query_response.into_iter().map(Into::into).collect();
+        proto_bulk_query_response.set_query_responses(vec_proto_query_response.into());
+        proto_bulk_query_response
+    }
+}
+
+impl From<ProtoBulkQueryResponse> for Vec<Vec<QueryResponse>> {
+    fn from(mut proto_bulk_query_response: ProtoBulkQueryResponse) -> Self {
+        proto_bulk_query_response
+            .take_query_responses()
+            .into_vec()
+            .into_iter()
+            .map(Into::into)
+            .collect()
     }
 }
 

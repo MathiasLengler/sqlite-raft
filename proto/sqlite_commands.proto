@@ -78,18 +78,20 @@ message ProtoExecuteResult {
   uint64 changes = 1;
 }
 
-// TODO:
-message ProtoBulkExecuteRequest {
-
-}
-message ProtoBulkExecuteResponse {
-
-}
 message ProtoBulkQueryRequest {
-
+  repeated ProtoQueryRequest queries = 1;
 }
-message ProtoBulkQueryResponse {
 
+message ProtoBulkQueryResponse {
+  repeated ProtoQueryResponse query_responses = 1;
+}
+
+message ProtoBulkExecuteRequest {
+  repeated ProtoExecuteRequest executes = 1;
+}
+
+message ProtoBulkExecuteResponse {
+  repeated ProtoExecuteResponse execute_responses = 1;
 }
 
 // TODO: is there a need for the following messages?

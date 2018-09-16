@@ -3,6 +3,8 @@ name = "sqlite-requests"
 version = "0.0.1"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 build = "build.rs"
+description = "Represent SQLite queries and executes as request objects"
+license = "MIT"
 
 [dependencies]
 failure = "0.1.2"

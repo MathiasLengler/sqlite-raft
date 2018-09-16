@@ -5,6 +5,8 @@ authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 build = "build.rs"
 description = "Represent SQLite queries and executes as request objects"
 license = "MIT"
+documentation = "https://docs.rs/sqlite-requests"
+repository = "https://github.com/MathiasLengler/sqlite-requests"
 
 [dependencies]
 failure = "0.1.2"

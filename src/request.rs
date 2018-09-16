@@ -1,5 +1,5 @@
 use connection::AccessTransaction;
-use connection::Command;
+use connection::Request;
 use connection::ReadOnly;
 use connection::ReadWrite;
 use error::Result;
@@ -66,11 +66,11 @@ pub enum SqliteQueryResponse {
     Bulk(Vec<Vec<QueryResponse>>),
 }
 
-impl Command for SqliteQuery {
+impl Request for SqliteQuery {
     type Access = ReadOnly;
-    type Return = SqliteQueryResponse;
+    type Response = SqliteQueryResponse;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         Ok(match self {
             SqliteQuery::Single(query) =>
                 SqliteQueryResponse::Single(query.apply_to_tx(tx)?),
@@ -95,11 +95,11 @@ pub enum SqliteExecuteResponse {
     Bulk(Vec<Vec<ExecuteResponse>>),
 }
 
-impl Command for SqliteExecute {
+impl Request for SqliteExecute {
     type Access = ReadWrite;
-    type Return = SqliteExecuteResponse;
+    type Response = SqliteExecuteResponse;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         Ok(match self {
             SqliteExecute::Single(execute) =>
                 SqliteExecuteResponse::Single(execute.apply_to_tx(tx)?),

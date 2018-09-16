@@ -1,28 +1,28 @@
-use integration_test::indexed_test_cases;
-use integration_test::named_test_cases;
-use integration_test::queued_params_as_arg;
+//use integration_test::indexed_test_cases;
+//use integration_test::named_test_cases;
+//use integration_test::queued_params_as_arg;
 use integration_test::serialization::sqlite_responses;
 use integration_test::serialization::sqlite_requests;
-use sqlite_requests::execute::Execute;
-use sqlite_requests::proto::ProtoExecuteRequest;
-use sqlite_requests::proto::ProtoQueryRequest;
-use sqlite_requests::query::Query;
-use sqlite_requests::request::SqliteRequest;
-use sqlite_requests::request::SqliteExecute;
-use sqlite_requests::request::SqliteQuery;
+//use sqlite_requests::execute::Execute;
+//use sqlite_requests::proto::ProtoExecuteRequest;
+//use sqlite_requests::proto::ProtoQueryRequest;
+//use sqlite_requests::query::Query;
+//use sqlite_requests::request::SqliteRequest;
+//use sqlite_requests::request::SqliteExecute;
+//use sqlite_requests::request::SqliteQuery;
 
-// TODO: refactor using sqlite_requests()
+// TODO: impl
 
 #[test]
 fn test_proto_requests() {
-    let requests = sqlite_requests();
+    let _requests = sqlite_requests();
 
 
 }
 
 #[test]
 fn test_proto_responses() {
-    let responses = sqlite_responses();
+    let _responses = sqlite_responses();
 }
 
 //#[test]

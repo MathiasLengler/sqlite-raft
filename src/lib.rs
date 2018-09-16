@@ -20,5 +20,3 @@ pub mod execute;
 pub mod proto;
 pub mod request;
 mod value;
-
-// TODO: Naming: "Command" trait -> "Request" trait

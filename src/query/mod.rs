@@ -1,5 +1,5 @@
 use connection::AccessTransaction;
-use connection::Command;
+use connection::Request;
 use connection::ReadOnly;
 use error::Result;
 use parameter::IndexedParameters;
@@ -30,11 +30,11 @@ impl BulkQuery {
     }
 }
 
-impl Command for BulkQuery {
+impl Request for BulkQuery {
     type Access = ReadOnly;
-    type Return = Vec<Vec<QueryResponse>>;
+    type Response = Vec<Vec<QueryResponse>>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         self.queries.iter().map(|query| {
             query.apply_to_tx(tx)
         }).collect::<Result<Vec<_>>>()
@@ -66,11 +66,11 @@ impl Query {
     }
 }
 
-impl Command for Query {
+impl Request for Query {
     type Access = ReadOnly;
-    type Return = Vec<QueryResponse>;
+    type Response = Vec<QueryResponse>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 

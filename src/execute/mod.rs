@@ -1,5 +1,5 @@
 use connection::AccessTransaction;
-use connection::Command;
+use connection::Request;
 use connection::ReadWrite;
 use error::Result;
 use parameter::IndexedParameters;
@@ -24,11 +24,11 @@ impl BulkExecute {
     }
 }
 
-impl Command for BulkExecute {
+impl Request for BulkExecute {
     type Access = ReadWrite;
-    type Return = Vec<Vec<ExecuteResponse>>;
+    type Response = Vec<Vec<ExecuteResponse>>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         self.executes.iter().map(|execute| {
             execute.apply_to_tx(tx)
         }).collect::<Result<Vec<_>>>()
@@ -59,11 +59,11 @@ impl Execute {
     }
 }
 
-impl Command for Execute {
+impl Request for Execute {
     type Access = ReadWrite;
-    type Return = Vec<ExecuteResponse>;
+    type Response = Vec<ExecuteResponse>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 

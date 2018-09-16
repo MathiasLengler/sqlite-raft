@@ -19,9 +19,9 @@ impl<A: Access> AccessConnection<A> {
         })
     }
 
-    pub fn run<T>(&mut self, command: &T) -> Result<T::Return>
-        where T: Command<Access=A> {
-        self.inside_transaction(|tx| command.apply_to_tx(tx))
+    pub fn run<R>(&mut self, request: &R) -> Result<R::Response>
+        where R: Request<Access=A> {
+        self.inside_transaction(|tx| request.apply_to_tx(tx))
     }
 
     pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessTransaction<A>) -> Result<T>) -> Result<T> {
@@ -90,9 +90,9 @@ impl Access for ReadWrite {
     }
 }
 
-pub trait Command {
+pub trait Request {
     type Access: Access;
-    type Return;
+    type Response;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return>;
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response>;
 }

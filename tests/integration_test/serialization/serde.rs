@@ -1,51 +1,35 @@
 use bincode;
-use integration_test::serialization::sqlite_commands;
+use integration_test::serialization::sqlite_requests;
 use serde_json;
-use sqlite_commands::connection::AccessConnection;
-use sqlite_commands::connection::ReadOnly;
-use sqlite_commands::connection::ReadWrite;
-use sqlite_commands::SqliteCommand;
-use sqlite_commands::SqliteCommandResponse;
-use utils::temp_db::with_single_test_db;
+use sqlite_commands::request::SqliteRequest;
+use sqlite_commands::request::SqliteResponse;
+use integration_test::serialization::sqlite_responses;
 
 
 #[test]
-fn test_serde_commands() {
-    let commands = sqlite_commands();
+fn test_serde_requests() {
+    let requests = sqlite_requests();
 
-    let bincode_serialized = bincode::serialize(&commands).unwrap();
-    let bincode_deserialized: Vec<SqliteCommand> = bincode::deserialize(&bincode_serialized).unwrap();
+    let bincode_serialized = bincode::serialize(&requests).unwrap();
+    let bincode_deserialized: Vec<SqliteRequest> = bincode::deserialize(&bincode_serialized).unwrap();
 
-    let json_serialized = serde_json::to_string(&commands).unwrap();
-    let json_deserialized: Vec<SqliteCommand> = serde_json::from_str(&json_serialized).unwrap();
+    let json_serialized = serde_json::to_string(&requests).unwrap();
+    let json_deserialized: Vec<SqliteRequest> = serde_json::from_str(&json_serialized).unwrap();
 
-    assert_eq!(commands, bincode_deserialized);
-    assert_eq!(commands, json_deserialized);
+    assert_eq!(requests, bincode_deserialized);
+    assert_eq!(requests, json_deserialized);
 }
 
 #[test]
-fn test_serde_results() {
-    let commands = sqlite_commands();
+fn test_serde_responses() {
+    let command_responses = sqlite_responses();
 
-    let command_results: Vec<SqliteCommandResponse> = commands.iter().map(|command| {
-        with_single_test_db(|mut conn_ro: AccessConnection<ReadOnly>, mut conn_rw: AccessConnection<ReadWrite>| {
-            match command {
-                SqliteCommand::Query(sqlite_query) => {
-                    SqliteCommandResponse::Query(conn_ro.run(sqlite_query).unwrap())
-                }
-                SqliteCommand::Execute(sqlite_execute) => {
-                    SqliteCommandResponse::Execute(conn_rw.run(sqlite_execute).unwrap())
-                }
-            }
-        })
-    }).collect();
+    let bincode_serialized = bincode::serialize(&command_responses).unwrap();
+    let bincode_deserialized: Vec<SqliteResponse> = bincode::deserialize(&bincode_serialized).unwrap();
 
-    let bincode_serialized = bincode::serialize(&command_results).unwrap();
-    let bincode_deserialized: Vec<SqliteCommandResponse> = bincode::deserialize(&bincode_serialized).unwrap();
+    let json_serialized = serde_json::to_string(&command_responses).unwrap();
+    let json_deserialized: Vec<SqliteResponse> = serde_json::from_str(&json_serialized).unwrap();
 
-    let json_serialized = serde_json::to_string(&command_results).unwrap();
-    let json_deserialized: Vec<SqliteCommandResponse> = serde_json::from_str(&json_serialized).unwrap();
-
-    assert_eq!(command_results, bincode_deserialized);
-    assert_eq!(command_results, json_deserialized);
+    assert_eq!(command_responses, bincode_deserialized);
+    assert_eq!(command_responses, json_deserialized);
 }

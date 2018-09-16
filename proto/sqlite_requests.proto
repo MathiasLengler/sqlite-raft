@@ -95,7 +95,7 @@ message ProtoBulkExecuteResponse {
 }
 
 // TODO: is there a need for the following messages?
-// SqliteCommand
+// SqliteRequest
 // SqliteCommandResponse
 // SqliteQuery
 // SqliteQueryResponse

@@ -10,6 +10,7 @@ use rusqlite::types::ToSql;
 
 mod proto_convert;
 
+/// Execute a series of statements. Each statement can be run with multiple different parameters.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BulkExecute {
     executes: Vec<Execute>,
@@ -35,6 +36,7 @@ impl Command for BulkExecute {
 }
 
 
+/// Execute a single statement once or multiple times with different parameters.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Execute {
     sql: String,

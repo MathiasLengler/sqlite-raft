@@ -16,6 +16,7 @@ use std::result;
 
 mod proto_convert;
 
+/// Execute a series of queries. Each query can be run with multiple different parameters.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct BulkQuery {
     queries: Vec<Query>,
@@ -40,6 +41,7 @@ impl Command for BulkQuery {
     }
 }
 
+/// Execute a single query once or multiple times with different parameters.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Query {
     sql: String,

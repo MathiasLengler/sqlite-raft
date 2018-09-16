@@ -1,2 +1,2 @@
 # Ignore generated code
-sqlite_commands.rs
+sqlite_requests.rs

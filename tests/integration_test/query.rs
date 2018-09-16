@@ -4,11 +4,11 @@ use integration_test::queued_params_as_arg;
 use rusqlite::Connection;
 use rusqlite::Row;
 use rusqlite::types::ToSql;
-use sqlite_commands::connection::AccessConnection;
-use sqlite_commands::connection::ReadOnly;
-use sqlite_commands::query::BulkQuery;
-use sqlite_commands::query::Query;
-use sqlite_commands::query::QueryResultRow;
+use sqlite_requests::connection::AccessConnection;
+use sqlite_requests::connection::ReadOnly;
+use sqlite_requests::query::BulkQuery;
+use sqlite_requests::query::Query;
+use sqlite_requests::query::QueryResultRow;
 use utils::temp_db::with_test_dbs;
 
 #[derive(Debug, Eq, PartialEq)]

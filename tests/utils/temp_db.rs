@@ -1,9 +1,9 @@
 use rusqlite;
 use rusqlite::Connection;
-use sqlite_commands::connection::Access;
-use sqlite_commands::connection::AccessConnection;
-use sqlite_commands::connection::ReadOnly;
-use sqlite_commands::connection::ReadWrite;
+use sqlite_requests::connection::Access;
+use sqlite_requests::connection::AccessConnection;
+use sqlite_requests::connection::ReadOnly;
+use sqlite_requests::connection::ReadWrite;
 use std::panic;
 use std::panic::UnwindSafe;
 use std::panic::AssertUnwindSafe;

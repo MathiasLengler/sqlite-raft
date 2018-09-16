@@ -1,7 +1,7 @@
 use rusqlite::types::ToSql;
-use sqlite_commands::error::Error;
-use sqlite_commands::execute::Execute;
-use sqlite_commands::query::Query;
+use sqlite_requests::error::Error;
+use sqlite_requests::execute::Execute;
+use sqlite_requests::query::Query;
 
 mod query;
 mod execute;

@@ -1,15 +1,15 @@
-use sqlite_commands::query::Query;
-use sqlite_commands::execute::Execute;
-use sqlite_commands::query::BulkQuery;
-use sqlite_commands::execute::BulkExecute;
+use sqlite_requests::query::Query;
+use sqlite_requests::execute::Execute;
+use sqlite_requests::query::BulkQuery;
+use sqlite_requests::execute::BulkExecute;
 use integration_test::indexed_test_cases;
 use integration_test::named_test_cases;
 use integration_test::queued_params_as_arg;
-use sqlite_commands::request::SqliteRequest;
-use sqlite_commands::request::SqliteResponse;
-use sqlite_commands::connection::AccessConnection;
-use sqlite_commands::connection::ReadOnly;
-use sqlite_commands::connection::ReadWrite;
+use sqlite_requests::request::SqliteRequest;
+use sqlite_requests::request::SqliteResponse;
+use sqlite_requests::connection::AccessConnection;
+use sqlite_requests::connection::ReadOnly;
+use sqlite_requests::connection::ReadWrite;
 use utils::temp_db::with_single_test_db;
 
 mod serde;

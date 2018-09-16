@@ -21,8 +21,4 @@ pub mod proto;
 pub mod request;
 mod value;
 
-// TODO: move to modules (command?)
-
-// TODO: rename crate
 // TODO: Naming: "Command" trait -> "Request" trait
-

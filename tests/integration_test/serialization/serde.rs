@@ -1,8 +1,8 @@
 use bincode;
 use integration_test::serialization::sqlite_requests;
 use serde_json;
-use sqlite_commands::request::SqliteRequest;
-use sqlite_commands::request::SqliteResponse;
+use sqlite_requests::request::SqliteRequest;
+use sqlite_requests::request::SqliteResponse;
 use integration_test::serialization::sqlite_responses;
 
 

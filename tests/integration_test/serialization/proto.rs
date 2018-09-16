@@ -3,15 +3,15 @@ use integration_test::named_test_cases;
 use integration_test::queued_params_as_arg;
 use integration_test::serialization::sqlite_responses;
 use integration_test::serialization::sqlite_requests;
-use sqlite_commands::execute::Execute;
-use sqlite_commands::proto::ProtoExecuteRequest;
-use sqlite_commands::proto::ProtoQueryRequest;
-use sqlite_commands::query::Query;
-use sqlite_commands::request::SqliteRequest;
-use sqlite_commands::request::SqliteExecute;
-use sqlite_commands::request::SqliteQuery;
+use sqlite_requests::execute::Execute;
+use sqlite_requests::proto::ProtoExecuteRequest;
+use sqlite_requests::proto::ProtoQueryRequest;
+use sqlite_requests::query::Query;
+use sqlite_requests::request::SqliteRequest;
+use sqlite_requests::request::SqliteExecute;
+use sqlite_requests::request::SqliteQuery;
 
-// TODO: refactor using sqlite_commands()
+// TODO: refactor using sqlite_requests()
 
 #[test]
 fn test_proto_requests() {

@@ -1,5 +1,5 @@
 [package]
-name = "sqlite-commands"
+name = "sqlite-requests"
 version = "0.1.0"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 build = "build.rs"

@@ -2,10 +2,10 @@ use integration_test::indexed_test_cases;
 use integration_test::named_test_cases;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
-use sqlite_commands::connection::AccessConnection;
-use sqlite_commands::connection::ReadWrite;
-use sqlite_commands::execute::BulkExecute;
-use sqlite_commands::execute::Execute;
+use sqlite_requests::connection::AccessConnection;
+use sqlite_requests::connection::ReadWrite;
+use sqlite_requests::execute::BulkExecute;
+use sqlite_requests::execute::Execute;
 use utils::temp_db::with_test_dbs;
 use integration_test::queued_params_as_arg;
 

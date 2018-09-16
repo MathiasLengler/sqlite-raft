@@ -19,6 +19,13 @@ use execute::BulkExecute;
 use execute::Execute;
 use query::BulkQuery;
 use query::Query;
+use query::QueryResult;
+use execute::ExecuteResult;
+use connection::Command;
+use connection::ReadWrite;
+use connection::AccessTransaction;
+use error::Result;
+use connection::ReadOnly;
 
 pub mod connection;
 pub mod error;
@@ -28,7 +35,10 @@ pub mod execute;
 pub mod proto;
 mod value;
 
+// TODO: move to modules
+
 // TODO: Naming: SqliteQuery/Query vs Query/SingleQuery
+// TODO: Naming: (Sqlite)Request vs (Sqlite)Command
 
 /// Every possible SQLite command. Used as a serialization root point for transferring SQLite commands.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -71,6 +81,26 @@ pub enum SqliteQuery {
     Bulk(BulkQuery),
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum SqliteQueryResponse {
+    Single(Vec<QueryResult>),
+    Bulk(Vec<Vec<QueryResult>>),
+}
+
+impl Command for SqliteQuery {
+    type Access = ReadOnly;
+    type Return = SqliteQueryResponse;
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+        Ok(match self {
+            SqliteQuery::Single(query) =>
+                SqliteQueryResponse::Single(query.apply_to_tx(tx)?),
+            SqliteQuery::Bulk(bulk_query) =>
+                SqliteQueryResponse::Bulk(bulk_query.apply_to_tx(tx)?),
+        })
+    }
+}
+
 /// A single SQLite statement or a series of them.
 /// A statement is a SQL-Command which can modify the DB and requires `ReadWrite` access to be run, e.g. everything but a query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -79,4 +109,25 @@ pub enum SqliteExecute {
     Single(Execute),
     /// Execute a series of statements. Each statement can be run with multiple different parameters.
     Bulk(BulkExecute),
+}
+
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum SqliteExecuteResponse {
+    Single(Vec<ExecuteResult>),
+    Bulk(Vec<Vec<ExecuteResult>>),
+}
+
+impl Command for SqliteExecute {
+    type Access = ReadWrite;
+    type Return = SqliteExecuteResponse;
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Return> {
+        Ok(match self {
+            SqliteExecute::Single(execute) =>
+                SqliteExecuteResponse::Single(execute.apply_to_tx(tx)?),
+            SqliteExecute::Bulk(bulk_execute) =>
+                SqliteExecuteResponse::Bulk(bulk_execute.apply_to_tx(tx)?),
+        })
+    }
 }

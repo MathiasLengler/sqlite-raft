@@ -49,7 +49,7 @@ pub struct Query {
 }
 
 impl Query {
-    // TODO: add single non-queued parameter convenience constructor (return value?)
+    // TODO: add single non-queued parameter convenience constructor
 
     pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Query> {
         Ok(Query {

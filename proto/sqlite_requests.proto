@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package sqlite_commands;
 
-// TODO: Rename Result -> Response
-
 message ProtoQueryRequest {
   string sql = 1;
   ProtoQueuedParameters queued_parameters = 2;

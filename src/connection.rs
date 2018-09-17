@@ -3,6 +3,7 @@ use rusqlite::Connection;
 use rusqlite::OpenFlags;
 use rusqlite::Transaction;
 use std::path::Path;
+use request::Request;
 
 pub struct AccessConnection<A: Access> {
     conn: Connection,
@@ -88,12 +89,4 @@ impl Access for ReadWrite {
 
         Ok(conn)
     }
-}
-
-// TODO: move to request module
-pub trait Request {
-    type Access: Access;
-    type Response;
-
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response>;
 }

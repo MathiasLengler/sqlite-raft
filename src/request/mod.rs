@@ -1,5 +1,4 @@
 use connection::AccessTransaction;
-use connection::Request;
 use connection::ReadOnly;
 use connection::ReadWrite;
 use error::Result;
@@ -9,8 +8,23 @@ use execute::ExecuteResult;
 use query::BulkQuery;
 use query::Query;
 use query::QueryResultSet;
+use connection::Access;
 
 mod proto_convert;
+
+
+/// Implemented by every directly runnable SQLite request.
+///
+/// Used by `AccessConnection::run`.
+pub trait Request {
+    /// The needed access level to run this request.
+    type Access: Access;
+    /// The returned response type when running this query.
+    type Response;
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response>;
+}
+
 
 /// Every possible SQLite request.
 /// Used as a serialization root point for transferring or persisting SQLite requests.

@@ -1,5 +1,5 @@
 use connection::AccessTransaction;
-use connection::Request;
+use request::Request;
 use connection::ReadOnly;
 use error::Result;
 use parameter::IndexedParameters;

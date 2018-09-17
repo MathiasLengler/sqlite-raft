@@ -56,10 +56,10 @@ message ProtoNull {
 }
 
 message ProtoQueryResponse {
-  repeated ProtoQueryResult query_results = 1;
+  repeated ProtoQueryResultSet query_result_sets = 1;
 }
 
-message ProtoQueryResult {
+message ProtoQueryResultSet {
   repeated ProtoQueryResultRow rows = 1;
 }
 
@@ -73,7 +73,7 @@ message ProtoExecuteRequest {
 }
 
 message ProtoExecuteResponse {
-  repeated ProtoExecuteResult execute_result = 1;
+  repeated ProtoExecuteResult execute_results = 1;
 }
 
 message ProtoExecuteResult {

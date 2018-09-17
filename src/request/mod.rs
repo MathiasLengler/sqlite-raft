@@ -5,10 +5,10 @@ use connection::ReadWrite;
 use error::Result;
 use execute::BulkExecute;
 use execute::Execute;
-use execute::ExecuteResponse;
+use execute::ExecuteResult;
 use query::BulkQuery;
 use query::Query;
-use query::QueryResponse;
+use query::QueryResultSet;
 
 mod proto_convert;
 
@@ -64,8 +64,8 @@ pub enum SqliteQuery {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteQueryResponse {
-    Single(Vec<QueryResponse>),
-    Bulk(Vec<Vec<QueryResponse>>),
+    Single(Vec<QueryResultSet>),
+    Bulk(Vec<Vec<QueryResultSet>>),
 }
 
 impl Request for SqliteQuery {
@@ -93,8 +93,8 @@ pub enum SqliteExecute {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteExecuteResponse {
-    Single(Vec<ExecuteResponse>),
-    Bulk(Vec<Vec<ExecuteResponse>>),
+    Single(Vec<ExecuteResult>),
+    Bulk(Vec<Vec<ExecuteResult>>),
 }
 
 impl Request for SqliteExecute {

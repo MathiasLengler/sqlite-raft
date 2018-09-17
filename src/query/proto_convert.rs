@@ -1,12 +1,12 @@
 use proto::ProtoQueryRequest;
 use proto::ProtoQueryResponse;
-use proto::ProtoQueryResult;
+use proto::ProtoQueryResultSet;
 use proto::ProtoQueryResultRow;
 use proto::ProtoBulkQueryRequest;
 use proto::ProtoBulkQueryResponse;
 use proto::ProtoValue;
 use query::Query;
-use query::QueryResponse;
+use query::QueryResultSet;
 use query::QueryResultRow;
 use query::BulkQuery;
 
@@ -28,20 +28,20 @@ impl From<ProtoQueryRequest> for Query {
     }
 }
 
-impl From<Vec<QueryResponse>> for ProtoQueryResponse {
-    fn from(query_results: Vec<QueryResponse>) -> Self {
+impl From<Vec<QueryResultSet>> for ProtoQueryResponse {
+    fn from(query_results: Vec<QueryResultSet>) -> Self {
         let mut proto_query_response = ProtoQueryResponse::new();
-        let vec_proto_query_result: Vec<ProtoQueryResult> =
+        let proto_query_result_set: Vec<ProtoQueryResultSet> =
             query_results.into_iter().map(Into::into).collect();
-        proto_query_response.set_query_results(vec_proto_query_result.into());
+        proto_query_response.set_query_result_sets(proto_query_result_set.into());
         proto_query_response
     }
 }
 
-impl From<ProtoQueryResponse> for Vec<QueryResponse> {
+impl From<ProtoQueryResponse> for Vec<QueryResultSet> {
     fn from(mut proto_query_response: ProtoQueryResponse) -> Self {
         proto_query_response
-            .take_query_results()
+            .take_query_result_sets()
             .into_vec()
             .into_iter()
             .map(Into::into)
@@ -49,9 +49,9 @@ impl From<ProtoQueryResponse> for Vec<QueryResponse> {
     }
 }
 
-impl From<QueryResponse> for ProtoQueryResult {
-    fn from(query_result: QueryResponse) -> Self {
-        let mut proto_query_result = ProtoQueryResult::new();
+impl From<QueryResultSet> for ProtoQueryResultSet {
+    fn from(query_result: QueryResultSet) -> Self {
+        let mut proto_query_result = ProtoQueryResultSet::new();
         let vec_proto_query_result_row: Vec<ProtoQueryResultRow> =
             query_result.rows.into_iter().map(Into::into).collect();
         proto_query_result.set_rows(vec_proto_query_result_row.into());
@@ -59,9 +59,9 @@ impl From<QueryResponse> for ProtoQueryResult {
     }
 }
 
-impl From<ProtoQueryResult> for QueryResponse {
-    fn from(mut proto_query_result: ProtoQueryResult) -> Self {
-        QueryResponse {
+impl From<ProtoQueryResultSet> for QueryResultSet {
+    fn from(mut proto_query_result: ProtoQueryResultSet) -> Self {
+        QueryResultSet {
             rows: proto_query_result
                 .take_rows()
                 .into_vec()
@@ -118,8 +118,8 @@ impl From<ProtoBulkQueryRequest> for BulkQuery {
     }
 }
 
-impl From<Vec<Vec<QueryResponse>>> for ProtoBulkQueryResponse {
-    fn from(vec_vec_query_response: Vec<Vec<QueryResponse>>) -> Self {
+impl From<Vec<Vec<QueryResultSet>>> for ProtoBulkQueryResponse {
+    fn from(vec_vec_query_response: Vec<Vec<QueryResultSet>>) -> Self {
         let mut proto_bulk_query_response = ProtoBulkQueryResponse::new();
         let vec_proto_query_response: Vec<ProtoQueryResponse> =
             vec_vec_query_response.into_iter().map(Into::into).collect();
@@ -128,7 +128,7 @@ impl From<Vec<Vec<QueryResponse>>> for ProtoBulkQueryResponse {
     }
 }
 
-impl From<ProtoBulkQueryResponse> for Vec<Vec<QueryResponse>> {
+impl From<ProtoBulkQueryResponse> for Vec<Vec<QueryResultSet>> {
     fn from(mut proto_bulk_query_response: ProtoBulkQueryResponse) -> Self {
         proto_bulk_query_response
             .take_query_responses()

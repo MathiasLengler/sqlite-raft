@@ -32,7 +32,7 @@ impl BulkQuery {
 
 impl Request for BulkQuery {
     type Access = ReadOnly;
-    type Response = Vec<Vec<QueryResponse>>;
+    type Response = Vec<Vec<QueryResultSet>>;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         self.queries.iter().map(|query| {
@@ -68,7 +68,7 @@ impl Query {
 
 impl Request for Query {
     type Access = ReadOnly;
-    type Response = Vec<QueryResponse>;
+    type Response = Vec<QueryResultSet>;
 
     fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
         let tx = tx.as_mut_inner();
@@ -82,7 +82,7 @@ impl Request for Query {
                     QueryResultRow::query_map_arg(),
                 )?;
 
-                QueryResponse::try_from(rows)
+                QueryResultSet::try_from(rows)
             },
             |stmt: &mut Statement, parameters: &NamedParameters| {
                 let rows = stmt.query_map_named(
@@ -90,7 +90,7 @@ impl Request for Query {
                     QueryResultRow::query_map_arg(),
                 )?;
 
-                QueryResponse::try_from(rows)
+                QueryResultSet::try_from(rows)
             },
         );
 
@@ -99,11 +99,11 @@ impl Request for Query {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct QueryResponse {
+pub struct QueryResultSet {
     rows: Vec<QueryResultRow>,
 }
 
-impl QueryResponse {
+impl QueryResultSet {
     pub fn into_vec(self) -> Vec<QueryResultRow> {
         self.rows
     }
@@ -113,16 +113,15 @@ impl QueryResponse {
     }
 
     fn try_from(rows_iter: impl Iterator<Item=result::Result<QueryResultRow, rusqlite::Error>>)
-                -> Result<QueryResponse> {
+                -> Result<QueryResultSet> {
         let rows: result::Result<Vec<QueryResultRow>, rusqlite::Error> = rows_iter.collect();
 
-        Ok(QueryResponse {
+        Ok(QueryResultSet {
             rows: rows?,
         })
     }
 }
 
-// TODO: rename QueryResponseRow
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct QueryResultRow {
     #[serde(with = "::value::serde")]

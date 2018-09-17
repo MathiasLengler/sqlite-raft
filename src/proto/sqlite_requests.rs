@@ -1984,7 +1984,7 @@ impl ::protobuf::reflect::ProtobufValue for ProtoNull {
 #[derive(PartialEq,Clone,Default)]
 pub struct ProtoQueryResponse {
     // message fields
-    pub query_results: ::protobuf::RepeatedField<ProtoQueryResult>,
+    pub query_result_sets: ::protobuf::RepeatedField<ProtoQueryResultSet>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -1995,35 +1995,35 @@ impl ProtoQueryResponse {
         ::std::default::Default::default()
     }
 
-    // repeated .sqlite_commands.ProtoQueryResult query_results = 1;
+    // repeated .sqlite_commands.ProtoQueryResultSet query_result_sets = 1;
 
-    pub fn clear_query_results(&mut self) {
-        self.query_results.clear();
+    pub fn clear_query_result_sets(&mut self) {
+        self.query_result_sets.clear();
     }
 
     // Param is passed by value, moved
-    pub fn set_query_results(&mut self, v: ::protobuf::RepeatedField<ProtoQueryResult>) {
-        self.query_results = v;
+    pub fn set_query_result_sets(&mut self, v: ::protobuf::RepeatedField<ProtoQueryResultSet>) {
+        self.query_result_sets = v;
     }
 
     // Mutable pointer to the field.
-    pub fn mut_query_results(&mut self) -> &mut ::protobuf::RepeatedField<ProtoQueryResult> {
-        &mut self.query_results
+    pub fn mut_query_result_sets(&mut self) -> &mut ::protobuf::RepeatedField<ProtoQueryResultSet> {
+        &mut self.query_result_sets
     }
 
     // Take field
-    pub fn take_query_results(&mut self) -> ::protobuf::RepeatedField<ProtoQueryResult> {
-        ::std::mem::replace(&mut self.query_results, ::protobuf::RepeatedField::new())
+    pub fn take_query_result_sets(&mut self) -> ::protobuf::RepeatedField<ProtoQueryResultSet> {
+        ::std::mem::replace(&mut self.query_result_sets, ::protobuf::RepeatedField::new())
     }
 
-    pub fn get_query_results(&self) -> &[ProtoQueryResult] {
-        &self.query_results
+    pub fn get_query_result_sets(&self) -> &[ProtoQueryResultSet] {
+        &self.query_result_sets
     }
 }
 
 impl ::protobuf::Message for ProtoQueryResponse {
     fn is_initialized(&self) -> bool {
-        for v in &self.query_results {
+        for v in &self.query_result_sets {
             if !v.is_initialized() {
                 return false;
             }
@@ -2036,7 +2036,7 @@ impl ::protobuf::Message for ProtoQueryResponse {
             let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.query_results)?;
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.query_result_sets)?;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -2050,7 +2050,7 @@ impl ::protobuf::Message for ProtoQueryResponse {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.query_results {
+        for value in &self.query_result_sets {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -2060,7 +2060,7 @@ impl ::protobuf::Message for ProtoQueryResponse {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        for v in &self.query_results {
+        for v in &self.query_result_sets {
             os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
@@ -2107,10 +2107,10 @@ impl ::protobuf::Message for ProtoQueryResponse {
         unsafe {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
-                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<ProtoQueryResult>>(
-                    "query_results",
-                    |m: &ProtoQueryResponse| { &m.query_results },
-                    |m: &mut ProtoQueryResponse| { &mut m.query_results },
+                fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<ProtoQueryResultSet>>(
+                    "query_result_sets",
+                    |m: &ProtoQueryResponse| { &m.query_result_sets },
+                    |m: &mut ProtoQueryResponse| { &mut m.query_result_sets },
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<ProtoQueryResponse>(
                     "ProtoQueryResponse",
@@ -2134,7 +2134,7 @@ impl ::protobuf::Message for ProtoQueryResponse {
 
 impl ::protobuf::Clear for ProtoQueryResponse {
     fn clear(&mut self) {
-        self.clear_query_results();
+        self.clear_query_result_sets();
         self.unknown_fields.clear();
     }
 }
@@ -2152,7 +2152,7 @@ impl ::protobuf::reflect::ProtobufValue for ProtoQueryResponse {
 }
 
 #[derive(PartialEq,Clone,Default)]
-pub struct ProtoQueryResult {
+pub struct ProtoQueryResultSet {
     // message fields
     pub rows: ::protobuf::RepeatedField<ProtoQueryResultRow>,
     // special fields
@@ -2160,8 +2160,8 @@ pub struct ProtoQueryResult {
     cached_size: ::protobuf::CachedSize,
 }
 
-impl ProtoQueryResult {
-    pub fn new() -> ProtoQueryResult {
+impl ProtoQueryResultSet {
+    pub fn new() -> ProtoQueryResultSet {
         ::std::default::Default::default()
     }
 
@@ -2191,7 +2191,7 @@ impl ProtoQueryResult {
     }
 }
 
-impl ::protobuf::Message for ProtoQueryResult {
+impl ::protobuf::Message for ProtoQueryResultSet {
     fn is_initialized(&self) -> bool {
         for v in &self.rows {
             if !v.is_initialized() {
@@ -2265,8 +2265,8 @@ impl ::protobuf::Message for ProtoQueryResult {
         Self::descriptor_static()
     }
 
-    fn new() -> ProtoQueryResult {
-        ProtoQueryResult::new()
+    fn new() -> ProtoQueryResultSet {
+        ProtoQueryResultSet::new()
     }
 
     fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -2279,11 +2279,11 @@ impl ::protobuf::Message for ProtoQueryResult {
                 let mut fields = ::std::vec::Vec::new();
                 fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<ProtoQueryResultRow>>(
                     "rows",
-                    |m: &ProtoQueryResult| { &m.rows },
-                    |m: &mut ProtoQueryResult| { &mut m.rows },
+                    |m: &ProtoQueryResultSet| { &m.rows },
+                    |m: &mut ProtoQueryResultSet| { &mut m.rows },
                 ));
-                ::protobuf::reflect::MessageDescriptor::new::<ProtoQueryResult>(
-                    "ProtoQueryResult",
+                ::protobuf::reflect::MessageDescriptor::new::<ProtoQueryResultSet>(
+                    "ProtoQueryResultSet",
                     fields,
                     file_descriptor_proto()
                 )
@@ -2291,31 +2291,31 @@ impl ::protobuf::Message for ProtoQueryResult {
         }
     }
 
-    fn default_instance() -> &'static ProtoQueryResult {
-        static mut instance: ::protobuf::lazy::Lazy<ProtoQueryResult> = ::protobuf::lazy::Lazy {
+    fn default_instance() -> &'static ProtoQueryResultSet {
+        static mut instance: ::protobuf::lazy::Lazy<ProtoQueryResultSet> = ::protobuf::lazy::Lazy {
             lock: ::protobuf::lazy::ONCE_INIT,
-            ptr: 0 as *const ProtoQueryResult,
+            ptr: 0 as *const ProtoQueryResultSet,
         };
         unsafe {
-            instance.get(ProtoQueryResult::new)
+            instance.get(ProtoQueryResultSet::new)
         }
     }
 }
 
-impl ::protobuf::Clear for ProtoQueryResult {
+impl ::protobuf::Clear for ProtoQueryResultSet {
     fn clear(&mut self) {
         self.clear_rows();
         self.unknown_fields.clear();
     }
 }
 
-impl ::std::fmt::Debug for ProtoQueryResult {
+impl ::std::fmt::Debug for ProtoQueryResultSet {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for ProtoQueryResult {
+impl ::protobuf::reflect::ProtobufValue for ProtoQueryResultSet {
     fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
         ::protobuf::reflect::ProtobufValueRef::Message(self)
     }
@@ -2714,7 +2714,7 @@ impl ::protobuf::reflect::ProtobufValue for ProtoExecuteRequest {
 #[derive(PartialEq,Clone,Default)]
 pub struct ProtoExecuteResponse {
     // message fields
-    pub execute_result: ::protobuf::RepeatedField<ProtoExecuteResult>,
+    pub execute_results: ::protobuf::RepeatedField<ProtoExecuteResult>,
     // special fields
     unknown_fields: ::protobuf::UnknownFields,
     cached_size: ::protobuf::CachedSize,
@@ -2725,35 +2725,35 @@ impl ProtoExecuteResponse {
         ::std::default::Default::default()
     }
 
-    // repeated .sqlite_commands.ProtoExecuteResult execute_result = 1;
+    // repeated .sqlite_commands.ProtoExecuteResult execute_results = 1;
 
-    pub fn clear_execute_result(&mut self) {
-        self.execute_result.clear();
+    pub fn clear_execute_results(&mut self) {
+        self.execute_results.clear();
     }
 
     // Param is passed by value, moved
-    pub fn set_execute_result(&mut self, v: ::protobuf::RepeatedField<ProtoExecuteResult>) {
-        self.execute_result = v;
+    pub fn set_execute_results(&mut self, v: ::protobuf::RepeatedField<ProtoExecuteResult>) {
+        self.execute_results = v;
     }
 
     // Mutable pointer to the field.
-    pub fn mut_execute_result(&mut self) -> &mut ::protobuf::RepeatedField<ProtoExecuteResult> {
-        &mut self.execute_result
+    pub fn mut_execute_results(&mut self) -> &mut ::protobuf::RepeatedField<ProtoExecuteResult> {
+        &mut self.execute_results
     }
 
     // Take field
-    pub fn take_execute_result(&mut self) -> ::protobuf::RepeatedField<ProtoExecuteResult> {
-        ::std::mem::replace(&mut self.execute_result, ::protobuf::RepeatedField::new())
+    pub fn take_execute_results(&mut self) -> ::protobuf::RepeatedField<ProtoExecuteResult> {
+        ::std::mem::replace(&mut self.execute_results, ::protobuf::RepeatedField::new())
     }
 
-    pub fn get_execute_result(&self) -> &[ProtoExecuteResult] {
-        &self.execute_result
+    pub fn get_execute_results(&self) -> &[ProtoExecuteResult] {
+        &self.execute_results
     }
 }
 
 impl ::protobuf::Message for ProtoExecuteResponse {
     fn is_initialized(&self) -> bool {
-        for v in &self.execute_result {
+        for v in &self.execute_results {
             if !v.is_initialized() {
                 return false;
             }
@@ -2766,7 +2766,7 @@ impl ::protobuf::Message for ProtoExecuteResponse {
             let (field_number, wire_type) = is.read_tag_unpack()?;
             match field_number {
                 1 => {
-                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.execute_result)?;
+                    ::protobuf::rt::read_repeated_message_into(wire_type, is, &mut self.execute_results)?;
                 },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
@@ -2780,7 +2780,7 @@ impl ::protobuf::Message for ProtoExecuteResponse {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.execute_result {
+        for value in &self.execute_results {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -2790,7 +2790,7 @@ impl ::protobuf::Message for ProtoExecuteResponse {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        for v in &self.execute_result {
+        for v in &self.execute_results {
             os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
             os.write_raw_varint32(v.get_cached_size())?;
             v.write_to_with_cached_sizes(os)?;
@@ -2838,9 +2838,9 @@ impl ::protobuf::Message for ProtoExecuteResponse {
             descriptor.get(|| {
                 let mut fields = ::std::vec::Vec::new();
                 fields.push(::protobuf::reflect::accessor::make_repeated_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<ProtoExecuteResult>>(
-                    "execute_result",
-                    |m: &ProtoExecuteResponse| { &m.execute_result },
-                    |m: &mut ProtoExecuteResponse| { &mut m.execute_result },
+                    "execute_results",
+                    |m: &ProtoExecuteResponse| { &m.execute_results },
+                    |m: &mut ProtoExecuteResponse| { &mut m.execute_results },
                 ));
                 ::protobuf::reflect::MessageDescriptor::new::<ProtoExecuteResponse>(
                     "ProtoExecuteResponse",
@@ -2864,7 +2864,7 @@ impl ::protobuf::Message for ProtoExecuteResponse {
 
 impl ::protobuf::Clear for ProtoExecuteResponse {
     fn clear(&mut self) {
-        self.clear_execute_result();
+        self.clear_execute_results();
         self.unknown_fields.clear();
     }
 }
@@ -5455,44 +5455,44 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     ullH\0B\x02\x18\0\x12\x15\n\x07integer\x18\x02\x20\x01(\x03H\0B\x02\x18\
     \0\x12\x12\n\x04real\x18\x03\x20\x01(\x01H\0B\x02\x18\0\x12\x12\n\x04tex\
     t\x18\x04\x20\x01(\tH\0B\x02\x18\0\x12\x12\n\x04blob\x18\x05\x20\x01(\
-    \x0cH\0B\x02\x18\0B\x07\n\x05value\"\x0b\n\tProtoNull\"R\n\x12ProtoQuery\
-    Response\x12<\n\rquery_results\x18\x01\x20\x03(\x0b2!.sqlite_commands.Pr\
-    otoQueryResultB\x02\x18\0\"J\n\x10ProtoQueryResult\x126\n\x04rows\x18\
-    \x01\x20\x03(\x0b2$.sqlite_commands.ProtoQueryResultRowB\x02\x18\0\"C\n\
-    \x13ProtoQueryResultRow\x12,\n\x03row\x18\x01\x20\x03(\x0b2\x1b.sqlite_c\
-    ommands.ProtoValueB\x02\x18\0\"m\n\x13ProtoExecuteRequest\x12\x0f\n\x03s\
-    ql\x18\x01\x20\x01(\tB\x02\x18\0\x12E\n\x11queued_parameters\x18\x02\x20\
-    \x01(\x0b2&.sqlite_commands.ProtoQueuedParametersB\x02\x18\0\"W\n\x14Pro\
-    toExecuteResponse\x12?\n\x0eexecute_result\x18\x01\x20\x03(\x0b2#.sqlite\
-    _commands.ProtoExecuteResultB\x02\x18\0\")\n\x12ProtoExecuteResult\x12\
-    \x13\n\x07changes\x18\x01\x20\x01(\x04B\x02\x18\0\"P\n\x15ProtoBulkQuery\
-    Request\x127\n\x07queries\x18\x01\x20\x03(\x0b2\".sqlite_commands.ProtoQ\
-    ueryRequestB\x02\x18\0\"Z\n\x16ProtoBulkQueryResponse\x12@\n\x0fquery_re\
-    sponses\x18\x01\x20\x03(\x0b2#.sqlite_commands.ProtoQueryResponseB\x02\
-    \x18\0\"U\n\x17ProtoBulkExecuteRequest\x12:\n\x08executes\x18\x01\x20\
-    \x03(\x0b2$.sqlite_commands.ProtoExecuteRequestB\x02\x18\0\"`\n\x18Proto\
-    BulkExecuteResponse\x12D\n\x11execute_responses\x18\x01\x20\x03(\x0b2%.s\
-    qlite_commands.ProtoExecuteResponseB\x02\x18\0\"\x93\x01\n\x12ProtoSqlit\
-    eRequest\x126\n\x05query\x18\x01\x20\x01(\x0b2!.sqlite_commands.ProtoSql\
-    iteQueryH\0B\x02\x18\0\x12:\n\x07execute\x18\x02\x20\x01(\x0b2#.sqlite_c\
-    ommands.ProtoSqliteExecuteH\0B\x02\x18\0B\t\n\x07request\"\xa5\x01\n\x13\
-    ProtoSqliteResponse\x12>\n\x05query\x18\x01\x20\x01(\x0b2).sqlite_comman\
-    ds.ProtoSqliteQueryResponseH\0B\x02\x18\0\x12B\n\x07execute\x18\x02\x20\
-    \x01(\x0b2+.sqlite_commands.ProtoSqliteExecuteResponseH\0B\x02\x18\0B\n\
-    \n\x08response\"\x91\x01\n\x10ProtoSqliteQuery\x128\n\x06single\x18\x01\
-    \x20\x01(\x0b2\".sqlite_commands.ProtoQueryRequestH\0B\x02\x18\0\x12:\n\
-    \x04bulk\x18\x02\x20\x01(\x0b2&.sqlite_commands.ProtoBulkQueryRequestH\0\
-    B\x02\x18\0B\x07\n\x05query\"\x9e\x01\n\x18ProtoSqliteQueryResponse\x129\
-    \n\x06single\x18\x01\x20\x01(\x0b2#.sqlite_commands.ProtoQueryResponseH\
-    \0B\x02\x18\0\x12;\n\x04bulk\x18\x02\x20\x01(\x0b2'.sqlite_commands.Prot\
-    oBulkQueryResponseH\0B\x02\x18\0B\n\n\x08response\"\x99\x01\n\x12ProtoSq\
-    liteExecute\x12:\n\x06single\x18\x01\x20\x01(\x0b2$.sqlite_commands.Prot\
-    oExecuteRequestH\0B\x02\x18\0\x12<\n\x04bulk\x18\x02\x20\x01(\x0b2(.sqli\
-    te_commands.ProtoBulkExecuteRequestH\0B\x02\x18\0B\t\n\x07execute\"\xa4\
-    \x01\n\x1aProtoSqliteExecuteResponse\x12;\n\x06single\x18\x01\x20\x01(\
-    \x0b2%.sqlite_commands.ProtoExecuteResponseH\0B\x02\x18\0\x12=\n\x04bulk\
-    \x18\x02\x20\x01(\x0b2).sqlite_commands.ProtoBulkExecuteResponseH\0B\x02\
-    \x18\0B\n\n\x08responseB\0b\x06proto3\
+    \x0cH\0B\x02\x18\0B\x07\n\x05value\"\x0b\n\tProtoNull\"Y\n\x12ProtoQuery\
+    Response\x12C\n\x11query_result_sets\x18\x01\x20\x03(\x0b2$.sqlite_comma\
+    nds.ProtoQueryResultSetB\x02\x18\0\"M\n\x13ProtoQueryResultSet\x126\n\
+    \x04rows\x18\x01\x20\x03(\x0b2$.sqlite_commands.ProtoQueryResultRowB\x02\
+    \x18\0\"C\n\x13ProtoQueryResultRow\x12,\n\x03row\x18\x01\x20\x03(\x0b2\
+    \x1b.sqlite_commands.ProtoValueB\x02\x18\0\"m\n\x13ProtoExecuteRequest\
+    \x12\x0f\n\x03sql\x18\x01\x20\x01(\tB\x02\x18\0\x12E\n\x11queued_paramet\
+    ers\x18\x02\x20\x01(\x0b2&.sqlite_commands.ProtoQueuedParametersB\x02\
+    \x18\0\"X\n\x14ProtoExecuteResponse\x12@\n\x0fexecute_results\x18\x01\
+    \x20\x03(\x0b2#.sqlite_commands.ProtoExecuteResultB\x02\x18\0\")\n\x12Pr\
+    otoExecuteResult\x12\x13\n\x07changes\x18\x01\x20\x01(\x04B\x02\x18\0\"P\
+    \n\x15ProtoBulkQueryRequest\x127\n\x07queries\x18\x01\x20\x03(\x0b2\".sq\
+    lite_commands.ProtoQueryRequestB\x02\x18\0\"Z\n\x16ProtoBulkQueryRespons\
+    e\x12@\n\x0fquery_responses\x18\x01\x20\x03(\x0b2#.sqlite_commands.Proto\
+    QueryResponseB\x02\x18\0\"U\n\x17ProtoBulkExecuteRequest\x12:\n\x08execu\
+    tes\x18\x01\x20\x03(\x0b2$.sqlite_commands.ProtoExecuteRequestB\x02\x18\
+    \0\"`\n\x18ProtoBulkExecuteResponse\x12D\n\x11execute_responses\x18\x01\
+    \x20\x03(\x0b2%.sqlite_commands.ProtoExecuteResponseB\x02\x18\0\"\x93\
+    \x01\n\x12ProtoSqliteRequest\x126\n\x05query\x18\x01\x20\x01(\x0b2!.sqli\
+    te_commands.ProtoSqliteQueryH\0B\x02\x18\0\x12:\n\x07execute\x18\x02\x20\
+    \x01(\x0b2#.sqlite_commands.ProtoSqliteExecuteH\0B\x02\x18\0B\t\n\x07req\
+    uest\"\xa5\x01\n\x13ProtoSqliteResponse\x12>\n\x05query\x18\x01\x20\x01(\
+    \x0b2).sqlite_commands.ProtoSqliteQueryResponseH\0B\x02\x18\0\x12B\n\x07\
+    execute\x18\x02\x20\x01(\x0b2+.sqlite_commands.ProtoSqliteExecuteRespons\
+    eH\0B\x02\x18\0B\n\n\x08response\"\x91\x01\n\x10ProtoSqliteQuery\x128\n\
+    \x06single\x18\x01\x20\x01(\x0b2\".sqlite_commands.ProtoQueryRequestH\0B\
+    \x02\x18\0\x12:\n\x04bulk\x18\x02\x20\x01(\x0b2&.sqlite_commands.ProtoBu\
+    lkQueryRequestH\0B\x02\x18\0B\x07\n\x05query\"\x9e\x01\n\x18ProtoSqliteQ\
+    ueryResponse\x129\n\x06single\x18\x01\x20\x01(\x0b2#.sqlite_commands.Pro\
+    toQueryResponseH\0B\x02\x18\0\x12;\n\x04bulk\x18\x02\x20\x01(\x0b2'.sqli\
+    te_commands.ProtoBulkQueryResponseH\0B\x02\x18\0B\n\n\x08response\"\x99\
+    \x01\n\x12ProtoSqliteExecute\x12:\n\x06single\x18\x01\x20\x01(\x0b2$.sql\
+    ite_commands.ProtoExecuteRequestH\0B\x02\x18\0\x12<\n\x04bulk\x18\x02\
+    \x20\x01(\x0b2(.sqlite_commands.ProtoBulkExecuteRequestH\0B\x02\x18\0B\t\
+    \n\x07execute\"\xa4\x01\n\x1aProtoSqliteExecuteResponse\x12;\n\x06single\
+    \x18\x01\x20\x01(\x0b2%.sqlite_commands.ProtoExecuteResponseH\0B\x02\x18\
+    \0\x12=\n\x04bulk\x18\x02\x20\x01(\x0b2).sqlite_commands.ProtoBulkExecut\
+    eResponseH\0B\x02\x18\0B\n\n\x08responseB\0b\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

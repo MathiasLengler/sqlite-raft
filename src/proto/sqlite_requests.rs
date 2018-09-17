@@ -3717,48 +3717,1782 @@ impl ::protobuf::reflect::ProtobufValue for ProtoBulkExecuteResponse {
     }
 }
 
+#[derive(PartialEq,Clone,Default)]
+pub struct ProtoSqliteRequest {
+    // message oneof groups
+    pub request: ::std::option::Option<ProtoSqliteRequest_oneof_request>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+#[derive(Clone,PartialEq)]
+pub enum ProtoSqliteRequest_oneof_request {
+    query(ProtoSqliteQuery),
+    execute(ProtoSqliteExecute),
+}
+
+impl ProtoSqliteRequest {
+    pub fn new() -> ProtoSqliteRequest {
+        ::std::default::Default::default()
+    }
+
+    // .sqlite_commands.ProtoSqliteQuery query = 1;
+
+    pub fn clear_query(&mut self) {
+        self.request = ::std::option::Option::None;
+    }
+
+    pub fn has_query(&self) -> bool {
+        match self.request {
+            ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_query(&mut self, v: ProtoSqliteQuery) {
+        self.request = ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_query(&mut self) -> &mut ProtoSqliteQuery {
+        if let ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(_)) = self.request {
+        } else {
+            self.request = ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(ProtoSqliteQuery::new()));
+        }
+        match self.request {
+            ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_query(&mut self) -> ProtoSqliteQuery {
+        if self.has_query() {
+            match self.request.take() {
+                ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoSqliteQuery::new()
+        }
+    }
+
+    pub fn get_query(&self) -> &ProtoSqliteQuery {
+        match self.request {
+            ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(ref v)) => v,
+            _ => ProtoSqliteQuery::default_instance(),
+        }
+    }
+
+    // .sqlite_commands.ProtoSqliteExecute execute = 2;
+
+    pub fn clear_execute(&mut self) {
+        self.request = ::std::option::Option::None;
+    }
+
+    pub fn has_execute(&self) -> bool {
+        match self.request {
+            ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_execute(&mut self, v: ProtoSqliteExecute) {
+        self.request = ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_execute(&mut self) -> &mut ProtoSqliteExecute {
+        if let ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(_)) = self.request {
+        } else {
+            self.request = ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(ProtoSqliteExecute::new()));
+        }
+        match self.request {
+            ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_execute(&mut self) -> ProtoSqliteExecute {
+        if self.has_execute() {
+            match self.request.take() {
+                ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoSqliteExecute::new()
+        }
+    }
+
+    pub fn get_execute(&self) -> &ProtoSqliteExecute {
+        match self.request {
+            ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(ref v)) => v,
+            _ => ProtoSqliteExecute::default_instance(),
+        }
+    }
+}
+
+impl ::protobuf::Message for ProtoSqliteRequest {
+    fn is_initialized(&self) -> bool {
+        if let Some(ProtoSqliteRequest_oneof_request::query(ref v)) = self.request {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        if let Some(ProtoSqliteRequest_oneof_request::execute(ref v)) = self.request {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.request = ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::query(is.read_message()?));
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.request = ::std::option::Option::Some(ProtoSqliteRequest_oneof_request::execute(is.read_message()?));
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let ::std::option::Option::Some(ref v) = self.request {
+            match v {
+                &ProtoSqliteRequest_oneof_request::query(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+                &ProtoSqliteRequest_oneof_request::execute(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+            };
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let ::std::option::Option::Some(ref v) = self.request {
+            match v {
+                &ProtoSqliteRequest_oneof_request::query(ref v) => {
+                    os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+                &ProtoSqliteRequest_oneof_request::execute(ref v) => {
+                    os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+            };
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ProtoSqliteRequest {
+        ProtoSqliteRequest::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoSqliteQuery>(
+                    "query",
+                    ProtoSqliteRequest::has_query,
+                    ProtoSqliteRequest::get_query,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoSqliteExecute>(
+                    "execute",
+                    ProtoSqliteRequest::has_execute,
+                    ProtoSqliteRequest::get_execute,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<ProtoSqliteRequest>(
+                    "ProtoSqliteRequest",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ProtoSqliteRequest {
+        static mut instance: ::protobuf::lazy::Lazy<ProtoSqliteRequest> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ProtoSqliteRequest,
+        };
+        unsafe {
+            instance.get(ProtoSqliteRequest::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ProtoSqliteRequest {
+    fn clear(&mut self) {
+        self.clear_query();
+        self.clear_execute();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ProtoSqliteRequest {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ProtoSqliteRequest {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct ProtoSqliteResponse {
+    // message oneof groups
+    pub response: ::std::option::Option<ProtoSqliteResponse_oneof_response>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+#[derive(Clone,PartialEq)]
+pub enum ProtoSqliteResponse_oneof_response {
+    query(ProtoSqliteQueryResponse),
+    execute(ProtoSqliteExecuteResponse),
+}
+
+impl ProtoSqliteResponse {
+    pub fn new() -> ProtoSqliteResponse {
+        ::std::default::Default::default()
+    }
+
+    // .sqlite_commands.ProtoSqliteQueryResponse query = 1;
+
+    pub fn clear_query(&mut self) {
+        self.response = ::std::option::Option::None;
+    }
+
+    pub fn has_query(&self) -> bool {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_query(&mut self, v: ProtoSqliteQueryResponse) {
+        self.response = ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_query(&mut self) -> &mut ProtoSqliteQueryResponse {
+        if let ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(_)) = self.response {
+        } else {
+            self.response = ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(ProtoSqliteQueryResponse::new()));
+        }
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_query(&mut self) -> ProtoSqliteQueryResponse {
+        if self.has_query() {
+            match self.response.take() {
+                ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoSqliteQueryResponse::new()
+        }
+    }
+
+    pub fn get_query(&self) -> &ProtoSqliteQueryResponse {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(ref v)) => v,
+            _ => ProtoSqliteQueryResponse::default_instance(),
+        }
+    }
+
+    // .sqlite_commands.ProtoSqliteExecuteResponse execute = 2;
+
+    pub fn clear_execute(&mut self) {
+        self.response = ::std::option::Option::None;
+    }
+
+    pub fn has_execute(&self) -> bool {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_execute(&mut self, v: ProtoSqliteExecuteResponse) {
+        self.response = ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_execute(&mut self) -> &mut ProtoSqliteExecuteResponse {
+        if let ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(_)) = self.response {
+        } else {
+            self.response = ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(ProtoSqliteExecuteResponse::new()));
+        }
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_execute(&mut self) -> ProtoSqliteExecuteResponse {
+        if self.has_execute() {
+            match self.response.take() {
+                ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoSqliteExecuteResponse::new()
+        }
+    }
+
+    pub fn get_execute(&self) -> &ProtoSqliteExecuteResponse {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(ref v)) => v,
+            _ => ProtoSqliteExecuteResponse::default_instance(),
+        }
+    }
+}
+
+impl ::protobuf::Message for ProtoSqliteResponse {
+    fn is_initialized(&self) -> bool {
+        if let Some(ProtoSqliteResponse_oneof_response::query(ref v)) = self.response {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        if let Some(ProtoSqliteResponse_oneof_response::execute(ref v)) = self.response {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.response = ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::query(is.read_message()?));
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.response = ::std::option::Option::Some(ProtoSqliteResponse_oneof_response::execute(is.read_message()?));
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let ::std::option::Option::Some(ref v) = self.response {
+            match v {
+                &ProtoSqliteResponse_oneof_response::query(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+                &ProtoSqliteResponse_oneof_response::execute(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+            };
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let ::std::option::Option::Some(ref v) = self.response {
+            match v {
+                &ProtoSqliteResponse_oneof_response::query(ref v) => {
+                    os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+                &ProtoSqliteResponse_oneof_response::execute(ref v) => {
+                    os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+            };
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ProtoSqliteResponse {
+        ProtoSqliteResponse::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoSqliteQueryResponse>(
+                    "query",
+                    ProtoSqliteResponse::has_query,
+                    ProtoSqliteResponse::get_query,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoSqliteExecuteResponse>(
+                    "execute",
+                    ProtoSqliteResponse::has_execute,
+                    ProtoSqliteResponse::get_execute,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<ProtoSqliteResponse>(
+                    "ProtoSqliteResponse",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ProtoSqliteResponse {
+        static mut instance: ::protobuf::lazy::Lazy<ProtoSqliteResponse> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ProtoSqliteResponse,
+        };
+        unsafe {
+            instance.get(ProtoSqliteResponse::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ProtoSqliteResponse {
+    fn clear(&mut self) {
+        self.clear_query();
+        self.clear_execute();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ProtoSqliteResponse {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ProtoSqliteResponse {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct ProtoSqliteQuery {
+    // message oneof groups
+    pub query: ::std::option::Option<ProtoSqliteQuery_oneof_query>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+#[derive(Clone,PartialEq)]
+pub enum ProtoSqliteQuery_oneof_query {
+    single(ProtoQueryRequest),
+    bulk(ProtoBulkQueryRequest),
+}
+
+impl ProtoSqliteQuery {
+    pub fn new() -> ProtoSqliteQuery {
+        ::std::default::Default::default()
+    }
+
+    // .sqlite_commands.ProtoQueryRequest single = 1;
+
+    pub fn clear_single(&mut self) {
+        self.query = ::std::option::Option::None;
+    }
+
+    pub fn has_single(&self) -> bool {
+        match self.query {
+            ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_single(&mut self, v: ProtoQueryRequest) {
+        self.query = ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_single(&mut self) -> &mut ProtoQueryRequest {
+        if let ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(_)) = self.query {
+        } else {
+            self.query = ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(ProtoQueryRequest::new()));
+        }
+        match self.query {
+            ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_single(&mut self) -> ProtoQueryRequest {
+        if self.has_single() {
+            match self.query.take() {
+                ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoQueryRequest::new()
+        }
+    }
+
+    pub fn get_single(&self) -> &ProtoQueryRequest {
+        match self.query {
+            ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(ref v)) => v,
+            _ => ProtoQueryRequest::default_instance(),
+        }
+    }
+
+    // .sqlite_commands.ProtoBulkQueryRequest bulk = 2;
+
+    pub fn clear_bulk(&mut self) {
+        self.query = ::std::option::Option::None;
+    }
+
+    pub fn has_bulk(&self) -> bool {
+        match self.query {
+            ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_bulk(&mut self, v: ProtoBulkQueryRequest) {
+        self.query = ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_bulk(&mut self) -> &mut ProtoBulkQueryRequest {
+        if let ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(_)) = self.query {
+        } else {
+            self.query = ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(ProtoBulkQueryRequest::new()));
+        }
+        match self.query {
+            ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_bulk(&mut self) -> ProtoBulkQueryRequest {
+        if self.has_bulk() {
+            match self.query.take() {
+                ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoBulkQueryRequest::new()
+        }
+    }
+
+    pub fn get_bulk(&self) -> &ProtoBulkQueryRequest {
+        match self.query {
+            ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(ref v)) => v,
+            _ => ProtoBulkQueryRequest::default_instance(),
+        }
+    }
+}
+
+impl ::protobuf::Message for ProtoSqliteQuery {
+    fn is_initialized(&self) -> bool {
+        if let Some(ProtoSqliteQuery_oneof_query::single(ref v)) = self.query {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        if let Some(ProtoSqliteQuery_oneof_query::bulk(ref v)) = self.query {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.query = ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::single(is.read_message()?));
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.query = ::std::option::Option::Some(ProtoSqliteQuery_oneof_query::bulk(is.read_message()?));
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let ::std::option::Option::Some(ref v) = self.query {
+            match v {
+                &ProtoSqliteQuery_oneof_query::single(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+                &ProtoSqliteQuery_oneof_query::bulk(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+            };
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let ::std::option::Option::Some(ref v) = self.query {
+            match v {
+                &ProtoSqliteQuery_oneof_query::single(ref v) => {
+                    os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+                &ProtoSqliteQuery_oneof_query::bulk(ref v) => {
+                    os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+            };
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ProtoSqliteQuery {
+        ProtoSqliteQuery::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoQueryRequest>(
+                    "single",
+                    ProtoSqliteQuery::has_single,
+                    ProtoSqliteQuery::get_single,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoBulkQueryRequest>(
+                    "bulk",
+                    ProtoSqliteQuery::has_bulk,
+                    ProtoSqliteQuery::get_bulk,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<ProtoSqliteQuery>(
+                    "ProtoSqliteQuery",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ProtoSqliteQuery {
+        static mut instance: ::protobuf::lazy::Lazy<ProtoSqliteQuery> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ProtoSqliteQuery,
+        };
+        unsafe {
+            instance.get(ProtoSqliteQuery::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ProtoSqliteQuery {
+    fn clear(&mut self) {
+        self.clear_single();
+        self.clear_bulk();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ProtoSqliteQuery {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ProtoSqliteQuery {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct ProtoSqliteQueryResponse {
+    // message oneof groups
+    pub response: ::std::option::Option<ProtoSqliteQueryResponse_oneof_response>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+#[derive(Clone,PartialEq)]
+pub enum ProtoSqliteQueryResponse_oneof_response {
+    single(ProtoQueryResponse),
+    bulk(ProtoBulkQueryResponse),
+}
+
+impl ProtoSqliteQueryResponse {
+    pub fn new() -> ProtoSqliteQueryResponse {
+        ::std::default::Default::default()
+    }
+
+    // .sqlite_commands.ProtoQueryResponse single = 1;
+
+    pub fn clear_single(&mut self) {
+        self.response = ::std::option::Option::None;
+    }
+
+    pub fn has_single(&self) -> bool {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_single(&mut self, v: ProtoQueryResponse) {
+        self.response = ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_single(&mut self) -> &mut ProtoQueryResponse {
+        if let ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(_)) = self.response {
+        } else {
+            self.response = ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(ProtoQueryResponse::new()));
+        }
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_single(&mut self) -> ProtoQueryResponse {
+        if self.has_single() {
+            match self.response.take() {
+                ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoQueryResponse::new()
+        }
+    }
+
+    pub fn get_single(&self) -> &ProtoQueryResponse {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(ref v)) => v,
+            _ => ProtoQueryResponse::default_instance(),
+        }
+    }
+
+    // .sqlite_commands.ProtoBulkQueryResponse bulk = 2;
+
+    pub fn clear_bulk(&mut self) {
+        self.response = ::std::option::Option::None;
+    }
+
+    pub fn has_bulk(&self) -> bool {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_bulk(&mut self, v: ProtoBulkQueryResponse) {
+        self.response = ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_bulk(&mut self) -> &mut ProtoBulkQueryResponse {
+        if let ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(_)) = self.response {
+        } else {
+            self.response = ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(ProtoBulkQueryResponse::new()));
+        }
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_bulk(&mut self) -> ProtoBulkQueryResponse {
+        if self.has_bulk() {
+            match self.response.take() {
+                ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoBulkQueryResponse::new()
+        }
+    }
+
+    pub fn get_bulk(&self) -> &ProtoBulkQueryResponse {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(ref v)) => v,
+            _ => ProtoBulkQueryResponse::default_instance(),
+        }
+    }
+}
+
+impl ::protobuf::Message for ProtoSqliteQueryResponse {
+    fn is_initialized(&self) -> bool {
+        if let Some(ProtoSqliteQueryResponse_oneof_response::single(ref v)) = self.response {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        if let Some(ProtoSqliteQueryResponse_oneof_response::bulk(ref v)) = self.response {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.response = ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::single(is.read_message()?));
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.response = ::std::option::Option::Some(ProtoSqliteQueryResponse_oneof_response::bulk(is.read_message()?));
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let ::std::option::Option::Some(ref v) = self.response {
+            match v {
+                &ProtoSqliteQueryResponse_oneof_response::single(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+                &ProtoSqliteQueryResponse_oneof_response::bulk(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+            };
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let ::std::option::Option::Some(ref v) = self.response {
+            match v {
+                &ProtoSqliteQueryResponse_oneof_response::single(ref v) => {
+                    os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+                &ProtoSqliteQueryResponse_oneof_response::bulk(ref v) => {
+                    os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+            };
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ProtoSqliteQueryResponse {
+        ProtoSqliteQueryResponse::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoQueryResponse>(
+                    "single",
+                    ProtoSqliteQueryResponse::has_single,
+                    ProtoSqliteQueryResponse::get_single,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoBulkQueryResponse>(
+                    "bulk",
+                    ProtoSqliteQueryResponse::has_bulk,
+                    ProtoSqliteQueryResponse::get_bulk,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<ProtoSqliteQueryResponse>(
+                    "ProtoSqliteQueryResponse",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ProtoSqliteQueryResponse {
+        static mut instance: ::protobuf::lazy::Lazy<ProtoSqliteQueryResponse> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ProtoSqliteQueryResponse,
+        };
+        unsafe {
+            instance.get(ProtoSqliteQueryResponse::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ProtoSqliteQueryResponse {
+    fn clear(&mut self) {
+        self.clear_single();
+        self.clear_bulk();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ProtoSqliteQueryResponse {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ProtoSqliteQueryResponse {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct ProtoSqliteExecute {
+    // message oneof groups
+    pub execute: ::std::option::Option<ProtoSqliteExecute_oneof_execute>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+#[derive(Clone,PartialEq)]
+pub enum ProtoSqliteExecute_oneof_execute {
+    single(ProtoExecuteRequest),
+    bulk(ProtoBulkExecuteRequest),
+}
+
+impl ProtoSqliteExecute {
+    pub fn new() -> ProtoSqliteExecute {
+        ::std::default::Default::default()
+    }
+
+    // .sqlite_commands.ProtoExecuteRequest single = 1;
+
+    pub fn clear_single(&mut self) {
+        self.execute = ::std::option::Option::None;
+    }
+
+    pub fn has_single(&self) -> bool {
+        match self.execute {
+            ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_single(&mut self, v: ProtoExecuteRequest) {
+        self.execute = ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_single(&mut self) -> &mut ProtoExecuteRequest {
+        if let ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(_)) = self.execute {
+        } else {
+            self.execute = ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(ProtoExecuteRequest::new()));
+        }
+        match self.execute {
+            ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_single(&mut self) -> ProtoExecuteRequest {
+        if self.has_single() {
+            match self.execute.take() {
+                ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoExecuteRequest::new()
+        }
+    }
+
+    pub fn get_single(&self) -> &ProtoExecuteRequest {
+        match self.execute {
+            ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(ref v)) => v,
+            _ => ProtoExecuteRequest::default_instance(),
+        }
+    }
+
+    // .sqlite_commands.ProtoBulkExecuteRequest bulk = 2;
+
+    pub fn clear_bulk(&mut self) {
+        self.execute = ::std::option::Option::None;
+    }
+
+    pub fn has_bulk(&self) -> bool {
+        match self.execute {
+            ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_bulk(&mut self, v: ProtoBulkExecuteRequest) {
+        self.execute = ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_bulk(&mut self) -> &mut ProtoBulkExecuteRequest {
+        if let ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(_)) = self.execute {
+        } else {
+            self.execute = ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(ProtoBulkExecuteRequest::new()));
+        }
+        match self.execute {
+            ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_bulk(&mut self) -> ProtoBulkExecuteRequest {
+        if self.has_bulk() {
+            match self.execute.take() {
+                ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoBulkExecuteRequest::new()
+        }
+    }
+
+    pub fn get_bulk(&self) -> &ProtoBulkExecuteRequest {
+        match self.execute {
+            ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(ref v)) => v,
+            _ => ProtoBulkExecuteRequest::default_instance(),
+        }
+    }
+}
+
+impl ::protobuf::Message for ProtoSqliteExecute {
+    fn is_initialized(&self) -> bool {
+        if let Some(ProtoSqliteExecute_oneof_execute::single(ref v)) = self.execute {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        if let Some(ProtoSqliteExecute_oneof_execute::bulk(ref v)) = self.execute {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.execute = ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::single(is.read_message()?));
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.execute = ::std::option::Option::Some(ProtoSqliteExecute_oneof_execute::bulk(is.read_message()?));
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let ::std::option::Option::Some(ref v) = self.execute {
+            match v {
+                &ProtoSqliteExecute_oneof_execute::single(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+                &ProtoSqliteExecute_oneof_execute::bulk(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+            };
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let ::std::option::Option::Some(ref v) = self.execute {
+            match v {
+                &ProtoSqliteExecute_oneof_execute::single(ref v) => {
+                    os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+                &ProtoSqliteExecute_oneof_execute::bulk(ref v) => {
+                    os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+            };
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ProtoSqliteExecute {
+        ProtoSqliteExecute::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoExecuteRequest>(
+                    "single",
+                    ProtoSqliteExecute::has_single,
+                    ProtoSqliteExecute::get_single,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoBulkExecuteRequest>(
+                    "bulk",
+                    ProtoSqliteExecute::has_bulk,
+                    ProtoSqliteExecute::get_bulk,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<ProtoSqliteExecute>(
+                    "ProtoSqliteExecute",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ProtoSqliteExecute {
+        static mut instance: ::protobuf::lazy::Lazy<ProtoSqliteExecute> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ProtoSqliteExecute,
+        };
+        unsafe {
+            instance.get(ProtoSqliteExecute::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ProtoSqliteExecute {
+    fn clear(&mut self) {
+        self.clear_single();
+        self.clear_bulk();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ProtoSqliteExecute {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ProtoSqliteExecute {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct ProtoSqliteExecuteResponse {
+    // message oneof groups
+    pub response: ::std::option::Option<ProtoSqliteExecuteResponse_oneof_response>,
+    // special fields
+    unknown_fields: ::protobuf::UnknownFields,
+    cached_size: ::protobuf::CachedSize,
+}
+
+#[derive(Clone,PartialEq)]
+pub enum ProtoSqliteExecuteResponse_oneof_response {
+    single(ProtoExecuteResponse),
+    bulk(ProtoBulkExecuteResponse),
+}
+
+impl ProtoSqliteExecuteResponse {
+    pub fn new() -> ProtoSqliteExecuteResponse {
+        ::std::default::Default::default()
+    }
+
+    // .sqlite_commands.ProtoExecuteResponse single = 1;
+
+    pub fn clear_single(&mut self) {
+        self.response = ::std::option::Option::None;
+    }
+
+    pub fn has_single(&self) -> bool {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_single(&mut self, v: ProtoExecuteResponse) {
+        self.response = ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_single(&mut self) -> &mut ProtoExecuteResponse {
+        if let ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(_)) = self.response {
+        } else {
+            self.response = ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(ProtoExecuteResponse::new()));
+        }
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_single(&mut self) -> ProtoExecuteResponse {
+        if self.has_single() {
+            match self.response.take() {
+                ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoExecuteResponse::new()
+        }
+    }
+
+    pub fn get_single(&self) -> &ProtoExecuteResponse {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(ref v)) => v,
+            _ => ProtoExecuteResponse::default_instance(),
+        }
+    }
+
+    // .sqlite_commands.ProtoBulkExecuteResponse bulk = 2;
+
+    pub fn clear_bulk(&mut self) {
+        self.response = ::std::option::Option::None;
+    }
+
+    pub fn has_bulk(&self) -> bool {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(..)) => true,
+            _ => false,
+        }
+    }
+
+    // Param is passed by value, moved
+    pub fn set_bulk(&mut self, v: ProtoBulkExecuteResponse) {
+        self.response = ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(v))
+    }
+
+    // Mutable pointer to the field.
+    pub fn mut_bulk(&mut self) -> &mut ProtoBulkExecuteResponse {
+        if let ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(_)) = self.response {
+        } else {
+            self.response = ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(ProtoBulkExecuteResponse::new()));
+        }
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(ref mut v)) => v,
+            _ => panic!(),
+        }
+    }
+
+    // Take field
+    pub fn take_bulk(&mut self) -> ProtoBulkExecuteResponse {
+        if self.has_bulk() {
+            match self.response.take() {
+                ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(v)) => v,
+                _ => panic!(),
+            }
+        } else {
+            ProtoBulkExecuteResponse::new()
+        }
+    }
+
+    pub fn get_bulk(&self) -> &ProtoBulkExecuteResponse {
+        match self.response {
+            ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(ref v)) => v,
+            _ => ProtoBulkExecuteResponse::default_instance(),
+        }
+    }
+}
+
+impl ::protobuf::Message for ProtoSqliteExecuteResponse {
+    fn is_initialized(&self) -> bool {
+        if let Some(ProtoSqliteExecuteResponse_oneof_response::single(ref v)) = self.response {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        if let Some(ProtoSqliteExecuteResponse_oneof_response::bulk(ref v)) = self.response {
+            if !v.is_initialized() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                1 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.response = ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::single(is.read_message()?));
+                },
+                2 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeLengthDelimited {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    self.response = ::std::option::Option::Some(ProtoSqliteExecuteResponse_oneof_response::bulk(is.read_message()?));
+                },
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        if let ::std::option::Option::Some(ref v) = self.response {
+            match v {
+                &ProtoSqliteExecuteResponse_oneof_response::single(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+                &ProtoSqliteExecuteResponse_oneof_response::bulk(ref v) => {
+                    let len = v.compute_size();
+                    my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
+                },
+            };
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        if let ::std::option::Option::Some(ref v) = self.response {
+            match v {
+                &ProtoSqliteExecuteResponse_oneof_response::single(ref v) => {
+                    os.write_tag(1, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+                &ProtoSqliteExecuteResponse_oneof_response::bulk(ref v) => {
+                    os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited)?;
+                    os.write_raw_varint32(v.get_cached_size())?;
+                    v.write_to_with_cached_sizes(os)?;
+                },
+            };
+        }
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ProtoSqliteExecuteResponse {
+        ProtoSqliteExecuteResponse::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let mut fields = ::std::vec::Vec::new();
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoExecuteResponse>(
+                    "single",
+                    ProtoSqliteExecuteResponse::has_single,
+                    ProtoSqliteExecuteResponse::get_single,
+                ));
+                fields.push(::protobuf::reflect::accessor::make_singular_message_accessor::<_, ProtoBulkExecuteResponse>(
+                    "bulk",
+                    ProtoSqliteExecuteResponse::has_bulk,
+                    ProtoSqliteExecuteResponse::get_bulk,
+                ));
+                ::protobuf::reflect::MessageDescriptor::new::<ProtoSqliteExecuteResponse>(
+                    "ProtoSqliteExecuteResponse",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ProtoSqliteExecuteResponse {
+        static mut instance: ::protobuf::lazy::Lazy<ProtoSqliteExecuteResponse> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ProtoSqliteExecuteResponse,
+        };
+        unsafe {
+            instance.get(ProtoSqliteExecuteResponse::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ProtoSqliteExecuteResponse {
+    fn clear(&mut self) {
+        self.clear_single();
+        self.clear_bulk();
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ProtoSqliteExecuteResponse {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ProtoSqliteExecuteResponse {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x1bproto/sqlite_requests.proto\x12\x0fsqlite_commands\"z\n\x11ProtoQu\
-    eryRequest\x12\x10\n\x03sql\x18\x01\x20\x01(\tR\x03sql\x12S\n\x11queued_\
-    parameters\x18\x02\x20\x01(\x0b2&.sqlite_commands.ProtoQueuedParametersR\
-    \x10queuedParameters\"\x80\x02\n\x15ProtoQueuedParameters\x12k\n\x19queu\
-    ed_indexed_parameters\x18\x01\x20\x01(\x0b2-.sqlite_commands.ProtoQueued\
-    IndexedParametersH\0R\x17queuedIndexedParameters\x12e\n\x17queued_named_\
-    parameters\x18\x02\x20\x01(\x0b2+.sqlite_commands.ProtoQueuedNamedParame\
-    tersH\0R\x15queuedNamedParametersB\x13\n\x11queued_parameters\"\x83\x01\
-    \n\x1cProtoQueuedIndexedParameters\x12c\n\x19queued_indexed_parameters\
-    \x18\x01\x20\x03(\x0b2'.sqlite_commands.ProtoIndexedParametersR\x17queue\
-    dIndexedParameters\"{\n\x1aProtoQueuedNamedParameters\x12]\n\x17queued_n\
-    amed_parameters\x18\x01\x20\x03(\x0b2%.sqlite_commands.ProtoNamedParamet\
-    ersR\x15queuedNamedParameters\"U\n\x16ProtoIndexedParameters\x12;\n\npar\
-    ameters\x18\x01\x20\x03(\x0b2\x1b.sqlite_commands.ProtoValueR\nparameter\
-    s\"\\\n\x14ProtoNamedParameters\x12D\n\nparameters\x18\x01\x20\x03(\x0b2\
-    $.sqlite_commands.ProtoNamedParameterR\nparameters\"\\\n\x13ProtoNamedPa\
-    rameter\x12\x12\n\x04name\x18\x01\x20\x01(\tR\x04name\x121\n\x05value\
-    \x18\x02\x20\x01(\x0b2\x1b.sqlite_commands.ProtoValueR\x05value\"\xa5\
-    \x01\n\nProtoValue\x120\n\x04null\x18\x01\x20\x01(\x0b2\x1a.sqlite_comma\
-    nds.ProtoNullH\0R\x04null\x12\x1a\n\x07integer\x18\x02\x20\x01(\x03H\0R\
-    \x07integer\x12\x14\n\x04real\x18\x03\x20\x01(\x01H\0R\x04real\x12\x14\n\
-    \x04text\x18\x04\x20\x01(\tH\0R\x04text\x12\x14\n\x04blob\x18\x05\x20\
-    \x01(\x0cH\0R\x04blobB\x07\n\x05value\"\x0b\n\tProtoNull\"\\\n\x12ProtoQ\
-    ueryResponse\x12F\n\rquery_results\x18\x01\x20\x03(\x0b2!.sqlite_command\
-    s.ProtoQueryResultR\x0cqueryResults\"L\n\x10ProtoQueryResult\x128\n\x04r\
-    ows\x18\x01\x20\x03(\x0b2$.sqlite_commands.ProtoQueryResultRowR\x04rows\
-    \"D\n\x13ProtoQueryResultRow\x12-\n\x03row\x18\x01\x20\x03(\x0b2\x1b.sql\
-    ite_commands.ProtoValueR\x03row\"|\n\x13ProtoExecuteRequest\x12\x10\n\
-    \x03sql\x18\x01\x20\x01(\tR\x03sql\x12S\n\x11queued_parameters\x18\x02\
-    \x20\x01(\x0b2&.sqlite_commands.ProtoQueuedParametersR\x10queuedParamete\
-    rs\"b\n\x14ProtoExecuteResponse\x12J\n\x0eexecute_result\x18\x01\x20\x03\
-    (\x0b2#.sqlite_commands.ProtoExecuteResultR\rexecuteResult\".\n\x12Proto\
-    ExecuteResult\x12\x18\n\x07changes\x18\x01\x20\x01(\x04R\x07changes\"U\n\
-    \x15ProtoBulkQueryRequest\x12<\n\x07queries\x18\x01\x20\x03(\x0b2\".sqli\
-    te_commands.ProtoQueryRequestR\x07queries\"f\n\x16ProtoBulkQueryResponse\
-    \x12L\n\x0fquery_responses\x18\x01\x20\x03(\x0b2#.sqlite_commands.ProtoQ\
-    ueryResponseR\x0equeryResponses\"[\n\x17ProtoBulkExecuteRequest\x12@\n\
-    \x08executes\x18\x01\x20\x03(\x0b2$.sqlite_commands.ProtoExecuteRequestR\
-    \x08executes\"n\n\x18ProtoBulkExecuteResponse\x12R\n\x11execute_response\
-    s\x18\x01\x20\x03(\x0b2%.sqlite_commands.ProtoExecuteResponseR\x10execut\
-    eResponsesb\x06proto3\
+    \n\x15sqlite_requests.proto\x12\x0fsqlite_commands\"k\n\x11ProtoQueryReq\
+    uest\x12\x0f\n\x03sql\x18\x01\x20\x01(\tB\x02\x18\0\x12E\n\x11queued_par\
+    ameters\x18\x02\x20\x01(\x0b2&.sqlite_commands.ProtoQueuedParametersB\
+    \x02\x18\0\"\xd8\x01\n\x15ProtoQueuedParameters\x12V\n\x19queued_indexed\
+    _parameters\x18\x01\x20\x01(\x0b2-.sqlite_commands.ProtoQueuedIndexedPar\
+    ametersH\0B\x02\x18\0\x12R\n\x17queued_named_parameters\x18\x02\x20\x01(\
+    \x0b2+.sqlite_commands.ProtoQueuedNamedParametersH\0B\x02\x18\0B\x13\n\
+    \x11queued_parameters\"n\n\x1cProtoQueuedIndexedParameters\x12N\n\x19que\
+    ued_indexed_parameters\x18\x01\x20\x03(\x0b2'.sqlite_commands.ProtoIndex\
+    edParametersB\x02\x18\0\"h\n\x1aProtoQueuedNamedParameters\x12J\n\x17que\
+    ued_named_parameters\x18\x01\x20\x03(\x0b2%.sqlite_commands.ProtoNamedPa\
+    rametersB\x02\x18\0\"M\n\x16ProtoIndexedParameters\x123\n\nparameters\
+    \x18\x01\x20\x03(\x0b2\x1b.sqlite_commands.ProtoValueB\x02\x18\0\"T\n\
+    \x14ProtoNamedParameters\x12<\n\nparameters\x18\x01\x20\x03(\x0b2$.sqlit\
+    e_commands.ProtoNamedParameterB\x02\x18\0\"W\n\x13ProtoNamedParameter\
+    \x12\x10\n\x04name\x18\x01\x20\x01(\tB\x02\x18\0\x12.\n\x05value\x18\x02\
+    \x20\x01(\x0b2\x1b.sqlite_commands.ProtoValueB\x02\x18\0\"\x98\x01\n\nPr\
+    otoValue\x12.\n\x04null\x18\x01\x20\x01(\x0b2\x1a.sqlite_commands.ProtoN\
+    ullH\0B\x02\x18\0\x12\x15\n\x07integer\x18\x02\x20\x01(\x03H\0B\x02\x18\
+    \0\x12\x12\n\x04real\x18\x03\x20\x01(\x01H\0B\x02\x18\0\x12\x12\n\x04tex\
+    t\x18\x04\x20\x01(\tH\0B\x02\x18\0\x12\x12\n\x04blob\x18\x05\x20\x01(\
+    \x0cH\0B\x02\x18\0B\x07\n\x05value\"\x0b\n\tProtoNull\"R\n\x12ProtoQuery\
+    Response\x12<\n\rquery_results\x18\x01\x20\x03(\x0b2!.sqlite_commands.Pr\
+    otoQueryResultB\x02\x18\0\"J\n\x10ProtoQueryResult\x126\n\x04rows\x18\
+    \x01\x20\x03(\x0b2$.sqlite_commands.ProtoQueryResultRowB\x02\x18\0\"C\n\
+    \x13ProtoQueryResultRow\x12,\n\x03row\x18\x01\x20\x03(\x0b2\x1b.sqlite_c\
+    ommands.ProtoValueB\x02\x18\0\"m\n\x13ProtoExecuteRequest\x12\x0f\n\x03s\
+    ql\x18\x01\x20\x01(\tB\x02\x18\0\x12E\n\x11queued_parameters\x18\x02\x20\
+    \x01(\x0b2&.sqlite_commands.ProtoQueuedParametersB\x02\x18\0\"W\n\x14Pro\
+    toExecuteResponse\x12?\n\x0eexecute_result\x18\x01\x20\x03(\x0b2#.sqlite\
+    _commands.ProtoExecuteResultB\x02\x18\0\")\n\x12ProtoExecuteResult\x12\
+    \x13\n\x07changes\x18\x01\x20\x01(\x04B\x02\x18\0\"P\n\x15ProtoBulkQuery\
+    Request\x127\n\x07queries\x18\x01\x20\x03(\x0b2\".sqlite_commands.ProtoQ\
+    ueryRequestB\x02\x18\0\"Z\n\x16ProtoBulkQueryResponse\x12@\n\x0fquery_re\
+    sponses\x18\x01\x20\x03(\x0b2#.sqlite_commands.ProtoQueryResponseB\x02\
+    \x18\0\"U\n\x17ProtoBulkExecuteRequest\x12:\n\x08executes\x18\x01\x20\
+    \x03(\x0b2$.sqlite_commands.ProtoExecuteRequestB\x02\x18\0\"`\n\x18Proto\
+    BulkExecuteResponse\x12D\n\x11execute_responses\x18\x01\x20\x03(\x0b2%.s\
+    qlite_commands.ProtoExecuteResponseB\x02\x18\0\"\x93\x01\n\x12ProtoSqlit\
+    eRequest\x126\n\x05query\x18\x01\x20\x01(\x0b2!.sqlite_commands.ProtoSql\
+    iteQueryH\0B\x02\x18\0\x12:\n\x07execute\x18\x02\x20\x01(\x0b2#.sqlite_c\
+    ommands.ProtoSqliteExecuteH\0B\x02\x18\0B\t\n\x07request\"\xa5\x01\n\x13\
+    ProtoSqliteResponse\x12>\n\x05query\x18\x01\x20\x01(\x0b2).sqlite_comman\
+    ds.ProtoSqliteQueryResponseH\0B\x02\x18\0\x12B\n\x07execute\x18\x02\x20\
+    \x01(\x0b2+.sqlite_commands.ProtoSqliteExecuteResponseH\0B\x02\x18\0B\n\
+    \n\x08response\"\x91\x01\n\x10ProtoSqliteQuery\x128\n\x06single\x18\x01\
+    \x20\x01(\x0b2\".sqlite_commands.ProtoQueryRequestH\0B\x02\x18\0\x12:\n\
+    \x04bulk\x18\x02\x20\x01(\x0b2&.sqlite_commands.ProtoBulkQueryRequestH\0\
+    B\x02\x18\0B\x07\n\x05query\"\x9e\x01\n\x18ProtoSqliteQueryResponse\x129\
+    \n\x06single\x18\x01\x20\x01(\x0b2#.sqlite_commands.ProtoQueryResponseH\
+    \0B\x02\x18\0\x12;\n\x04bulk\x18\x02\x20\x01(\x0b2'.sqlite_commands.Prot\
+    oBulkQueryResponseH\0B\x02\x18\0B\n\n\x08response\"\x99\x01\n\x12ProtoSq\
+    liteExecute\x12:\n\x06single\x18\x01\x20\x01(\x0b2$.sqlite_commands.Prot\
+    oExecuteRequestH\0B\x02\x18\0\x12<\n\x04bulk\x18\x02\x20\x01(\x0b2(.sqli\
+    te_commands.ProtoBulkExecuteRequestH\0B\x02\x18\0B\t\n\x07execute\"\xa4\
+    \x01\n\x1aProtoSqliteExecuteResponse\x12;\n\x06single\x18\x01\x20\x01(\
+    \x0b2%.sqlite_commands.ProtoExecuteResponseH\0B\x02\x18\0\x12=\n\x04bulk\
+    \x18\x02\x20\x01(\x0b2).sqlite_commands.ProtoBulkExecuteResponseH\0B\x02\
+    \x18\0B\n\n\x08responseB\0b\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

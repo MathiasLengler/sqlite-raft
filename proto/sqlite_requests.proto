@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package sqlite_commands;
 
+// TODO: Rename Result -> Response
+
 message ProtoQueryRequest {
   string sql = 1;
   ProtoQueuedParameters queued_parameters = 2;
@@ -94,10 +96,44 @@ message ProtoBulkExecuteResponse {
   repeated ProtoExecuteResponse execute_responses = 1;
 }
 
-// TODO: is there a need for the following messages?
-// SqliteRequest
-// SqliteCommandResponse
-// SqliteQuery
-// SqliteQueryResponse
-// SqliteExecute
-// SqliteExecuteResponse
+message ProtoSqliteRequest {
+  oneof request {
+    ProtoSqliteQuery query = 1;
+    ProtoSqliteExecute execute = 2;
+  }
+}
+
+message ProtoSqliteResponse {
+  oneof response {
+    ProtoSqliteQueryResponse query = 1;
+    ProtoSqliteExecuteResponse execute = 2;
+  }
+}
+
+message ProtoSqliteQuery {
+  oneof query {
+    ProtoQueryRequest single = 1;
+    ProtoBulkQueryRequest bulk = 2;
+  }
+}
+
+message ProtoSqliteQueryResponse {
+  oneof response {
+    ProtoQueryResponse single = 1;
+    ProtoBulkQueryResponse bulk = 2;
+  }
+}
+
+message ProtoSqliteExecute {
+  oneof execute {
+    ProtoExecuteRequest single = 1;
+    ProtoBulkExecuteRequest bulk = 2;
+  }
+}
+
+message ProtoSqliteExecuteResponse {
+  oneof response {
+    ProtoExecuteResponse single = 1;
+    ProtoBulkExecuteResponse bulk = 2;
+  }
+}

@@ -122,6 +122,7 @@ impl QueryResponse {
     }
 }
 
+// TODO: rename QueryResponseRow
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct QueryResultRow {
     #[serde(with = "::value::serde")]

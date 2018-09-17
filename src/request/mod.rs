@@ -10,6 +10,8 @@ use query::BulkQuery;
 use query::Query;
 use query::QueryResponse;
 
+mod proto_convert;
+
 /// Every possible SQLite request.
 /// Used as a serialization root point for transferring or persisting SQLite requests.
 ///

@@ -1,48 +1,30 @@
-//use integration_test::indexed_test_cases;
-//use integration_test::named_test_cases;
-//use integration_test::queued_params_as_arg;
-use integration_test::serialization::sqlite_responses;
 use integration_test::serialization::sqlite_requests;
-//use sqlite_requests::execute::Execute;
-//use sqlite_requests::proto::ProtoExecuteRequest;
-//use sqlite_requests::proto::ProtoQueryRequest;
-//use sqlite_requests::query::Query;
-//use sqlite_requests::request::SqliteRequest;
-//use sqlite_requests::request::SqliteExecute;
-//use sqlite_requests::request::SqliteQuery;
-
-// TODO: impl
+use integration_test::serialization::sqlite_responses;
+use sqlite_requests::proto::ProtoSqliteRequest;
+use sqlite_requests::proto::ProtoSqliteResponse;
+use sqlite_requests::request::SqliteRequest;
+use sqlite_requests::request::SqliteResponse;
 
 #[test]
 fn test_proto_requests() {
-    let _requests = sqlite_requests();
+    let sqlite_requests = sqlite_requests();
 
+    let converted_sqlite_requests: Vec<SqliteRequest> = sqlite_requests.clone().into_iter()
+        .map(Into::<ProtoSqliteRequest>::into)
+        .map(Into::into)
+        .collect();
 
+    assert_eq!(sqlite_requests, converted_sqlite_requests);
 }
 
 #[test]
 fn test_proto_responses() {
-    let _responses = sqlite_responses();
-}
+    let sqlite_responses = sqlite_responses();
 
-//#[test]
-//fn test_proto_query() {
-//    let converted_queries: Vec<Query> = queries.clone().into_iter()
-//        .map(Into::<ProtoQueryRequest>::into)
-//        .map(Into::into)
-//        .collect();
-//
-//    assert_eq!(queries, converted_queries);
-//}
-//
-//#[test]
-//fn test_proto_execute() {
-//
-//
-//    let converted_queries: Vec<Execute> = queries.clone().into_iter()
-//        .map(Into::<ProtoExecuteRequest>::into)
-//        .map(Into::into)
-//        .collect();
-//
-//    assert_eq!(queries, converted_queries);
-//}
+    let converted_sqlite_responses: Vec<SqliteResponse> = sqlite_responses.clone().into_iter()
+        .map(Into::<ProtoSqliteResponse>::into)
+        .map(Into::into)
+        .collect();
+
+    assert_eq!(sqlite_responses, converted_sqlite_responses);
+}

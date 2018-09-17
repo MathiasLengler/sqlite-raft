@@ -1,10 +1,11 @@
-extern crate protoc_rust;
+extern crate protobuf_codegen_pure;
 
 fn main() {
-    protoc_rust::run(protoc_rust::Args {
+    protobuf_codegen_pure::run(protobuf_codegen_pure::Args {
         out_dir: "src/proto",
         input: &["proto/sqlite_requests.proto"],
-        customize: protoc_rust::Customize {
+        includes: &["proto"],
+        customize: protobuf_codegen_pure::Customize {
             ..Default::default()
         },
         ..Default::default()

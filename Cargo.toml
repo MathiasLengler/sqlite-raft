@@ -1,5 +1,5 @@
 [package]
-name = "multi_mem_node"
+name = "sqlite-raft"
 version = "0.1.0"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 

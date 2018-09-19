@@ -7,6 +7,8 @@ CREATE TABLE countries (
   alpha_2 TEXT    NOT NULL,
   alpha_3 TEXT    NOT NULL
 );
+
+-- TODO: insert values and write test
 CREATE TABLE test_types (
   t  TEXT, -- text affinity by rule 2
   nu NUMERIC, -- numeric affinity by rule 5

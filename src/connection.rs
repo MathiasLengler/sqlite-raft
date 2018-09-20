@@ -58,6 +58,23 @@ impl<'conn, A: Access> AccessTransaction<'conn, A> {
     }
 }
 
+// TODO:
+/// traits:
+/// Access
+///     ReadAccess
+///     WriteAccess
+///     ReadWriteAccess
+///
+/// ReadOnly: Query
+///     ReadAccess
+/// WriteOnly: Execute
+///     WriteAccess
+/// ReadWrite: Query, Execute and SqliteRequest
+///     ReadAccess
+///     WriteAccess
+///     ReadWriteAccess
+///
+
 
 pub trait Access: Copy {
     fn open<P: AsRef<Path>>(&self, path: P) -> Result<Connection>;

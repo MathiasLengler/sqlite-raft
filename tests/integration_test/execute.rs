@@ -3,7 +3,7 @@ use integration_test::named_test_cases;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use sqlite_requests::connection::AccessConnection;
-use sqlite_requests::connection::ReadWrite;
+use sqlite_requests::connection::access::WriteOnly;
 use sqlite_requests::execute::BulkExecute;
 use sqlite_requests::execute::Execute;
 use utils::temp_db::with_test_dbs;
@@ -12,7 +12,7 @@ use integration_test::queued_params_as_arg;
 #[test]
 fn test_execute_indexed() {
     fn test_execute_indexed_parameters(sql: &str, queued_params: &[&[&(ToSql)]]) {
-        with_test_dbs(ReadWrite, |mut test_conn: AccessConnection<ReadWrite>, expected_conn: Connection| {
+        with_test_dbs(WriteOnly, |mut test_conn: AccessConnection<WriteOnly>, expected_conn: Connection| {
             let execute = Execute::new_indexed(&sql, queued_params).unwrap();
             let execute_results = test_conn.run(&execute).unwrap();
             let mapped_execute_results: Vec<_> = execute_results.into_iter().map(|execute_result| execute_result.changes()).collect();
@@ -43,7 +43,7 @@ fn test_execute_indexed() {
 #[test]
 fn test_execute_named() {
     fn test_execute_named_parameters(sql: &str, queued_params: &[&[(&str, &ToSql)]]) {
-        with_test_dbs(ReadWrite, |mut test_conn: AccessConnection<ReadWrite>, expected_conn: Connection| {
+        with_test_dbs(WriteOnly, |mut test_conn: AccessConnection<WriteOnly>, expected_conn: Connection| {
             let execute = Execute::new_named(&sql, queued_params).unwrap();
             let execute_results = test_conn.run(&execute).unwrap();
             let mapped_execute_results: Vec<_> = execute_results.into_iter().map(|execute_result| execute_result.changes()).collect();
@@ -73,7 +73,7 @@ fn test_execute_named() {
 
 #[test]
 fn test_bulk_execute() {
-    with_test_dbs(ReadWrite, |mut test_conn: AccessConnection<ReadWrite>, expected_conn: Connection| {
+    with_test_dbs(WriteOnly, |mut test_conn: AccessConnection<WriteOnly>, expected_conn: Connection| {
         let no_param =
             include_str!("../res/sql/test_execute_no_param.sql");
         let indexed_param =

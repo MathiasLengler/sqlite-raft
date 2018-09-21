@@ -1,9 +1,9 @@
 use rusqlite;
 use rusqlite::Connection;
-use sqlite_requests::connection::Access;
+use sqlite_requests::connection::access::Access;
 use sqlite_requests::connection::AccessConnection;
-use sqlite_requests::connection::ReadOnly;
-use sqlite_requests::connection::ReadWrite;
+use sqlite_requests::connection::access::ReadOnly;
+use sqlite_requests::connection::access::WriteOnly;
 use std::panic;
 use std::panic::UnwindSafe;
 use std::panic::AssertUnwindSafe;
@@ -79,9 +79,9 @@ pub fn with_test_dbs<A: Access>(access: A, f: impl FnOnce(AccessConnection<A>, C
     })
 }
 
-pub fn with_single_test_db<T>(f: impl FnOnce(AccessConnection<ReadOnly>, AccessConnection<ReadWrite>) -> T) -> T {
+pub fn with_single_test_db<T>(f: impl FnOnce(AccessConnection<ReadOnly>, AccessConnection<WriteOnly>) -> T) -> T {
     with_test_db_paths(|test_db_path: PathBuf, _: PathBuf| {
         f(AccessConnection::open(ReadOnly, &test_db_path).unwrap(),
-          AccessConnection::open(ReadWrite, &test_db_path).unwrap())
+          AccessConnection::open(WriteOnly, &test_db_path).unwrap())
     })
 }

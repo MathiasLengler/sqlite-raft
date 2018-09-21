@@ -1,6 +1,5 @@
 use connection::AccessTransaction;
 use request::Request;
-use connection::ReadOnly;
 use error::Result;
 use parameter::IndexedParameters;
 use parameter::NamedParameters;
@@ -13,6 +12,7 @@ use rusqlite::types::ToSql;
 use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
 use std::result;
+use connection::access::ReadAccess;
 
 mod proto_convert;
 
@@ -30,11 +30,10 @@ impl BulkQuery {
     }
 }
 
-impl Request for BulkQuery {
-    type Access = ReadOnly;
+impl<A: ReadAccess> Request<A> for BulkQuery {
     type Response = Vec<Vec<QueryResultSet>>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
         self.queries.iter().map(|query| {
             query.apply_to_tx(tx)
         }).collect::<Result<Vec<_>>>()
@@ -66,11 +65,10 @@ impl Query {
     }
 }
 
-impl Request for Query {
-    type Access = ReadOnly;
+impl<A: ReadAccess> Request<A> for Query {
     type Response = Vec<QueryResultSet>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
         let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 

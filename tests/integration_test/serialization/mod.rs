@@ -8,8 +8,8 @@ use integration_test::queued_params_as_arg;
 use sqlite_requests::request::SqliteRequest;
 use sqlite_requests::request::SqliteResponse;
 use sqlite_requests::connection::AccessConnection;
-use sqlite_requests::connection::ReadOnly;
-use sqlite_requests::connection::ReadWrite;
+use sqlite_requests::connection::access::ReadOnly;
+use sqlite_requests::connection::access::WriteOnly;
 use utils::temp_db::with_single_test_db;
 
 mod serde;
@@ -100,7 +100,7 @@ fn sqlite_responses() -> Vec<SqliteResponse> {
     let commands = sqlite_requests();
 
     commands.iter().map(|command| {
-        with_single_test_db(|mut conn_ro: AccessConnection<ReadOnly>, mut conn_rw: AccessConnection<ReadWrite>| {
+        with_single_test_db(|mut conn_ro: AccessConnection<ReadOnly>, mut conn_rw: AccessConnection<WriteOnly>| {
             match command {
                 SqliteRequest::Query(sqlite_query) => {
                     SqliteResponse::Query(conn_ro.run(sqlite_query).unwrap())

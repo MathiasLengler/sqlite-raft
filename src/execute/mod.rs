@@ -1,12 +1,12 @@
 use connection::AccessTransaction;
 use request::Request;
-use connection::ReadWrite;
 use error::Result;
 use parameter::IndexedParameters;
 use parameter::NamedParameters;
 use parameter::QueuedParameters;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
+use connection::access::WriteAccess;
 
 mod proto_convert;
 
@@ -24,11 +24,10 @@ impl BulkExecute {
     }
 }
 
-impl Request for BulkExecute {
-    type Access = ReadWrite;
+impl<A: WriteAccess> Request<A> for BulkExecute {
     type Response = Vec<Vec<ExecuteResult>>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
         self.executes.iter().map(|execute| {
             execute.apply_to_tx(tx)
         }).collect::<Result<Vec<_>>>()
@@ -59,11 +58,10 @@ impl Execute {
     }
 }
 
-impl Request for Execute {
-    type Access = ReadWrite;
+impl<A: WriteAccess> Request<A> for Execute {
     type Response = Vec<ExecuteResult>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
         let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 

@@ -5,7 +5,7 @@ use rusqlite::Connection;
 use rusqlite::Row;
 use rusqlite::types::ToSql;
 use sqlite_requests::connection::AccessConnection;
-use sqlite_requests::connection::ReadOnly;
+use sqlite_requests::connection::access::ReadOnly;
 use sqlite_requests::query::BulkQuery;
 use sqlite_requests::query::Query;
 use sqlite_requests::query::QueryResultRow;

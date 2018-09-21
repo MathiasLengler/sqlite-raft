@@ -1,9 +1,11 @@
 use error::Result;
 use rusqlite::Connection;
-use rusqlite::OpenFlags;
 use rusqlite::Transaction;
 use std::path::Path;
 use request::Request;
+use connection::access::Access;
+
+pub mod access;
 
 pub struct AccessConnection<A: Access> {
     conn: Connection,
@@ -21,7 +23,7 @@ impl<A: Access> AccessConnection<A> {
     }
 
     pub fn run<R>(&mut self, request: &R) -> Result<R::Response>
-        where R: Request<Access=A> {
+        where R: Request<A> {
         self.inside_transaction(|tx| request.apply_to_tx(tx))
     }
 
@@ -55,55 +57,5 @@ impl<'conn, A: Access> AccessTransaction<'conn, A> {
 
     pub fn into_inner(self) -> Transaction<'conn> {
         self.tx
-    }
-}
-
-// TODO:
-/// traits:
-/// Access
-///     ReadAccess
-///     WriteAccess
-///     ReadWriteAccess
-///
-/// ReadOnly: Query
-///     ReadAccess
-/// WriteOnly: Execute
-///     WriteAccess
-/// ReadWrite: Query, Execute and SqliteRequest
-///     ReadAccess
-///     WriteAccess
-///     ReadWriteAccess
-///
-
-
-pub trait Access: Copy {
-    fn open<P: AsRef<Path>>(&self, path: P) -> Result<Connection>;
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct ReadOnly;
-
-impl Access for ReadOnly {
-    fn open<P: AsRef<Path>>(&self, path: P) -> Result<Connection> {
-        let conn = Connection::open_with_flags(
-            path,
-            OpenFlags::SQLITE_OPEN_READ_ONLY,
-        )?;
-
-        Ok(conn)
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct ReadWrite;
-
-impl Access for ReadWrite {
-    fn open<P: AsRef<Path>>(&self, path: P) -> Result<Connection> {
-        let conn = Connection::open_with_flags(
-            path,
-            OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE,
-        )?;
-
-        Ok(conn)
     }
 }

@@ -1,6 +1,4 @@
 use connection::AccessTransaction;
-use connection::ReadOnly;
-use connection::ReadWrite;
 use error::Result;
 use execute::BulkExecute;
 use execute::Execute;
@@ -8,32 +6,43 @@ use execute::ExecuteResult;
 use query::BulkQuery;
 use query::Query;
 use query::QueryResultSet;
-use connection::Access;
+use connection::access::Access;
+use connection::access::WriteAccess;
+use connection::access::ReadAccess;
 
 mod proto_convert;
 
 
-/// Implemented by every directly runnable SQLite request.
+/// Implemented by every SQLite request.
 ///
 /// Used by `AccessConnection::run`.
-pub trait Request {
-    /// The needed access level to run this request.
-    type Access: Access;
+pub trait Request<A: Access> {
     /// The returned response type when running this query.
     type Response;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response>;
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response>;
 }
 
 
 /// Every possible SQLite request.
 /// Used as a serialization root point for transferring or persisting SQLite requests.
-///
-/// Does not implement the `Request` trait directly, because each variant requires a different `Access`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteRequest {
     Query(SqliteQuery),
     Execute(SqliteExecute),
+}
+
+impl<A: ReadAccess + WriteAccess> Request<A> for SqliteRequest {
+    type Response = SqliteResponse;
+
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+        Ok(match self {
+            SqliteRequest::Query(sqlite_query) =>
+                SqliteResponse::Query(sqlite_query.apply_to_tx(tx)?),
+            SqliteRequest::Execute(sqlite_execute) =>
+                SqliteResponse::Execute(sqlite_execute.apply_to_tx(tx)?),
+        })
+    }
 }
 
 impl From<Query> for SqliteRequest {
@@ -69,7 +78,7 @@ pub enum SqliteResponse {
 }
 
 /// A single SQLite query or a series of them.
-/// A query is a SQL-Request which can't modify the DB and requires `ReadOnly` access to be run, e.g. a `SELECT` statement.
+/// A query is a SQL-Request which can't modify the DB and requires `ReadAccess` to be run, e.g. a `SELECT` statement.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteQuery {
     Single(Query),
@@ -82,11 +91,10 @@ pub enum SqliteQueryResponse {
     Bulk(Vec<Vec<QueryResultSet>>),
 }
 
-impl Request for SqliteQuery {
-    type Access = ReadOnly;
+impl<A: ReadAccess> Request<A> for SqliteQuery {
     type Response = SqliteQueryResponse;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteQuery::Single(query) =>
                 SqliteQueryResponse::Single(query.apply_to_tx(tx)?),
@@ -97,7 +105,7 @@ impl Request for SqliteQuery {
 }
 
 /// A single SQLite statement or a series of them.
-/// A statement is a SQL-Request which can modify the DB and requires `ReadWrite` access to be run, e.g. everything but a query.
+/// A statement is a SQL-Request which can modify the DB and requires `WriteAccess` to be run, e.g. everything but a query.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SqliteExecute {
     Single(Execute),
@@ -111,11 +119,10 @@ pub enum SqliteExecuteResponse {
     Bulk(Vec<Vec<ExecuteResult>>),
 }
 
-impl Request for SqliteExecute {
-    type Access = ReadWrite;
+impl<A: WriteAccess> Request<A> for SqliteExecute {
     type Response = SqliteExecuteResponse;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<Self::Access>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteExecute::Single(execute) =>
                 SqliteExecuteResponse::Single(execute.apply_to_tx(tx)?),

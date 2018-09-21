@@ -11,23 +11,61 @@ use raft::Result as RaftResult;
 use raft::Storage;
 use rusqlite::Connection;
 use std::path::Path;
+use model::core::CoreId;
+use rusqlite::Transaction;
 
-mod hard_state;
+mod model;
 pub mod error;
 
 // TODO: MemStorageCore -> Tables
 // TODO: Test against MemStorageCore
 // TODO: use in sqlite-raft
+// TODO: debug_assert entries sequence with no gaps
 
 struct SqliteStorage {
     conn: Connection,
+    id: CoreId,
 }
 
 impl SqliteStorage {
-    fn new<P: AsRef<Path>>(path: P) -> Result<SqliteStorage> {
-        Ok(SqliteStorage {
+    const SQL_ON_OPEN: &'static str =
+        include_str!("../res/sql/on_open.sql");
+    const SQL_EXISTS: &'static str =
+        include_str!("../res/sql/exists.sql");
+    const SQL_INIT: &'static str =
+        include_str!("../res/sql/init.sql");
+
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<SqliteStorage> {
+        let mut storage = SqliteStorage {
             conn: Connection::open(path)?,
-        })
+            id: 0.into(),
+        };
+
+        storage.init_if_not_exists()?;
+
+        Ok(storage)
+    }
+
+    fn init_if_not_exists(&mut self) -> Result<()> {
+        let mut tx = self.conn.transaction()?;
+
+        tx.execute_batch(SqliteStorage::SQL_ON_OPEN);
+
+        SqliteStorage::create_tables_if_not_exists(&mut tx);
+
+        if !self.id.exists(&mut tx)? {
+
+        }
+
+        unimplemented!()
+    }
+
+    fn create_tables_if_not_exists(tx: &mut Transaction) -> Result<()> {
+        let mut stmt = tx.prepare(SqliteStorage::SQL_EXISTS)?;
+        if !stmt.exists(&[])? {
+            tx.execute_batch(SqliteStorage::SQL_INIT)?;
+        }
+        Ok(())
     }
 }
 

@@ -1,0 +1,68 @@
+use error::Result;
+use model::core::CoreId;
+use raft::eraftpb::HardState;
+use rusqlite::Transaction;
+use rusqlite::types::ToSql;
+
+struct SqliteHardState {
+    term: i64,
+    vote: i64,
+    commit: i64,
+}
+
+impl SqliteHardState {
+    const SQL_QUERY: &'static str =
+        include_str!("../../res/sql/hard_state/query.sql");
+    const SQL_INSERT_OR_REPLACE: &'static str =
+        include_str!("../../res/sql/hard_state/insert_or_replace.sql");
+
+    pub fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 4] {
+        [
+            ("term", &self.term),
+            ("vote", &self.vote),
+            ("commit", &self.commit),
+            core_id.as_named_param(),
+        ]
+    }
+
+    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<SqliteHardState> {
+        tx.query_row_named(SqliteHardState::SQL_QUERY, &[core_id.as_named_param()], |row| {
+            // TODO: get_checked
+
+            SqliteHardState {
+                term: row.get("term"),
+                vote: row.get("vote"),
+                commit: row.get("commit"),
+            }
+        }).map_err(Into::into)
+    }
+
+    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+        tx.execute_named(SqliteHardState::SQL_INSERT_OR_REPLACE, &self.as_named_params(&core_id))?;
+
+        Ok(())
+    }
+}
+
+// TODO: TryFrom
+
+impl From<HardState> for SqliteHardState {
+    fn from(hard_state: HardState) -> Self {
+        SqliteHardState {
+            term: hard_state.get_term() as i64,
+            vote: hard_state.get_vote() as i64,
+            commit: hard_state.get_commit() as i64,
+        }
+    }
+}
+
+impl From<SqliteHardState> for HardState {
+    fn from(sqlite_hard_state: SqliteHardState) -> Self {
+        let mut hard_state = HardState::new();
+        hard_state.set_term(sqlite_hard_state.term as u64);
+        hard_state.set_vote(sqlite_hard_state.vote as u64);
+        hard_state.set_commit(sqlite_hard_state.commit as u64);
+        hard_state
+    }
+}
+

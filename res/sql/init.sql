@@ -1,29 +1,43 @@
-CREATE TABLE IF NOT EXISTS storages (
-  id            INTEGER PRIMARY KEY NOT NULL,
-  hard_state_id INTEGER             NOT NULL,
-  FOREIGN KEY (hard_state_id) REFERENCES hard_state (id)
+CREATE TABLE IF NOT EXISTS Cores (
+  core_id INTEGER NOT NULL PRIMARY KEY
 );
 
-CREATE TABLE IF NOT EXISTS entries (
-  storage_id INTEGER NOT NULL,
-  entry_type INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS Entries (
+  "index"    INTEGER NOT NULL PRIMARY KEY,
   term       INTEGER NOT NULL,
-  "index"    INTEGER NOT NULL,
+  entry_type INTEGER NOT NULL,
   data       BLOB    NOT NULL,
   context    BLOB    NOT NULL,
   sync_log   INTEGER NOT NULL,
-  FOREIGN KEY (storage_id) REFERENCES storages (id)
-
+  core_id    INTEGER NOT NULL,
+  FOREIGN KEY (core_id) REFERENCES Cores (core_id)
 );
 
-CREATE TABLE IF NOT EXISTS hard_state (
-  id       INTEGER PRIMARY KEY NOT NULL,
-  term     INTEGER             NOT NULL,
-  vote     INTEGER             NOT NULL,
-  "commit" INTEGER             NOT NULL
+CREATE TABLE IF NOT EXISTS HardStates (
+  term     INTEGER NOT NULL,
+  vote     INTEGER NOT NULL,
+  "commit" INTEGER NOT NULL,
+  core_id  INTEGER NOT NULL UNIQUE,
+  FOREIGN KEY (core_id) REFERENCES Cores (core_id)
 );
 
--- TODO:
--- CREATE TABLE IF NOT EXISTS snapshots (
---
--- );
+CREATE TABLE IF NOT EXISTS Snapshots (
+  snapshot_id INTEGER NOT NULL PRIMARY KEY,
+  data        BLOB    NOT NULL,
+  "index"     INTEGER NOT NULL,
+  term        INTEGER NOT NULL,
+  core_id     INTEGER NOT NULL UNIQUE,
+  FOREIGN KEY (core_id) REFERENCES Cores (core_id)
+);
+
+CREATE TABLE IF NOT EXISTS Nodes (
+  node_id     INTEGER NOT NULL,
+  snapshot_id INTEGER NOT NULL,
+  FOREIGN KEY (snapshot_id) REFERENCES Snapshots (snapshot_id)
+);
+
+CREATE TABLE IF NOT EXISTS Learners (
+  lerner_id   INTEGER NOT NULL,
+  snapshot_id INTEGER NOT NULL,
+  FOREIGN KEY (snapshot_id) REFERENCES Snapshots (snapshot_id)
+);

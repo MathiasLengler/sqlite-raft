@@ -2,27 +2,27 @@
 extern crate failure;
 extern crate raft;
 extern crate rusqlite;
+extern crate protobuf;
 
 use error::Result;
+use model::core::CoreId;
 use raft::eraftpb::Entry;
 use raft::eraftpb::Snapshot;
 use raft::RaftState;
 use raft::Result as RaftResult;
 use raft::Storage;
 use rusqlite::Connection;
-use std::path::Path;
-use model::core::CoreId;
 use rusqlite::Transaction;
+use std::path::Path;
+use model::hard_state::SqliteHardState;
 
 mod model;
 pub mod error;
 
-// TODO: MemStorageCore -> Tables
 // TODO: Test against MemStorageCore
 // TODO: use in sqlite-raft
-// TODO: debug_assert entries sequence with no gaps
 
-struct SqliteStorage {
+pub struct SqliteStorage {
     conn: Connection,
     id: CoreId,
 }
@@ -49,15 +49,21 @@ impl SqliteStorage {
     fn init_if_not_exists(&mut self) -> Result<()> {
         let mut tx = self.conn.transaction()?;
 
-        tx.execute_batch(SqliteStorage::SQL_ON_OPEN);
+        tx.execute_batch(SqliteStorage::SQL_ON_OPEN)?;
 
-        SqliteStorage::create_tables_if_not_exists(&mut tx);
+        SqliteStorage::create_tables_if_not_exists(&mut tx)?;
 
         if !self.id.exists(&mut tx)? {
+            self.id.insert(&mut tx)?;
 
+            SqliteHardState::default().insert_or_replace(&mut tx, self.id)?;
+
+            // TODO:
         }
 
-        unimplemented!()
+        tx.commit()?;
+
+        Ok(())
     }
 
     fn create_tables_if_not_exists(tx: &mut Transaction) -> Result<()> {

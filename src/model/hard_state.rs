@@ -3,8 +3,9 @@ use model::core::CoreId;
 use raft::eraftpb::HardState;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
+use rusqlite::Row;
 
-struct SqliteHardState {
+pub struct SqliteHardState {
     term: i64,
     vote: i64,
     commit: i64,
@@ -18,23 +19,29 @@ impl SqliteHardState {
 
     pub fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 4] {
         [
-            ("term", &self.term),
-            ("vote", &self.vote),
-            ("commit", &self.commit),
+            (":term", &self.term),
+            (":vote", &self.vote),
+            (":commit", &self.commit),
             core_id.as_named_param(),
         ]
     }
 
-    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<SqliteHardState> {
-        tx.query_row_named(SqliteHardState::SQL_QUERY, &[core_id.as_named_param()], |row| {
-            // TODO: get_checked
+    fn from_row(row: &Row) -> SqliteHardState {
+        // TODO: get_checked
 
-            SqliteHardState {
-                term: row.get("term"),
-                vote: row.get("vote"),
-                commit: row.get("commit"),
-            }
-        }).map_err(Into::into)
+        SqliteHardState {
+            term: row.get("term"),
+            vote: row.get("vote"),
+            commit: row.get("commit"),
+        }
+    }
+
+    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<SqliteHardState> {
+        tx.query_row_named(
+            SqliteHardState::SQL_QUERY,
+            &[core_id.as_named_param()],
+            SqliteHardState::from_row,
+        ).map_err(Into::into)
     }
 
     pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
@@ -63,6 +70,14 @@ impl From<SqliteHardState> for HardState {
         hard_state.set_vote(sqlite_hard_state.vote as u64);
         hard_state.set_commit(sqlite_hard_state.commit as u64);
         hard_state
+    }
+}
+
+impl Default for SqliteHardState {
+    fn default() -> Self {
+        let hard_state = HardState::new();
+
+        hard_state.into()
     }
 }
 

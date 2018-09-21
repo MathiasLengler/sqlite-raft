@@ -11,7 +11,7 @@ impl CoreId {
     const SQL_INSERT: &'static str = include_str!("../../res/sql/core/insert.sql");
 
     pub fn as_named_param(&self) -> (&'static str, &ToSql) {
-        ("core_id", &self.0)
+        (":core_id", &self.0)
     }
 
     pub fn exists(&self, tx: &mut Transaction) -> Result<bool> {

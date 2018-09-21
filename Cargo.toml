@@ -6,3 +6,4 @@ authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 [dependencies]
 raft = { path = "../raft-rs" }
 rusqlite = "0.14.0"
+failure = "0.1.2"

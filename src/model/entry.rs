@@ -89,9 +89,9 @@ impl From<SqliteEntry> for Entry {
 
 impl Default for SqliteEntry {
     fn default() -> Self {
-        let hard_state = Entry::new();
+        let entry = Entry::new();
 
-        hard_state.into()
+        entry.into()
     }
 }
 

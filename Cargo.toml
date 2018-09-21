@@ -11,7 +11,7 @@ slog-async = "2.3.0"
 slog-scope = "4.0.1"
 slog-stdlog = "3.0.2"
 slog-term = "2.4.0"
-protobuf = "2.0.4"
+protobuf = "2.0.5"
 raft = { path = "../raft-rs" }
 sqlite-requests = { path = "../sqlite-requests"}
 

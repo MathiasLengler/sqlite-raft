@@ -22,22 +22,16 @@ CREATE TABLE IF NOT EXISTS HardStates (
 );
 
 CREATE TABLE IF NOT EXISTS Snapshots (
-  snapshot_id INTEGER NOT NULL PRIMARY KEY,
-  data        BLOB    NOT NULL,
-  "index"     INTEGER NOT NULL,
-  term        INTEGER NOT NULL,
-  core_id     INTEGER NOT NULL UNIQUE,
+  data    BLOB    NOT NULL,
+  "index" INTEGER NOT NULL,
+  term    INTEGER NOT NULL,
+  core_id INTEGER NOT NULL UNIQUE,
   FOREIGN KEY (core_id) REFERENCES Cores (core_id)
 );
 
 CREATE TABLE IF NOT EXISTS Nodes (
-  node_id     INTEGER NOT NULL,
-  snapshot_id INTEGER NOT NULL,
-  FOREIGN KEY (snapshot_id) REFERENCES Snapshots (snapshot_id)
-);
-
-CREATE TABLE IF NOT EXISTS Learners (
-  lerner_id   INTEGER NOT NULL,
-  snapshot_id INTEGER NOT NULL,
-  FOREIGN KEY (snapshot_id) REFERENCES Snapshots (snapshot_id)
+  node_id   INTEGER NOT NULL,
+  node_type INTEGER NOT NULL,
+  core_id   INTEGER NOT NULL,
+  FOREIGN KEY (core_id) REFERENCES Snapshots (core_id)
 );

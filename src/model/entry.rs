@@ -8,6 +8,7 @@ use rusqlite::types::ToSql;
 use rusqlite::Row;
 
 // TODO: debug_assert entries sequence with no gaps
+// TODO: persist min/max index?
 
 pub struct SqliteEntry {
     index: i64,

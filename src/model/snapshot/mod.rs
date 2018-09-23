@@ -16,10 +16,19 @@ pub struct SqliteSnapshot {
     conf_state: SqliteConfState,
 }
 
-impl SqliteSnapshot {}
-
-
-// TODO: TryFrom
+impl SqliteSnapshot{
+    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+        self.raw_snapshot.insert_or_replace(&mut tx, core_id)?;
+        self.conf_state.insert_or_replace(&mut tx, core_id)?;
+        Ok(())
+    }
+    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<SqliteSnapshot> {
+        Ok(SqliteSnapshot {
+            raw_snapshot: RawSqliteSnapshot::query(&mut tx, core_id)?,
+            conf_state: SqliteConfState::query(&mut tx, core_id)?,
+        })
+    }
+}
 
 impl From<Snapshot> for SqliteSnapshot {
     fn from(mut snapshot: Snapshot) -> Self {

@@ -51,8 +51,6 @@ impl SqliteHardState {
     }
 }
 
-// TODO: TryFrom
-
 impl From<HardState> for SqliteHardState {
     fn from(hard_state: HardState) -> Self {
         SqliteHardState {

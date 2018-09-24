@@ -19,6 +19,7 @@ use rusqlite::Transaction;
 use std::path::Path;
 use std::sync::RwLock;
 use model::snapshot::node::SqliteConfState;
+use model::entry::SqliteEntry;
 
 mod model;
 pub mod error;
@@ -117,8 +118,14 @@ impl Storage for SqliteStorage {
         Ok(entries)
     }
 
-    fn term(&self, _idx: u64) -> RaftResult<u64> {
-        unimplemented!()
+    fn term(&self, idx: u64) -> RaftResult<u64> {
+        let sqlite_entry: SqliteEntry = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            SqliteEntry::query(tx, core_id, idx)
+        })?;
+
+        let entry: Entry = sqlite_entry.into();
+
+        Ok(entry.get_term())
     }
 
     fn first_index(&self) -> RaftResult<u64> {

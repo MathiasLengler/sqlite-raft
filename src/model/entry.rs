@@ -1,3 +1,6 @@
+use failure::Backtrace;
+use error::index::BoundViolation;
+use error::index::InvalidEntryIndex;
 use error::Result;
 use model::core::CoreId;
 use protobuf::ProtobufEnum;
@@ -44,32 +47,19 @@ impl SqliteEntries {
     }
 
     pub fn query(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
-        let first_index = SqliteEntry::first_index(&tx, core_id)?;
-        let last_index = SqliteEntry::last_index(&tx, core_id)?;
+        SqliteEntry::validate_index_range(
+            low,
+            high,
+            SqliteEntry::first_index(&tx, core_id)?,
+            SqliteEntry::last_index(&tx, core_id)?
+        )?;
 
-        if low <= first_index {
-            return Err(RaftError::Store(RaftStorageError::Compacted).into());
-        }
-
-        if high > last_index + 1 {
-            panic!("index out of bound")
-        }
-
-        // only contains dummy entries.
-        if first_index == last_index {
-            return Err(RaftError::Store(RaftStorageError::Unavailable).into());
-        }
-
-        SqliteEntries::query_range(&tx, core_id, low, high)
-    }
-
-    fn query_range(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
         let low = low as i64;
         let high_inclusive = (high - 1) as i64;
 
         let mut stmt = tx.prepare(Self::SQL_QUERY_RANGE)?;
         let rows = stmt.query_map_named(
-            &Self::query_range_parameters(&low, &high_inclusive, &core_id),
+            &Self::query_parameters(&low, &high_inclusive, &core_id),
             SqliteEntry::from_row,
         )?;
 
@@ -78,7 +68,7 @@ impl SqliteEntries {
         })
     }
 
-    pub fn query_range_parameters<'a>(low: &'a i64, high_inclusive: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 3] {
+    fn query_parameters<'a>(low: &'a i64, high_inclusive: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 3] {
         [
             (":low", low),
             (":high_inclusive", high_inclusive),
@@ -121,6 +111,8 @@ pub struct SqliteEntry {
 impl SqliteEntry {
     const SQL_DELETE: &'static str =
         include_str!("../../res/sql/entry/delete.sql");
+    const SQL_QUERY: &'static str =
+        include_str!("../../res/sql/entry/query.sql");
     const SQL_QUERY_FIRST_INDEX: &'static str =
         include_str!("../../res/sql/entry/query_first_index.sql");
     const SQL_QUERY_LAST_INDEX: &'static str =
@@ -155,6 +147,42 @@ impl SqliteEntry {
         row.get("index")
     }
 
+    fn validate_index_range(low: u64, high: u64, first_index: u64, last_index: u64) -> Result<()> {
+        Self::validate_index(low, first_index, last_index)?;
+        Self::validate_index(high, first_index, last_index)?;
+
+        // only contains dummy entries.
+        if first_index == last_index {
+            return Err(RaftError::Store(RaftStorageError::Unavailable).into());
+        }
+
+        Ok(())
+    }
+
+    fn validate_index(idx: u64, first_index: u64, last_index: u64) -> Result<()> {
+        if idx <= first_index {
+            return Err(InvalidEntryIndex {
+                kind: BoundViolation::TooSmall,
+                first_index,
+                last_index,
+                invalid_index: idx,
+                backtrace: Backtrace::new(),
+            }.into());
+        }
+
+        if idx > last_index + 1 {
+            return Err(InvalidEntryIndex {
+                kind: BoundViolation::TooLarge,
+                first_index,
+                last_index,
+                invalid_index: idx,
+                backtrace: Backtrace::new(),
+            }.into());
+        }
+
+        Ok(())
+    }
+
     pub fn first_index(tx: &Transaction, core_id: CoreId) -> Result<u64> {
         let index = tx.query_row_named(
             Self::SQL_QUERY_FIRST_INDEX,
@@ -171,6 +199,31 @@ impl SqliteEntry {
             Self::index_from_row,
         )?;
         Ok(index as u64)
+    }
+
+    pub fn query(tx: &Transaction, core_id: CoreId, idx: u64) -> Result<SqliteEntry> {
+        Self::validate_index(
+            idx,
+            SqliteEntry::first_index(&tx, core_id)?,
+            SqliteEntry::last_index(&tx, core_id)?,
+        )?;
+
+        let idx = idx as i64;
+
+        let sqlite_entry = tx.query_row_named(
+            Self::SQL_QUERY,
+            &Self::query_params(&idx, &core_id),
+            Self::from_row,
+        )?;
+
+        Ok(sqlite_entry)
+    }
+
+    fn query_params<'a>(idx: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 2] {
+        [
+            (":index", idx),
+            core_id.as_named_param(),
+        ]
     }
 
     pub fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {

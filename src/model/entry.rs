@@ -44,11 +44,6 @@ impl SqliteEntries {
     }
 
     pub fn query(mut tx: &mut Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
-        // TODO: SQL_QUERY_RANGE
-        // TODO: reverse implementation from test_storage_entries
-        // TODO: limit to max_size
-
-
         let first_index = SqliteEntry::first_index(&mut tx, core_id)?;
         let last_index = SqliteEntry::last_index(&mut tx, core_id)?;
 

@@ -35,8 +35,8 @@ impl SqliteStorage {
         include_str!("../res/sql/on_open.sql");
     const SQL_EXISTS: &'static str =
         include_str!("../res/sql/exists.sql");
-    const SQL_INIT: &'static str =
-        include_str!("../res/sql/init.sql");
+    const SQL_CREATE_TABLES: &'static str =
+        include_str!("../res/sql/create_tables.sql");
 
     pub fn open<P: AsRef<Path>>(path: P) -> Result<SqliteStorage> {
         let mut storage = SqliteStorage {
@@ -44,12 +44,12 @@ impl SqliteStorage {
             id: 0.into(),
         };
 
-        storage.init_if_not_exists()?;
+        storage.init()?;
 
         Ok(storage)
     }
 
-    fn init_if_not_exists(&mut self) -> Result<()> {
+    fn init(&mut self) -> Result<()> {
         let mut tx = self.conn.transaction()?;
 
         tx.execute_batch(SqliteStorage::SQL_ON_OPEN)?;
@@ -72,7 +72,7 @@ impl SqliteStorage {
     fn create_tables_if_not_exists(tx: &mut Transaction) -> Result<()> {
         let mut stmt = tx.prepare(SqliteStorage::SQL_EXISTS)?;
         if !stmt.exists(&[])? {
-            tx.execute_batch(SqliteStorage::SQL_INIT)?;
+            tx.execute_batch(SqliteStorage::SQL_CREATE_TABLES)?;
         }
         Ok(())
     }

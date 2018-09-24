@@ -29,7 +29,7 @@ impl SqliteEntries {
         unimplemented!()
     }
 
-    pub fn query_entries_range(low: u64, high: u64, max_size: u64) -> Result<SqliteEntries> {
+    pub fn query(low: u64, high: u64, max_size: u64) -> Result<SqliteEntries> {
         // TODO: SQL_QUERY_RANGE
         // TODO: reverse implementation from test_storage_entries
         // TODO: limit to max_size
@@ -55,13 +55,15 @@ impl Default for SqliteEntries {
 
 impl From<Vec<Entry>> for SqliteEntries {
     fn from(entries: Vec<Entry>) -> Self {
-        unimplemented!()
+        SqliteEntries {
+            entries: entries.into_iter().map(Into::into).collect(),
+        }
     }
 }
 
 impl From<SqliteEntries> for Vec<Entry> {
     fn from(sqlite_entries: SqliteEntries) -> Self {
-        unimplemented!()
+        sqlite_entries.entries.into_iter().map(Into::into).collect()
     }
 }
 
@@ -102,7 +104,7 @@ impl SqliteEntry {
         unimplemented!()
     }
 
-    pub fn query_index(idx: u64) -> Result<SqliteEntry> {
+    pub fn query(idx: u64) -> Result<SqliteEntry> {
         // TODO: idx == index ? compare with MemStorage tests
         // TODO: SQL_QUERY_INDEX
 

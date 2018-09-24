@@ -47,7 +47,7 @@ impl SqliteEntries {
     }
 
     pub fn query(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
-        SqliteEntry::validate_index_range(
+        Self::validate_index_range(
             low,
             high,
             SqliteEntry::first_index(&tx, core_id)?,
@@ -74,6 +74,18 @@ impl SqliteEntries {
             (":high_inclusive", high_inclusive),
             core_id.as_named_param(),
         ]
+    }
+
+    fn validate_index_range(low: u64, high: u64, first_index: u64, last_index: u64) -> Result<()> {
+        SqliteEntry::validate_index(low, first_index, last_index)?;
+        SqliteEntry::validate_index(high, first_index, last_index)?;
+
+        // only contains dummy entries.
+        if first_index == last_index {
+            return Err(RaftError::Store(RaftStorageError::Unavailable).into());
+        }
+
+        Ok(())
     }
 }
 
@@ -145,18 +157,6 @@ impl SqliteEntry {
 
     fn index_from_row(row: &Row) -> i64 {
         row.get("index")
-    }
-
-    fn validate_index_range(low: u64, high: u64, first_index: u64, last_index: u64) -> Result<()> {
-        Self::validate_index(low, first_index, last_index)?;
-        Self::validate_index(high, first_index, last_index)?;
-
-        // only contains dummy entries.
-        if first_index == last_index {
-            return Err(RaftError::Store(RaftStorageError::Unavailable).into());
-        }
-
-        Ok(())
     }
 
     fn validate_index(idx: u64, first_index: u64, last_index: u64) -> Result<()> {

@@ -18,6 +18,7 @@ use rusqlite::Connection;
 use rusqlite::Transaction;
 use std::path::Path;
 use std::sync::RwLock;
+use model::snapshot::node::SqliteConfState;
 
 mod model;
 pub mod error;
@@ -92,7 +93,14 @@ impl SqliteStorage {
 
 impl Storage for SqliteStorage {
     fn initial_state(&self) -> RaftResult<RaftState> {
-        unimplemented!()
+        let raft_state = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            Ok(RaftState {
+                hard_state: SqliteHardState::query(tx, core_id)?.into(),
+                conf_state: SqliteConfState::query(tx, core_id)?.into(),
+            })
+        })?;
+
+        Ok(raft_state)
     }
 
     fn entries(&self, low: u64, high: u64, max_size: u64) -> RaftResult<Vec<Entry>> {

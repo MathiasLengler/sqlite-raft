@@ -6,7 +6,7 @@ use rusqlite::Transaction;
 use self::node::SqliteConfState;
 use self::raw_snapshot::RawSqliteSnapshot;
 
-mod node;
+pub mod node;
 mod raw_snapshot;
 
 pub struct SqliteSnapshot {

@@ -129,14 +129,28 @@ impl Storage for SqliteStorage {
     }
 
     fn first_index(&self) -> RaftResult<u64> {
-        unimplemented!()
+        let idx = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            SqliteEntry::first_index(tx, core_id)
+        })?;
+
+        Ok(idx)
     }
 
     fn last_index(&self) -> RaftResult<u64> {
-        unimplemented!()
+        let idx = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            SqliteEntry::last_index(tx, core_id)
+        })?;
+
+        Ok(idx)
     }
 
     fn snapshot(&self) -> RaftResult<Snapshot> {
-        unimplemented!()
+        let sqlite_snapshot: SqliteSnapshot = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            SqliteSnapshot::query(tx, core_id)
+        })?;
+
+        let snapshot: Snapshot = sqlite_snapshot.into();
+
+        Ok(snapshot)
     }
 }

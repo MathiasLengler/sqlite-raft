@@ -1,6 +1,6 @@
+use failure::Backtrace;
 use rusqlite;
 use std::result;
-use failure::Backtrace;
 
 pub type Result<T> = result::Result<T, Error>;
 

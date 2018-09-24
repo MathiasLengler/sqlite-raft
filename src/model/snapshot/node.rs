@@ -1,10 +1,10 @@
 use error::Result;
 use model::core::CoreId;
 use raft::eraftpb::ConfState;
+use rusqlite::Result as RusqliteResult;
 use rusqlite::Row;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
-use rusqlite::Result as RusqliteResult;
 
 pub struct SqliteConfState {
     nodes: Vec<NodeId>,

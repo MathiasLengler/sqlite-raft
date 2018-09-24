@@ -1,6 +1,6 @@
-use rusqlite::types::ToSql;
 use error::Result;
 use rusqlite::Transaction;
+use rusqlite::types::ToSql;
 
 
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]

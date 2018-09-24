@@ -1,11 +1,11 @@
-use raft::eraftpb::Snapshot;
-use rusqlite::Row;
-use rusqlite::types::ToSql;
-use rusqlite::Transaction;
 use error::Result;
 use model::core::CoreId;
 use model::snapshot::node::SqliteConfState;
+use raft::eraftpb::Snapshot;
 use raft::eraftpb::SnapshotMetadata;
+use rusqlite::Row;
+use rusqlite::Transaction;
+use rusqlite::types::ToSql;
 
 pub struct RawSqliteSnapshot {
     pub data: Vec<u8>,

@@ -6,7 +6,9 @@ extern crate rusqlite;
 
 use error::Result;
 use model::core::CoreId;
+use model::entry::SqliteEntries;
 use model::hard_state::SqliteHardState;
+use model::snapshot::SqliteSnapshot;
 use raft::eraftpb::Entry;
 use raft::eraftpb::Snapshot;
 use raft::RaftState;
@@ -15,8 +17,6 @@ use raft::Storage;
 use rusqlite::Connection;
 use rusqlite::Transaction;
 use std::path::Path;
-use model::snapshot::SqliteSnapshot;
-use model::entry::SqliteEntries;
 
 mod model;
 pub mod error;

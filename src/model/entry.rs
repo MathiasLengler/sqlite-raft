@@ -3,9 +3,9 @@ use model::core::CoreId;
 use protobuf::ProtobufEnum;
 use raft::eraftpb::Entry;
 use raft::eraftpb::EntryType;
+use rusqlite::Row;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
-use rusqlite::Row;
 
 // TODO: debug_assert entries ascending sequence with no gaps
 

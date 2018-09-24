@@ -1,9 +1,9 @@
 use error::Result;
 use model::core::CoreId;
 use raft::eraftpb::HardState;
+use rusqlite::Row;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
-use rusqlite::Row;
 
 pub struct SqliteHardState {
     term: i64,

@@ -17,6 +17,7 @@ use raft::Storage;
 use rusqlite::Connection;
 use rusqlite::Transaction;
 use std::path::Path;
+use std::sync::RwLock;
 
 mod model;
 pub mod error;
@@ -26,7 +27,7 @@ pub mod error;
 // TODO: TryFrom for "as" casts and proto conversions (take_)
 
 pub struct SqliteStorage {
-    conn: Connection,
+    conn: RwLock<Connection>,
     id: CoreId,
 }
 
@@ -40,7 +41,7 @@ impl SqliteStorage {
 
     pub fn open<P: AsRef<Path>>(path: P) -> Result<SqliteStorage> {
         let mut storage = SqliteStorage {
-            conn: Connection::open(path)?,
+            conn: RwLock::new(Connection::open(path)?),
             id: 0.into(),
         };
 
@@ -49,24 +50,22 @@ impl SqliteStorage {
         Ok(storage)
     }
 
-    fn init(&mut self) -> Result<()> {
-        let mut tx = self.conn.transaction()?;
+    fn init(&self) -> Result<()> {
+        self.inside_transaction(|mut tx: &mut Transaction, core_id: CoreId| {
+            tx.execute_batch(SqliteStorage::SQL_ON_OPEN)?;
 
-        tx.execute_batch(SqliteStorage::SQL_ON_OPEN)?;
+            SqliteStorage::create_tables_if_not_exists(&mut tx)?;
 
-        SqliteStorage::create_tables_if_not_exists(&mut tx)?;
+            if !core_id.exists(&mut tx)? {
+                core_id.insert(&mut tx)?;
 
-        if !self.id.exists(&mut tx)? {
-            self.id.insert(&mut tx)?;
+                SqliteHardState::default().insert_or_replace(&mut tx, core_id)?;
+                SqliteSnapshot::default().insert_or_replace(&mut tx, core_id)?;
+                SqliteEntries::default().insert_or_replace(&mut tx, core_id)?;
+            }
 
-            SqliteHardState::default().insert_or_replace(&mut tx, self.id)?;
-            SqliteSnapshot::default().insert_or_replace(&mut tx, self.id)?;
-            SqliteEntries::default().insert_or_replace(&mut tx, self.id)?;
-        }
-
-        tx.commit()?;
-
-        Ok(())
+            Ok(())
+        })
     }
 
     fn create_tables_if_not_exists(tx: &mut Transaction) -> Result<()> {
@@ -76,6 +75,19 @@ impl SqliteStorage {
         }
         Ok(())
     }
+
+    fn inside_transaction<T>(&self, mut f: impl FnMut(&mut Transaction, CoreId) -> Result<T>) -> Result<T> {
+        // TODO: handle poisoned lock
+        let mut wl_conn = self.conn.write().unwrap();
+
+        let mut tx = wl_conn.transaction()?;
+
+        let res = f(&mut tx, self.id)?;
+
+        tx.commit()?;
+
+        Ok(res)
+    }
 }
 
 impl Storage for SqliteStorage {
@@ -84,7 +96,17 @@ impl Storage for SqliteStorage {
     }
 
     fn entries(&self, low: u64, high: u64, max_size: u64) -> RaftResult<Vec<Entry>> {
-        unimplemented!()
+        use raft::util::limit_size;
+
+        let sqlite_entries: SqliteEntries = self.inside_transaction(|mut tx: &mut Transaction, core_id: CoreId| {
+            SqliteEntries::query(&mut tx, core_id, low, high)
+        })?;
+
+        let mut entries: Vec<Entry> = sqlite_entries.into();
+
+        limit_size(&mut entries, max_size);
+
+        Ok(entries)
     }
 
     fn term(&self, idx: u64) -> RaftResult<u64> {

@@ -3,6 +3,9 @@ use model::core::CoreId;
 use protobuf::ProtobufEnum;
 use raft::eraftpb::Entry;
 use raft::eraftpb::EntryType;
+use raft::Error as RaftError;
+use raft::StorageError as RaftStorageError;
+use rusqlite::Result as RusqliteResult;
 use rusqlite::Row;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
@@ -15,11 +18,21 @@ pub struct SqliteEntries {
 }
 
 impl SqliteEntries {
+    const SQL_QUERY_RANGE: &'static str =
+        include_str!("../../res/sql/entry/query_range.sql");
+
     pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
         SqliteEntry::delete_all(&mut tx, core_id)?;
 
         self.insert(&mut tx, core_id)?;
 
+        Ok(())
+    }
+
+    fn insert(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+        for entry in &self.entries {
+            entry.insert(&mut tx, core_id)?;
+        }
         Ok(())
     }
 
@@ -30,19 +43,52 @@ impl SqliteEntries {
         unimplemented!()
     }
 
-    pub fn query(low: u64, high: u64, max_size: u64) -> Result<SqliteEntries> {
+    pub fn query(mut tx: &mut Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
         // TODO: SQL_QUERY_RANGE
         // TODO: reverse implementation from test_storage_entries
         // TODO: limit to max_size
 
-        unimplemented!()
+
+        let first_index = SqliteEntry::first_index(&mut tx, core_id)?;
+        let last_index = SqliteEntry::last_index(&mut tx, core_id)?;
+
+        if low <= first_index {
+            return Err(RaftError::Store(RaftStorageError::Compacted).into());
+        }
+
+        if high > last_index + 1 {
+            panic!("index out of bound")
+        }
+
+        // only contains dummy entries.
+        if first_index == last_index {
+            return Err(RaftError::Store(RaftStorageError::Unavailable).into());
+        }
+
+        SqliteEntries::query_range(&mut tx, core_id, low, high)
     }
 
-    fn insert(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
-        for entry in &self.entries {
-            entry.insert(&mut tx, core_id)?;
-        }
-        Ok(())
+    fn query_range(mut tx: &mut Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
+        let low = low as i64;
+        let high_inclusive = (high - 1) as i64;
+
+        let mut stmt = tx.prepare(Self::SQL_QUERY_RANGE)?;
+        let rows = stmt.query_map_named(
+            &Self::query_range_parameters(&low, &high_inclusive, &core_id),
+            SqliteEntry::from_row,
+        )?;
+
+        Ok(SqliteEntries {
+            entries: rows.collect::<RusqliteResult<Vec<_>>>()?,
+        })
+    }
+
+    pub fn query_range_parameters<'a>(low: &'a i64, high_inclusive: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 3] {
+        [
+            (":low", low),
+            (":high_inclusive", high_inclusive),
+            core_id.as_named_param(),
+        ]
     }
 }
 
@@ -78,8 +124,6 @@ pub struct SqliteEntry {
 }
 
 impl SqliteEntry {
-    const SQL_QUERY_RANGE: &'static str =
-        include_str!("../../res/sql/entry/query_range.sql");
     const SQL_DELETE: &'static str =
         include_str!("../../res/sql/entry/delete.sql");
     const SQL_QUERY_FIRST_INDEX: &'static str =
@@ -102,18 +146,39 @@ impl SqliteEntry {
     }
 
     fn from_row(row: &Row) -> SqliteEntry {
-        unimplemented!()
+        SqliteEntry {
+            index: row.get("index"),
+            term: row.get("term"),
+            entry_type: row.get("entry_type"),
+            data: row.get("data"),
+            context: row.get("context"),
+            sync_log: row.get("sync_log"),
+        }
     }
 
-    pub fn first_index(mut tx: &mut Transaction, core_id: CoreId) -> i64 {
-        unimplemented!()
+    fn index_from_row(row: &Row) -> i64 {
+        row.get("index")
     }
 
-    pub fn last_index(mut tx: &mut Transaction, core_id: CoreId) -> i64 {
-        unimplemented!()
+    pub fn first_index(mut tx: &mut Transaction, core_id: CoreId) -> Result<u64> {
+        let index = tx.query_row_named(
+            Self::SQL_QUERY_FIRST_INDEX,
+            &[],
+            Self::index_from_row,
+        )?;
+        Ok(index as u64)
     }
 
-    pub fn query(idx: i64) -> Result<SqliteEntry> {
+    pub fn last_index(mut tx: &mut Transaction, core_id: CoreId) -> Result<u64> {
+        let index = tx.query_row_named(
+            Self::SQL_QUERY_LAST_INDEX,
+            &[],
+            Self::index_from_row,
+        )?;
+        Ok(index as u64)
+    }
+
+    pub fn query(idx: i64, core_id: CoreId) -> Result<SqliteEntry> {
         // TODO: idx == index ? compare with MemStorage tests
         // TODO: SQL_QUERY_INDEX
 

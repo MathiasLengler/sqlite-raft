@@ -7,6 +7,7 @@ use rusqlite::Row;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
 
+// TODO: move Entries and Entry to modules
 // TODO: debug_assert entries ascending sequence with no gaps
 
 pub struct SqliteEntries {
@@ -104,7 +105,15 @@ impl SqliteEntry {
         unimplemented!()
     }
 
-    pub fn query(idx: u64) -> Result<SqliteEntry> {
+    pub fn first_index(mut tx: &mut Transaction, core_id: CoreId) -> i64 {
+        unimplemented!()
+    }
+
+    pub fn last_index(mut tx: &mut Transaction, core_id: CoreId) -> i64 {
+        unimplemented!()
+    }
+
+    pub fn query(idx: i64) -> Result<SqliteEntry> {
         // TODO: idx == index ? compare with MemStorage tests
         // TODO: SQL_QUERY_INDEX
 

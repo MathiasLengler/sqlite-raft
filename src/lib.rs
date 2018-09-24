@@ -16,6 +16,7 @@ use rusqlite::Connection;
 use rusqlite::Transaction;
 use std::path::Path;
 use model::snapshot::SqliteSnapshot;
+use model::entry::SqliteEntries;
 
 mod model;
 pub mod error;
@@ -60,8 +61,7 @@ impl SqliteStorage {
 
             SqliteHardState::default().insert_or_replace(&mut tx, self.id)?;
             SqliteSnapshot::default().insert_or_replace(&mut tx, self.id)?;
-
-            // TODO: init entries
+            SqliteEntries::default().insert_or_replace(&mut tx, self.id)?;
         }
 
         tx.commit()?;

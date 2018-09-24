@@ -7,8 +7,63 @@ use rusqlite::Transaction;
 use rusqlite::types::ToSql;
 use rusqlite::Row;
 
-// TODO: debug_assert entries sequence with no gaps
-// TODO: persist min/max index?
+// TODO: debug_assert entries ascending sequence with no gaps
+
+pub struct SqliteEntries {
+    entries: Vec<SqliteEntry>
+}
+
+impl SqliteEntries {
+    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+        SqliteEntry::delete_all(&mut tx, core_id)?;
+
+        self.insert(&mut tx, core_id)?;
+
+        Ok(())
+    }
+
+    pub fn append(&self) -> Result<()> {
+        // TODO: reverse implementation from test_storage_append
+        // seems to be deletion if entries[0].index < last_index
+
+        unimplemented!()
+    }
+
+    pub fn query_entries_range(low: u64, high: u64, max_size: u64) -> Result<SqliteEntries> {
+        // TODO: SQL_QUERY_RANGE
+        // TODO: reverse implementation from test_storage_entries
+        // TODO: limit to max_size
+
+        unimplemented!()
+    }
+
+    fn insert(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+        for entry in &self.entries {
+            entry.insert(&mut tx, core_id)?;
+        }
+        Ok(())
+    }
+}
+
+impl Default for SqliteEntries {
+    fn default() -> Self {
+        SqliteEntries {
+            entries: vec![SqliteEntry::default()],
+        }
+    }
+}
+
+impl From<Vec<Entry>> for SqliteEntries {
+    fn from(entries: Vec<Entry>) -> Self {
+        unimplemented!()
+    }
+}
+
+impl From<SqliteEntries> for Vec<Entry> {
+    fn from(sqlite_entries: SqliteEntries) -> Self {
+        unimplemented!()
+    }
+}
 
 pub struct SqliteEntry {
     index: i64,
@@ -22,6 +77,14 @@ pub struct SqliteEntry {
 impl SqliteEntry {
     const SQL_QUERY_RANGE: &'static str =
         include_str!("../../res/sql/entry/query_range.sql");
+    const SQL_DELETE: &'static str =
+        include_str!("../../res/sql/entry/delete.sql");
+    const SQL_QUERY_FIRST_INDEX: &'static str =
+        include_str!("../../res/sql/entry/query_first_index.sql");
+    const SQL_QUERY_LAST_INDEX: &'static str =
+        include_str!("../../res/sql/entry/query_last_index.sql");
+    const SQL_INSERT: &'static str =
+        include_str!("../../res/sql/entry/insert.sql");
 
     pub fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 7] {
         [
@@ -46,19 +109,14 @@ impl SqliteEntry {
         unimplemented!()
     }
 
-    pub fn query_entries_range(low: u64, high: u64, max_size: u64) -> Result<Vec<SqliteEntry>> {
-        // TODO: SQL_QUERY_RANGE
-        // TODO: reverse implementation from test_storage_entries
-        // TODO: limit to max_size
-
-        unimplemented!()
+    pub fn insert(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+        tx.execute_named(Self::SQL_INSERT, &self.as_named_params(&core_id))?;
+        Ok(())
     }
 
-    pub fn append(&mut self, entries: &[SqliteEntry]) -> Result<()> {
-        // TODO: reverse implementation from test_storage_append
-        // seems to be deletion if entries[0].index < last_index
-
-        unimplemented!()
+    pub fn delete_all(mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+        tx.execute_named(Self::SQL_DELETE, &[core_id.as_named_param()])?;
+        Ok(())
     }
 }
 

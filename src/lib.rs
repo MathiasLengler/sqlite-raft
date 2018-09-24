@@ -40,7 +40,7 @@ impl SqliteStorage {
         include_str!("../res/sql/create_tables.sql");
 
     pub fn open<P: AsRef<Path>>(path: P) -> Result<SqliteStorage> {
-        let mut storage = SqliteStorage {
+        let storage = SqliteStorage {
             conn: RwLock::new(Connection::open(path)?),
             id: 0.into(),
         };
@@ -51,24 +51,24 @@ impl SqliteStorage {
     }
 
     fn init(&self) -> Result<()> {
-        self.inside_transaction(|mut tx: &mut Transaction, core_id: CoreId| {
+        self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
             tx.execute_batch(SqliteStorage::SQL_ON_OPEN)?;
 
-            SqliteStorage::create_tables_if_not_exists(&mut tx)?;
+            SqliteStorage::create_tables_if_not_exists(tx)?;
 
-            if !core_id.exists(&mut tx)? {
-                core_id.insert(&mut tx)?;
+            if !core_id.exists(tx)? {
+                core_id.insert(tx)?;
 
-                SqliteHardState::default().insert_or_replace(&mut tx, core_id)?;
-                SqliteSnapshot::default().insert_or_replace(&mut tx, core_id)?;
-                SqliteEntries::default().insert_or_replace(&mut tx, core_id)?;
+                SqliteHardState::default().insert_or_replace(tx, core_id)?;
+                SqliteSnapshot::default().insert_or_replace(tx, core_id)?;
+                SqliteEntries::default().insert_or_replace(tx, core_id)?;
             }
 
             Ok(())
         })
     }
 
-    fn create_tables_if_not_exists(tx: &mut Transaction) -> Result<()> {
+    fn create_tables_if_not_exists(tx: &Transaction) -> Result<()> {
         let mut stmt = tx.prepare(SqliteStorage::SQL_EXISTS)?;
         if !stmt.exists(&[])? {
             tx.execute_batch(SqliteStorage::SQL_CREATE_TABLES)?;
@@ -76,13 +76,13 @@ impl SqliteStorage {
         Ok(())
     }
 
-    fn inside_transaction<T>(&self, mut f: impl FnMut(&mut Transaction, CoreId) -> Result<T>) -> Result<T> {
+    fn inside_transaction<T>(&self, mut f: impl FnMut(&Transaction, CoreId) -> Result<T>) -> Result<T> {
         // TODO: handle poisoned lock
         let mut wl_conn = self.conn.write().unwrap();
 
-        let mut tx = wl_conn.transaction()?;
+        let tx = wl_conn.transaction()?;
 
-        let res = f(&mut tx, self.id)?;
+        let res = f(&tx, self.id)?;
 
         tx.commit()?;
 
@@ -98,8 +98,8 @@ impl Storage for SqliteStorage {
     fn entries(&self, low: u64, high: u64, max_size: u64) -> RaftResult<Vec<Entry>> {
         use raft::util::limit_size;
 
-        let sqlite_entries: SqliteEntries = self.inside_transaction(|mut tx: &mut Transaction, core_id: CoreId| {
-            SqliteEntries::query(&mut tx, core_id, low, high)
+        let sqlite_entries: SqliteEntries = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            SqliteEntries::query(&tx, core_id, low, high)
         })?;
 
         let mut entries: Vec<Entry> = sqlite_entries.into();
@@ -109,7 +109,7 @@ impl Storage for SqliteStorage {
         Ok(entries)
     }
 
-    fn term(&self, idx: u64) -> RaftResult<u64> {
+    fn term(&self, _idx: u64) -> RaftResult<u64> {
         unimplemented!()
     }
 

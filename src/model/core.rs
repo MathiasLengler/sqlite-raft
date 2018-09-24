@@ -14,13 +14,13 @@ impl CoreId {
         (":core_id", &self.0)
     }
 
-    pub fn exists(&self, tx: &mut Transaction) -> Result<bool> {
+    pub fn exists(&self, tx: &Transaction) -> Result<bool> {
         let mut exists_stmt = tx.prepare(CoreId::SQL_EXISTS)?;
 
         Ok(exists_stmt.exists(&[&self.0])?)
     }
 
-    pub fn insert(&self, tx: &mut Transaction) -> Result<()> {
+    pub fn insert(&self, tx: &Transaction) -> Result<()> {
         tx.execute_named(
             CoreId::SQL_INSERT,
             &[self.as_named_param()],

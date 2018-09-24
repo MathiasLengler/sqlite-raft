@@ -1,8 +1,5 @@
 use error::Result;
 use model::core::CoreId;
-use model::snapshot::node::SqliteConfState;
-use raft::eraftpb::Snapshot;
-use raft::eraftpb::SnapshotMetadata;
 use rusqlite::Row;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
@@ -38,7 +35,7 @@ impl RawSqliteSnapshot {
         }
     }
 
-    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<RawSqliteSnapshot> {
+    pub fn query(tx: &Transaction, core_id: CoreId) -> Result<RawSqliteSnapshot> {
         tx.query_row_named(
             RawSqliteSnapshot::SQL_QUERY,
             &[core_id.as_named_param()],
@@ -46,7 +43,7 @@ impl RawSqliteSnapshot {
         ).map_err(Into::into)
     }
 
-    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+    pub fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         tx.execute_named(RawSqliteSnapshot::SQL_INSERT_OR_REPLACE, &self.as_named_params(&core_id))?;
 
         Ok(())

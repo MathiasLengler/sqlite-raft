@@ -36,7 +36,7 @@ impl SqliteHardState {
         }
     }
 
-    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<SqliteHardState> {
+    pub fn query(tx: &Transaction, core_id: CoreId) -> Result<SqliteHardState> {
         tx.query_row_named(
             SqliteHardState::SQL_QUERY,
             &[core_id.as_named_param()],
@@ -44,7 +44,7 @@ impl SqliteHardState {
         ).map_err(Into::into)
     }
 
-    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+    pub fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         tx.execute_named(SqliteHardState::SQL_INSERT_OR_REPLACE, &self.as_named_params(&core_id))?;
 
         Ok(())

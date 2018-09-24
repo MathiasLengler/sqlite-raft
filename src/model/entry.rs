@@ -21,17 +21,17 @@ impl SqliteEntries {
     const SQL_QUERY_RANGE: &'static str =
         include_str!("../../res/sql/entry/query_range.sql");
 
-    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
-        SqliteEntry::delete_all(&mut tx, core_id)?;
+    pub fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        SqliteEntry::delete_all(&tx, core_id)?;
 
-        self.insert(&mut tx, core_id)?;
+        self.insert(&tx, core_id)?;
 
         Ok(())
     }
 
-    fn insert(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+    fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         for entry in &self.entries {
-            entry.insert(&mut tx, core_id)?;
+            entry.insert(&tx, core_id)?;
         }
         Ok(())
     }
@@ -43,9 +43,9 @@ impl SqliteEntries {
         unimplemented!()
     }
 
-    pub fn query(mut tx: &mut Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
-        let first_index = SqliteEntry::first_index(&mut tx, core_id)?;
-        let last_index = SqliteEntry::last_index(&mut tx, core_id)?;
+    pub fn query(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
+        let first_index = SqliteEntry::first_index(&tx, core_id)?;
+        let last_index = SqliteEntry::last_index(&tx, core_id)?;
 
         if low <= first_index {
             return Err(RaftError::Store(RaftStorageError::Compacted).into());
@@ -60,10 +60,10 @@ impl SqliteEntries {
             return Err(RaftError::Store(RaftStorageError::Unavailable).into());
         }
 
-        SqliteEntries::query_range(&mut tx, core_id, low, high)
+        SqliteEntries::query_range(&tx, core_id, low, high)
     }
 
-    fn query_range(mut tx: &mut Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
+    fn query_range(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
         let low = low as i64;
         let high_inclusive = (high - 1) as i64;
 
@@ -128,7 +128,7 @@ impl SqliteEntry {
     const SQL_INSERT: &'static str =
         include_str!("../../res/sql/entry/insert.sql");
 
-    pub fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 7] {
+    fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 7] {
         [
             (":index", &self.index),
             (":term", &self.term),
@@ -155,37 +155,30 @@ impl SqliteEntry {
         row.get("index")
     }
 
-    pub fn first_index(mut tx: &mut Transaction, core_id: CoreId) -> Result<u64> {
+    pub fn first_index(tx: &Transaction, core_id: CoreId) -> Result<u64> {
         let index = tx.query_row_named(
             Self::SQL_QUERY_FIRST_INDEX,
-            &[],
+            &[core_id.as_named_param()],
             Self::index_from_row,
         )?;
         Ok(index as u64)
     }
 
-    pub fn last_index(mut tx: &mut Transaction, core_id: CoreId) -> Result<u64> {
+    pub fn last_index(tx: &Transaction, core_id: CoreId) -> Result<u64> {
         let index = tx.query_row_named(
             Self::SQL_QUERY_LAST_INDEX,
-            &[],
+            &[core_id.as_named_param()],
             Self::index_from_row,
         )?;
         Ok(index as u64)
     }
 
-    pub fn query(idx: i64, core_id: CoreId) -> Result<SqliteEntry> {
-        // TODO: idx == index ? compare with MemStorage tests
-        // TODO: SQL_QUERY_INDEX
-
-        unimplemented!()
-    }
-
-    pub fn insert(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+    pub fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         tx.execute_named(Self::SQL_INSERT, &self.as_named_params(&core_id))?;
         Ok(())
     }
 
-    pub fn delete_all(mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+    pub fn delete_all(tx: &Transaction, core_id: CoreId) -> Result<()> {
         tx.execute_named(Self::SQL_DELETE, &[core_id.as_named_param()])?;
         Ok(())
     }

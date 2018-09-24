@@ -12,17 +12,17 @@ pub struct SqliteConfState {
 }
 
 impl SqliteConfState {
-    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<SqliteConfState> {
-        let sqlite_nodes = SqliteNode::query_all(&mut tx, core_id)?;
+    pub fn query(tx: &Transaction, core_id: CoreId) -> Result<SqliteConfState> {
+        let sqlite_nodes = SqliteNode::query_all(&tx, core_id)?;
         Ok(sqlite_nodes.into())
     }
 
-    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
-        SqliteNode::delete_all(&mut tx, core_id)?;
+    pub fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        SqliteNode::delete_all(&tx, core_id)?;
 
         let sqlite_nodes: Vec<SqliteNode> = self.into();
 
-        SqliteNode::insert_all(&mut tx, core_id, &sqlite_nodes)?;
+        SqliteNode::insert_all(&tx, core_id, &sqlite_nodes)?;
 
         Ok(())
     }
@@ -111,7 +111,7 @@ impl SqliteNode {
         }
     }
 
-    pub fn query_all(mut tx: &mut Transaction, core_id: CoreId) -> Result<Vec<SqliteNode>> {
+    pub fn query_all(tx: &Transaction, core_id: CoreId) -> Result<Vec<SqliteNode>> {
         let mut stmt = tx.prepare(Self::SQL_QUERY)?;
 
         let rows = stmt.query_map_named(
@@ -122,20 +122,20 @@ impl SqliteNode {
         Ok(rows.collect::<RusqliteResult<Vec<_>>>()?)
     }
 
-    pub fn insert(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+    pub fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         let (node_id, node_type) = self.as_row_tuple();
         tx.execute_named(Self::SQL_INSERT, &Self::named_params(&node_id, &node_type, &core_id))?;
         Ok(())
     }
 
-    pub fn insert_all(mut tx: &mut Transaction, core_id: CoreId, nodes: &[Self]) -> Result<()> {
+    pub fn insert_all(tx: &Transaction, core_id: CoreId, nodes: &[Self]) -> Result<()> {
         for node in nodes {
-            node.insert(&mut tx, core_id)?;
+            node.insert(&tx, core_id)?;
         }
         Ok(())
     }
 
-    pub fn delete_all(mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
+    pub fn delete_all(tx: &Transaction, core_id: CoreId) -> Result<()> {
         tx.execute_named(Self::SQL_DELETE, &[core_id.as_named_param()])?;
         Ok(())
     }

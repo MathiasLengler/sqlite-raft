@@ -2,9 +2,7 @@ use error::Result;
 use model::core::CoreId;
 use raft::eraftpb::Snapshot;
 use raft::eraftpb::SnapshotMetadata;
-use rusqlite::Row;
 use rusqlite::Transaction;
-use rusqlite::types::ToSql;
 use self::node::SqliteConfState;
 use self::raw_snapshot::RawSqliteSnapshot;
 
@@ -17,15 +15,15 @@ pub struct SqliteSnapshot {
 }
 
 impl SqliteSnapshot {
-    pub fn insert_or_replace(&self, mut tx: &mut Transaction, core_id: CoreId) -> Result<()> {
-        self.raw_snapshot.insert_or_replace(&mut tx, core_id)?;
-        self.conf_state.insert_or_replace(&mut tx, core_id)?;
+    pub fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        self.raw_snapshot.insert_or_replace(&tx, core_id)?;
+        self.conf_state.insert_or_replace(&tx, core_id)?;
         Ok(())
     }
-    pub fn query(mut tx: &mut Transaction, core_id: CoreId) -> Result<SqliteSnapshot> {
+    pub fn query(tx: &Transaction, core_id: CoreId) -> Result<SqliteSnapshot> {
         Ok(SqliteSnapshot {
-            raw_snapshot: RawSqliteSnapshot::query(&mut tx, core_id)?,
-            conf_state: SqliteConfState::query(&mut tx, core_id)?,
+            raw_snapshot: RawSqliteSnapshot::query(&tx, core_id)?,
+            conf_state: SqliteConfState::query(&tx, core_id)?,
         })
     }
 }

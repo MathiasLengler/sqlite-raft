@@ -27,6 +27,7 @@ pub mod error;
 // TODO: Test against MemStorageCore
 // TODO: use in sqlite-raft
 // TODO: TryFrom for "as" casts and proto conversions (take_)
+// TODO: persist current user db index (for user-db thread)
 
 pub struct SqliteStorage {
     conn: RwLock<Connection>,

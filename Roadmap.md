@@ -6,7 +6,7 @@
   - Map/Reduce query
     - quite complex
     - makes use of replication
-    - At specific commit index?
+    - At specific commit index
   - Talk to multiple nodes
     - Avoid redirected traffic when proposing to a follower
 
@@ -164,3 +164,31 @@ Leader replicates committed log entry to followers ->
 Follower which received client request sees, that his proposed query has been committed in the log ->
 Follower executes query against the DB at the committed index ->
 Returns QueryResult to client
+
+### Threading and synchronization setup
+- raft thread
+  - raft stepping loop executes raft storage modifications
+  - new committed_entries: sends to/notifies user-db thread
+  - only transacts on raft_storage_db
+- user-db thread
+  - waits for new committed entries
+  - multi file transaction against raft and user db
+  - executes requests against user-db
+    - every execute
+    - only queries which have a pending request
+  - writes current user db index into raft db
+  - sends result to grpc thread
+- grpc thread
+  - passes requests/raft messages to raft thread
+  - saves pending requests
+  - gets result for request from user-db thread
+  - responds to client
+    - must be compatible with async networking
+
+#### Snapshot creation
+- not needed for MVP
+- snapshot index is always less than committed entries
+- Constraints:
+  - all requests less than snapshot index must have been executed
+  - all entries less than snapshot must have been applied to user db
+  - raft thread must be able to continue to append new entries

@@ -35,3 +35,10 @@ CREATE TABLE IF NOT EXISTS Nodes (
   core_id   INTEGER NOT NULL,
   FOREIGN KEY (core_id) REFERENCES Snapshots (core_id)
 );
+
+-- TODO: implement and validate
+CREATE TABLE IF NOT EXISTS Views (
+  view_id       INTEGER NOT NULL PRIMARY KEY,
+  core_id       INTEGER NOT NULL,
+  applied_index INTEGER NOT NULL
+);

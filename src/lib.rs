@@ -22,6 +22,7 @@ use model::snapshot::node::SqliteConfState;
 use model::entry::SqliteEntry;
 
 mod model;
+pub mod storage_traits;
 pub mod error;
 
 // TODO: Test against MemStorageCore

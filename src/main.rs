@@ -257,6 +257,7 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeC
         // This is a snapshot, we need to apply the snapshot at first.
         r.mut_store()
             .wl()
+            // TODO: remove clone
             .apply_snapshot(ready.snapshot.clone())
             .unwrap();
     }

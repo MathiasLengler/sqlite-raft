@@ -1,6 +1,7 @@
 use error::{Error, Result};
 use model::core::CoreId;
 use model::entry::SqliteEntries;
+use model::entry::SqliteEntry;
 use model::hard_state::SqliteHardState;
 use model::snapshot::SqliteSnapshot;
 use model::snapshot::SqliteSnapshotMetadata;
@@ -61,7 +62,24 @@ impl StorageMut for SqliteStorage {
     }
 
     fn append(&self, entries: &[Entry]) -> Result<()> {
-        unimplemented!()
+        if entries.is_empty() {
+            return Ok(());
+        }
+
+        self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            let first_index = SqliteEntry::first_index(tx, core_id)?;
+
+
+            let entries_tail = {};
+        });
+
+
+        // TODO
+        // truncate front of entries where entry.index < self.first_index
+        // truncate end of log where log_entry >= entries[0].index
+
+        Ok(())
+
     }
 }
 

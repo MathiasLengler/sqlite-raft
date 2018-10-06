@@ -1,7 +1,7 @@
-use failure::Backtrace;
 use error::index::BoundViolation;
 use error::index::InvalidEntryIndex;
 use error::Result;
+use failure::Backtrace;
 use model::core::CoreId;
 use protobuf::ProtobufEnum;
 use raft::eraftpb::Entry;
@@ -235,6 +235,20 @@ impl SqliteEntry {
         tx.execute_named(Self::SQL_DELETE, &[core_id.as_named_param()])?;
         Ok(())
     }
+
+    /// Truncate the log so this entry can be inserted at the end of the log.
+    ///
+    /// In other words: delete all entries with an index greater or equal to this entry
+    ///
+    /// # Visualization
+    ///
+    ///
+    ///
+    pub fn truncate(&self, core_id: CoreId) -> Result<()> {
+        //TODO:
+        unimplemented!()
+    }
+
 }
 
 impl From<Entry> for SqliteEntry {

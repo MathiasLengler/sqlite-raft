@@ -7,7 +7,9 @@ extern crate rusqlite;
 use error::Result;
 use model::core::CoreId;
 use model::entry::SqliteEntries;
+use model::entry::SqliteEntry;
 use model::hard_state::SqliteHardState;
+use model::snapshot::node::SqliteConfState;
 use model::snapshot::SqliteSnapshot;
 use raft::eraftpb::Entry;
 use raft::eraftpb::Snapshot;
@@ -18,10 +20,8 @@ use rusqlite::Connection;
 use rusqlite::Transaction;
 use std::path::Path;
 use std::sync::RwLock;
-use model::snapshot::node::SqliteConfState;
-use model::entry::SqliteEntry;
 
-mod model;
+pub(crate) mod model;
 pub mod storage_traits;
 pub mod error;
 
@@ -80,7 +80,7 @@ impl SqliteStorage {
         Ok(())
     }
 
-    fn inside_transaction<T>(&self, mut f: impl FnMut(&Transaction, CoreId) -> Result<T>) -> Result<T> {
+    fn inside_transaction<T>(&self, f: impl FnOnce(&Transaction, CoreId) -> Result<T>) -> Result<T> {
         // TODO: handle poisoned lock
         let mut wl_conn = self.conn.write().unwrap();
 

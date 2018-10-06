@@ -1,7 +1,7 @@
-use raft::eraftpb::HardState;
-use raft::eraftpb::Entry;
-use raft::eraftpb::Snapshot;
 use raft::eraftpb::ConfState;
+use raft::eraftpb::Entry;
+use raft::eraftpb::HardState;
+use raft::eraftpb::Snapshot;
 use raft::Storage;
 
 mod impl_mem;
@@ -10,7 +10,7 @@ mod impl_sqlite;
 pub trait StorageMut: Storage {
     type StorageError;
 
-    fn set_hardstate(&self, hs: HardState);
+    fn set_hardstate(&self, hs: HardState) -> Result<(), Self::StorageError>;
 
     fn apply_snapshot(&self, snapshot: Snapshot) -> Result<(), Self::StorageError>;
 
@@ -29,5 +29,5 @@ pub trait StorageMut: Storage {
 pub trait StorageTestable {
     fn set_entries(&self, entries: &[Entry]);
 
-    fn entries_slice(&self) -> &[Entry];
+    fn clone_entries(&self) -> Vec<Entry>;
 }

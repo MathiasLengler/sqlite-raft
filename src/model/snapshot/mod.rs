@@ -4,6 +4,7 @@ use raft::eraftpb::Snapshot;
 use raft::eraftpb::SnapshotMetadata;
 use rusqlite::Transaction;
 use self::node::SqliteConfState;
+pub use self::raw_snapshot::metadata::SqliteSnapshotMetadata;
 use self::raw_snapshot::RawSqliteSnapshot;
 
 pub mod node;
@@ -35,8 +36,10 @@ impl From<Snapshot> for SqliteSnapshot {
         SqliteSnapshot {
             raw_snapshot: RawSqliteSnapshot {
                 data: snapshot.take_data(),
-                index: metadata.get_index() as i64,
-                term: metadata.get_term() as i64,
+                metadata: SqliteSnapshotMetadata {
+                    index: metadata.get_index() as i64,
+                    term: metadata.get_term() as i64,
+                },
             },
             conf_state: metadata.take_conf_state().into(),
         }
@@ -49,8 +52,8 @@ impl From<SqliteSnapshot> for Snapshot {
 
         let mut metadata = SnapshotMetadata::new();
         metadata.set_conf_state(conf_state.into());
-        metadata.set_index(raw_snapshot.index as u64);
-        metadata.set_term(raw_snapshot.term as u64);
+        metadata.set_index(raw_snapshot.metadata.index as u64);
+        metadata.set_term(raw_snapshot.metadata.term as u64);
 
         let mut snapshot = Snapshot::new();
         snapshot.set_data(raw_snapshot.data);

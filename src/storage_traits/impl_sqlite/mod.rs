@@ -15,7 +15,9 @@ use rusqlite::Transaction;
 use SqliteStorage;
 use storage_traits::StorageMut;
 use storage_traits::StorageTestable;
+use self::append::entries_trim_front;
 
+mod append;
 
 impl StorageMut for SqliteStorage {
     type StorageError = Error;
@@ -44,7 +46,7 @@ impl StorageMut for SqliteStorage {
             };
 
             let sqlite_entries: SqliteEntries = vec![entry].into();
-            sqlite_entries.insert_or_replace(tx, core_id)?;
+            sqlite_entries.replace_all(tx, core_id)?;
 
             let sqlite_snapshot: SqliteSnapshot = snapshot.into();
             sqlite_snapshot.insert_or_replace(tx, core_id)?;
@@ -67,19 +69,11 @@ impl StorageMut for SqliteStorage {
         }
 
         self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
-            let first_index = SqliteEntry::first_index(tx, core_id)?;
-
-
-            let entries_tail = {};
-        });
-
-
-        // TODO
-        // truncate front of entries where entry.index < self.first_index
-        // truncate end of log where log_entry >= entries[0].index
-
-        Ok(())
-
+            let current_first_idx = SqliteEntry::first_index(tx, core_id)?;
+            let entries_tail = entries_trim_front(entries, current_first_idx);
+            let sqlite_entries = SqliteEntries::from(entries_tail.to_vec());
+            sqlite_entries.append(tx, core_id)
+        })
     }
 }
 

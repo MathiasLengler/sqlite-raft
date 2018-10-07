@@ -65,7 +65,7 @@ impl SqliteStorage {
 
                 SqliteHardState::default().insert_or_replace(tx, core_id)?;
                 SqliteSnapshot::default().insert_or_replace(tx, core_id)?;
-                SqliteEntries::default().insert_or_replace(tx, core_id)?;
+                SqliteEntries::default().replace_all(tx, core_id)?;
             }
 
             Ok(())

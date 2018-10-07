@@ -24,7 +24,7 @@ impl SqliteEntries {
     const SQL_QUERY_RANGE: &'static str =
         include_str!("../../res/sql/entry/query_range.sql");
 
-    pub fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+    pub fn replace_all(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         SqliteEntry::delete_all(&tx, core_id)?;
 
         self.insert(&tx, core_id)?;
@@ -32,18 +32,22 @@ impl SqliteEntries {
         Ok(())
     }
 
-    fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+    pub fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         for entry in &self.entries {
             entry.insert(&tx, core_id)?;
         }
         Ok(())
     }
 
-    pub fn append(&self) -> Result<()> {
-        // TODO: reverse implementation from test_storage_append
-        // seems to be deletion if entries[0].index < last_index
+    pub fn append(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        if self.entries.is_empty() {
+            return Ok(());
+        }
 
-        unimplemented!()
+        let first_entry = self.entries.first().unwrap();
+        first_entry.truncate_right(tx, core_id)?;
+
+        self.insert(tx, core_id)
     }
 
     pub fn query(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
@@ -51,12 +55,18 @@ impl SqliteEntries {
             low,
             high,
             SqliteEntry::first_index(&tx, core_id)?,
-            SqliteEntry::last_index(&tx, core_id)?
+            SqliteEntry::last_index(&tx, core_id)?,
         )?;
 
-        let low = low as i64;
-        let high_inclusive = (high - 1) as i64;
+        let low = low;
+        let high_inclusive = high - 1;
 
+        Self::query_inclusive_range(tx, core_id, low, high_inclusive)
+    }
+
+    fn query_inclusive_range(tx: &Transaction, core_id: CoreId, low: u64, high_inclusive: u64) -> Result<SqliteEntries> {
+        let low = low as i64;
+        let high_inclusive = high_inclusive as i64;
         let mut stmt = tx.prepare(Self::SQL_QUERY_RANGE)?;
         let rows = stmt.query_map_named(
             &Self::query_parameters(&low, &high_inclusive, &core_id),
@@ -68,6 +78,12 @@ impl SqliteEntries {
         })
     }
 
+    pub fn query_all(tx: &Transaction, core_id: CoreId) -> Result<SqliteEntries> {
+        Self::query_inclusive_range(tx, core_id,
+                                    SqliteEntry::first_index(&tx, core_id)?,
+                                    SqliteEntry::last_index(&tx, core_id)?)
+    }
+
     fn query_parameters<'a>(low: &'a i64, high_inclusive: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 3] {
         [
             (":low", low),
@@ -76,6 +92,7 @@ impl SqliteEntries {
         ]
     }
 
+    // TODO: unit test
     fn validate_index_range(low: u64, high: u64, first_index: u64, last_index: u64) -> Result<()> {
         SqliteEntry::validate_index(low, first_index, last_index)?;
         SqliteEntry::validate_index(high, first_index, last_index)?;
@@ -123,6 +140,8 @@ pub struct SqliteEntry {
 impl SqliteEntry {
     const SQL_DELETE: &'static str =
         include_str!("../../res/sql/entry/delete.sql");
+    const SQL_DELETE_GREATER_OR_EQUAL_INDEX: &'static str =
+        include_str!("../../res/sql/entry/delete_greater_or_equal_index.sql");
     const SQL_QUERY: &'static str =
         include_str!("../../res/sql/entry/query.sql");
     const SQL_QUERY_FIRST_INDEX: &'static str =
@@ -159,6 +178,7 @@ impl SqliteEntry {
         row.get("index")
     }
 
+    // TODO: unit test
     fn validate_index(idx: u64, first_index: u64, last_index: u64) -> Result<()> {
         if idx <= first_index {
             return Err(InvalidEntryIndex {
@@ -239,16 +259,10 @@ impl SqliteEntry {
     /// Truncate the log so this entry can be inserted at the end of the log.
     ///
     /// In other words: delete all entries with an index greater or equal to this entry
-    ///
-    /// # Visualization
-    ///
-    ///
-    ///
-    pub fn truncate(&self, core_id: CoreId) -> Result<()> {
-        //TODO:
-        unimplemented!()
+    fn truncate_right(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        tx.execute_named(Self::SQL_DELETE_GREATER_OR_EQUAL_INDEX, &Self::query_params(&self.index, &core_id))?;
+        Ok(())
     }
-
 }
 
 impl From<Entry> for SqliteEntry {

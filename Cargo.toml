@@ -14,3 +14,4 @@ features = ["bundled"]
 
 [dev-dependencies]
 model = "0.0.4"
+protobuf = "2.0.5"

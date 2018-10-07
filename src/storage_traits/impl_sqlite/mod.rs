@@ -79,10 +79,17 @@ impl StorageMut for SqliteStorage {
 
 impl StorageTestable for SqliteStorage {
     fn set_entries(&self, entries: &[Entry]) {
-        unimplemented!()
+        let sqlite_entries = SqliteEntries::from(entries.to_vec());
+        self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            sqlite_entries.replace_all(tx, core_id)
+        }).unwrap();
     }
 
     fn clone_entries(&self) -> Vec<Entry> {
-        unimplemented!()
+        let sqlite_entries: SqliteEntries = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            SqliteEntries::query_all(tx, core_id)
+        }).unwrap();
+
+        sqlite_entries.into()
     }
 }

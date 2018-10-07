@@ -1,0 +1,7 @@
+# Ignore everything
+*
+# But not:
+!/.gitignore
+!/mod.rs
+!/eraftpb.rs
+!/sqlite_requests.rs

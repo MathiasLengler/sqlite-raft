@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "eraftpb.proto";
+import "sqlite_requests.proto";
+
+package raftsqlite;
+
+// Internal Node to Node Cluster API
+service RaftNode {
+  rpc accept (eraftpb.Message) returns (Empty);
+}
+
+message Empty {
+}
+
+// Public Client API
+service RaftSqliteClientAPI {
+  rpc Query (sqlite_commands.ProtoQueryRequest) returns (sqlite_commands.ProtoQueryResponse);
+  rpc Execute (sqlite_commands.ProtoExecuteRequest) returns (sqlite_commands.ProtoExecuteResponse);
+  rpc BulkQuery (sqlite_commands.ProtoBulkQueryRequest) returns (sqlite_commands.ProtoBulkQueryResponse);
+  rpc BulkExecute (sqlite_commands.ProtoBulkExecuteRequest) returns (sqlite_commands.ProtoBulkExecuteResponse);
+}

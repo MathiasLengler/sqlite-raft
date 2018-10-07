@@ -55,11 +55,11 @@ impl StorageMut for SqliteStorage {
         })
     }
 
-    fn create_snapshot(&self, idx: u64, cs: Option<ConfState>, data: Vec<u8>) -> Result<()> {
+    fn create_snapshot(&self, _idx: u64, _cs: Option<ConfState>, _data: Vec<u8>) -> Result<()> {
         unimplemented!()
     }
 
-    fn compact(&self, compact_index: u64) -> Result<()> {
+    fn compact(&self, _compact_index: u64) -> Result<()> {
         unimplemented!()
     }
 

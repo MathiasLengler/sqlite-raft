@@ -1,0 +1,14 @@
+[package]
+name = "sqlite-raft"
+version = "0.1.0"
+authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
+
+[dependencies]
+log = "0.4.3"
+raft = { path = "../raft-rs" }
+serde_json = "1.0.24"
+simplelog = "0.5.2"
+serde = "1.0.70"
+serde_derive = "1.0.70"
+serdebug = "1.0.5"
+bincode = "1.0.1"

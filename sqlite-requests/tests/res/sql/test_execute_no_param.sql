@@ -1,0 +1,1 @@
+DELETE FROM countries WHERE alpha_2 LIKE 'cn'

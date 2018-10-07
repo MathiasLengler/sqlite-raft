@@ -1,0 +1,32 @@
+[package]
+name = "sqlite-requests"
+version = "0.0.2"
+authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
+build = "build.rs"
+description = "Represent SQLite queries and executes as request objects"
+license = "MIT"
+documentation = "https://docs.rs/sqlite-requests"
+repository = "https://github.com/MathiasLengler/sqlite-requests"
+
+[dependencies]
+failure = "0.1.2"
+serde = "1.0.78"
+serde_derive = "1.0.78"
+bincode = "1.0.1"
+protobuf = "2.0.5"
+
+[dependencies.rusqlite]
+version = "0.14.0"
+features = ["bundled"]
+
+[build-dependencies]
+protobuf-codegen-pure = "2.0.5"
+
+[dev-dependencies]
+tempfile = "3.0.3"
+serde_json = "1.0.27"
+bincode = "1.0.1"
+
+[features]
+default = ["blob"]
+blob = ["rusqlite/blob"]

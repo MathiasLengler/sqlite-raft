@@ -1,0 +1,17 @@
+[package]
+name = "sqlite-raft-storage"
+version = "0.1.0"
+authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
+
+[dependencies]
+raft = { path = "../raft-rs" }
+failure = "0.1.2"
+protobuf = "2.0.5"
+
+[dependencies.rusqlite]
+version = "0.14.0"
+features = ["bundled"]
+
+[dev-dependencies]
+model = "0.0.4"
+protobuf = "2.0.5"

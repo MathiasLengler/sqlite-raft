@@ -28,18 +28,16 @@ use grpc_experiments::proto::raftsqlite_grpc::RaftSqliteClientApi;
 use grpcio::RpcContext;
 use grpcio::UnarySink;
 use sqlite_requests::connection::AccessConnection;
-use sqlite_requests::connection::ReadOnly;
-use sqlite_requests::connection::ReadWrite;
 use sqlite_requests::proto::*;
 use sqlite_requests::query::Query;
 use std::sync::Arc;
 use std::sync::Mutex;
 use futures::Future;
+use sqlite_requests::connection::access::ReadWrite;
 
 #[derive(Clone)]
 struct RaftSqliteClientAPIService {
     read_write_conn: Arc<Mutex<AccessConnection<ReadWrite>>>,
-    read_only_conn: Arc<Mutex<AccessConnection<ReadOnly>>>,
 }
 
 impl RaftSqliteClientApi for RaftSqliteClientAPIService {
@@ -50,7 +48,7 @@ impl RaftSqliteClientApi for RaftSqliteClientAPIService {
 
 
         let query_result = {
-            let mut conn = self.read_only_conn.lock().unwrap();
+            let mut conn = self.read_write_conn.lock().unwrap();
 
             // TODO: error handling: modify ProtoQueryResponse? Has UnarySink built in error passing?
             conn.run(&query).unwrap()

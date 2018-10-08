@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "grpc-experiments",
+    "raft-rs",
+    "sqlite-raft-node",
+    "sqlite-raft-storage",
+    "sqlite-requests"
+]

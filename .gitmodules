@@ -1,4 +1,4 @@
-[submodule "raft-rs_fork"]
-	path = raft-rs_fork
-	url = gitlab@git.brn.li:MathiasLengler/raft-rs_fork.git
+[submodule "raft-rs"]
+	path = raft-rs
+	url = git@github.com:MathiasLengler/raft-rs.git
 	branch = my_master

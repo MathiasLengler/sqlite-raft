@@ -60,15 +60,15 @@ impl RaftSqliteClientApi for RaftSqliteClientAPIService {
         ctx.spawn(f)
     }
 
-    fn execute(&self, ctx: RpcContext, req: ProtoExecuteRequest, sink: UnarySink<ProtoExecuteResponse>) {
+    fn execute(&self, _ctx: RpcContext, _req: ProtoExecuteRequest, _sink: UnarySink<ProtoExecuteResponse>) {
         unimplemented!()
     }
 
-    fn bulk_query(&self, ctx: RpcContext, req: ProtoBulkQueryRequest, sink: UnarySink<ProtoBulkQueryResponse>) {
+    fn bulk_query(&self, _ctx: RpcContext, _req: ProtoBulkQueryRequest, _sink: UnarySink<ProtoBulkQueryResponse>) {
         unimplemented!()
     }
 
-    fn bulk_execute(&self, ctx: RpcContext, req: ProtoBulkExecuteRequest, sink: UnarySink<ProtoBulkExecuteResponse>) {
+    fn bulk_execute(&self, _ctx: RpcContext, _req: ProtoBulkExecuteRequest, _sink: UnarySink<ProtoBulkExecuteResponse>) {
         unimplemented!()
     }
 }

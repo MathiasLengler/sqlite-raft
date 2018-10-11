@@ -21,8 +21,8 @@ use grpc_experiments::log_util;
 use std::sync::Arc;
 
 use grpcio::{ChannelBuilder, EnvBuilder};
-use grpc_experiments::proto_gen::helloworld::HelloRequest;
-use grpc_experiments::proto_gen::helloworld_grpc::GreeterClient;
+use grpc_experiments::proto::helloworld::HelloRequest;
+use grpc_experiments::proto::helloworld_grpc::GreeterClient;
 
 fn main() {
     let _guard = log_util::init_log(None);

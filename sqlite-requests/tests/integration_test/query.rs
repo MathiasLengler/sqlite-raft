@@ -9,7 +9,7 @@ use sqlite_requests::connection::access::ReadOnly;
 use sqlite_requests::query::BulkQuery;
 use sqlite_requests::query::Query;
 use sqlite_requests::query::QueryResultRow;
-use utils::temp_db::with_test_dbs;
+use utils::temp_db::with_equal_connections;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Country {
@@ -41,7 +41,7 @@ impl Country {
 #[test]
 fn test_query_indexed() {
     fn test_query_indexed_parameters(sql: &str, queued_params: &[&[&(ToSql)]]) {
-        with_test_dbs(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
+        with_equal_connections(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
             let query = Query::new_indexed(&sql, queued_params).unwrap();
 
             let query_results = test_conn.run(&query).unwrap();
@@ -76,7 +76,7 @@ fn test_query_indexed() {
 #[test]
 fn test_query_named() {
     fn test_query_named_parameters(sql: &str, queued_params: &[&[(&str, &ToSql)]]) {
-        with_test_dbs(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
+        with_equal_connections(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
             let query = Query::new_named(&sql, queued_params).unwrap();
             let query_results = test_conn.run(&query).unwrap();
             let mapped_query_results: Vec<Vec<_>> = query_results.into_iter().map(|query_result| {
@@ -109,7 +109,7 @@ fn test_query_named() {
 
 #[test]
 fn test_bulk_query() {
-    with_test_dbs(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
+    with_equal_connections(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
         let no_param =
             include_str!("../res/sql/test_query_no_param.sql");
         let indexed_param =

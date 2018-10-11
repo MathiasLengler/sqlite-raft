@@ -1,0 +1,6 @@
+[package]
+name = "sqlite-test-utils"
+version = "0.1.0"
+authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
+
+[dependencies]

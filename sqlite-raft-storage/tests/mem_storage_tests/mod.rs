@@ -1,4 +1,6 @@
+// TODO: remove when all test are rewritten
 #![allow(unused_imports)]
+#![allow(dead_code)]
 
 use protobuf;
 use raft::{Error as RaftError, StorageError};

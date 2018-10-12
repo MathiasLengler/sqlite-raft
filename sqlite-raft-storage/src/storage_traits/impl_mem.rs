@@ -2,7 +2,6 @@ use raft::eraftpb::ConfState;
 use raft::eraftpb::Entry;
 use raft::eraftpb::HardState;
 use raft::eraftpb::Snapshot;
-use raft::Error as RaftError;
 use raft::Result as RaftResult;
 use raft::storage::MemStorage;
 use storage_traits::StorageMut;

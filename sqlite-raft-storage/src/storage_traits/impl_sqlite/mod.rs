@@ -1,4 +1,3 @@
-use error::{Error, Result};
 use model::core::CoreId;
 use model::entry::SqliteEntries;
 use model::entry::SqliteEntry;

@@ -13,6 +13,8 @@ use utils::storage::test_storage_impls;
 use utils::temp_db::with_test_db_path;
 
 // TODO: rewrite rest of tests
+// TODO: test_set_hardstate
+
 
 // TODO extract these duplicated utility functions for tests
 fn new_entry(index: u64, term: u64) -> Entry {
@@ -154,7 +156,7 @@ fn test_storage_last_index() {
     });
 }
 
-// TODO: unignore when compact is implemented
+// TODO: enable when compact is implemented
 #[test]
 #[ignore]
 fn test_storage_first_index() {

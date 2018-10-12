@@ -1,9 +1,14 @@
+#![allow(unused_imports)]
+
 use protobuf;
 use raft::{Error as RaftError, StorageError};
 use raft::eraftpb::{ConfState, Entry, Snapshot};
 use raft::storage::{MemStorage, Storage};
 use sqlite_raft_storage::storage_traits::{StorageMut, StorageTestable};
 use sqlite_raft_storage::SqliteStorage;
+use utils::temp_db::with_test_db_path;
+use std::path::PathBuf;
+use utils::storage::test_storage_impls;
 
 // TODO extract these duplicated utility functions for tests
 fn new_entry(index: u64, term: u64) -> Entry {
@@ -38,18 +43,18 @@ fn test_storage_term() {
     ];
 
     for (i, (idx, wterm)) in tests.drain(..).enumerate() {
-        let storage = MemStorage::new();
-//        let storage = SqliteStorage::open(..).unwrap();
+        test_storage_impls(|storage| {
+            storage.set_entries(&ents);
 
-        storage.set_entries(&ents);
-
-        let t = storage.term(idx);
-        if t != wterm {
-            panic!("#{}: expect res {:?}, got {:?}", i, wterm, t);
-        }
+            let t = storage.term(idx);
+            if t != wterm {
+                panic!("#{}: expect res {:?}, got {:?}", i, wterm, t);
+            }
+        });
     }
 }
 
+// TODO: rewrite rest of tests
 
 //#[test]
 //fn test_storage_entries() {

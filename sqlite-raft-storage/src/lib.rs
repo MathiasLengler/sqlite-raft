@@ -25,11 +25,15 @@ pub(crate) mod model;
 pub mod storage_traits;
 pub mod error;
 
-// TODO: Test against MemStorageCore
-// TODO: use in sqlite-raft
+// TODO: use in sqlite-raft-node
 // TODO: TryFrom for "as" casts and proto conversions (take_)
 // TODO: persist current user db index (for user-db thread)
 
+// TODO: improve debugging:
+// TODO: impl debug manually
+// how is the state of the db? first and last_index?
+// TODO: add conversion of SqliteStorage -> MemStorageCore
+// could be used for model testing (equality checking)
 #[derive(Debug)]
 pub struct SqliteStorage {
     conn: RwLock<Connection>,

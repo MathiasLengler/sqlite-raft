@@ -45,12 +45,12 @@ fn test_storage_term() {
     ];
 
     for (i, (idx, wterm)) in tests.drain(..).enumerate() {
-        test_storage_impls(|storage| {
+        test_storage_impls(|storage: &mut dyn StorageTestable| {
             storage.set_entries(&ents);
 
             let t = storage.term(idx);
             if t != wterm {
-                panic!("#{}: expect res {:?}, got {:?}", i, wterm, t);
+                panic!("#{}: expect res {:?}, got {:?}. Storage:\n{:#?}", i, wterm, t, storage);
             }
         });
     }

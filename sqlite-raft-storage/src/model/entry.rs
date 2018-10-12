@@ -16,6 +16,7 @@ use rusqlite::types::ToSql;
 // TODO: move Entries and Entry to modules
 // TODO: debug_assert entries ascending sequence with no gaps
 
+#[derive(Debug)]
 pub struct SqliteEntries {
     entries: Vec<SqliteEntry>
 }
@@ -92,7 +93,7 @@ impl SqliteEntries {
         ]
     }
 
-    // TODO: unit test
+    // TODO: unit test (check inclusive)
     fn validate_index_range(low: u64, high: u64, first_index: u64, last_index: u64) -> Result<()> {
         SqliteEntry::validate_index(low, first_index, last_index)?;
         SqliteEntry::validate_index(high, first_index, last_index)?;
@@ -128,6 +129,7 @@ impl From<SqliteEntries> for Vec<Entry> {
     }
 }
 
+#[derive(Debug)]
 pub struct SqliteEntry {
     index: i64,
     term: i64,
@@ -178,9 +180,8 @@ impl SqliteEntry {
         row.get("index")
     }
 
-    // TODO: unit test
     fn validate_index(idx: u64, first_index: u64, last_index: u64) -> Result<()> {
-        if idx <= first_index {
+        if idx < first_index {
             return Err(InvalidEntryIndex {
                 kind: BoundViolation::TooSmall,
                 first_index,
@@ -190,7 +191,7 @@ impl SqliteEntry {
             }.into());
         }
 
-        if idx > last_index + 1 {
+        if idx > last_index {
             return Err(InvalidEntryIndex {
                 kind: BoundViolation::TooLarge,
                 first_index,
@@ -299,3 +300,33 @@ impl Default for SqliteEntry {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use error::Error;
+
+    #[test]
+    fn test_validate_index() {
+        let tests = vec![
+            ((2, 3, 5), Err(Error::from(InvalidEntryIndex {
+                kind: BoundViolation::TooSmall,
+                ..Default::default()
+            }))),
+            ((3, 3, 5), Ok(())),
+            ((4, 3, 5), Ok(())),
+            ((5, 3, 5), Ok(())),
+            ((6, 3, 5), Err(Error::from(InvalidEntryIndex {
+                kind: BoundViolation::TooLarge,
+                ..Default::default()
+            }))),
+        ];
+
+        for (i, ((idx, first_index, last_index), exp_res)) in tests.into_iter().enumerate() {
+            let res = SqliteEntry::validate_index(idx, first_index, last_index);
+
+            if res != exp_res {
+                panic!("#{}: expect res {:?}, got {:?}.", i, exp_res, res);
+            }
+        }
+    }
+}

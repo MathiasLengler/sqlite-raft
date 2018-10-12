@@ -4,7 +4,7 @@ use raft::StorageError as RaftStorageError;
 use std::fmt;
 use std::fmt::Display;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Fail, Default)]
 pub struct InvalidEntryIndex {
     pub kind: BoundViolation,
     pub first_index: u64,
@@ -12,6 +12,7 @@ pub struct InvalidEntryIndex {
     pub invalid_index: u64,
     pub backtrace: Backtrace,
 }
+
 
 impl From<InvalidEntryIndex> for RaftError {
     fn from(err: InvalidEntryIndex) -> Self {
@@ -35,7 +36,13 @@ impl Display for InvalidEntryIndex {
     }
 }
 
-#[derive(Debug)]
+impl PartialEq for InvalidEntryIndex {
+    fn eq(&self, other: &InvalidEntryIndex) -> bool {
+        self.kind == other.kind
+    }
+}
+
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum BoundViolation {
     TooLarge,
     TooSmall,
@@ -48,5 +55,11 @@ impl Display for BoundViolation {
             BoundViolation::TooSmall => "too small",
         };
         write!(f, "{}", msg)
+    }
+}
+
+impl Default for BoundViolation {
+    fn default() -> Self {
+        BoundViolation::TooSmall
     }
 }

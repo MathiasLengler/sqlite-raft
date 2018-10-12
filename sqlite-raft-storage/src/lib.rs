@@ -4,6 +4,7 @@ extern crate protobuf;
 extern crate raft;
 extern crate rusqlite;
 
+use debug::SqliteStorageDebugView;
 use error::Result;
 use model::core::CoreId;
 use model::entry::SqliteEntries;
@@ -18,27 +19,27 @@ use raft::Result as RaftResult;
 use raft::Storage;
 use rusqlite::Connection;
 use rusqlite::Transaction;
+use std::fmt;
+use std::fmt::Debug;
 use std::path::Path;
 use std::sync::RwLock;
 
 pub(crate) mod model;
 pub mod storage_traits;
 pub mod error;
+pub mod debug;
 
 // TODO: use in sqlite-raft-node
 // TODO: TryFrom for "as" casts and proto conversions (take_)
 // TODO: persist current user db index (for user-db thread)
 
-// TODO: improve debugging:
-// TODO: impl debug manually
-// how is the state of the db? first and last_index?
 // TODO: add conversion of SqliteStorage -> MemStorageCore
 // could be used for model testing (equality checking)
-#[derive(Debug)]
 pub struct SqliteStorage {
     conn: RwLock<Connection>,
     id: CoreId,
 }
+
 
 impl SqliteStorage {
     const SQL_ON_OPEN: &'static str =
@@ -96,6 +97,10 @@ impl SqliteStorage {
         tx.commit()?;
 
         Ok(res)
+    }
+
+    fn debug_view(&self) -> SqliteStorageDebugView {
+        SqliteStorageDebugView::from(self)
     }
 }
 
@@ -159,5 +164,14 @@ impl Storage for SqliteStorage {
         let snapshot: Snapshot = sqlite_snapshot.into();
 
         Ok(snapshot)
+    }
+}
+
+impl Debug for SqliteStorage {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("SqliteStorage")
+            .field("id", &self.id)
+            .field("debug", &self.debug_view())
+            .finish()
     }
 }

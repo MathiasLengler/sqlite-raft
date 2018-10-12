@@ -44,7 +44,7 @@ fn test_storage_term() {
         (6, Err(RaftError::Store(StorageError::Unavailable))),
     ];
 
-    for (i, (idx, wterm)) in tests.drain(..).enumerate() {
+    for (i, (idx, wterm)) in tests.into_iter().enumerate() {
         test_storage_impls(|storage: &mut dyn StorageTestable| {
             storage.set_entries(&ents);
 
@@ -56,77 +56,80 @@ fn test_storage_term() {
     }
 }
 
+
+#[test]
+fn test_storage_entries() {
+    let ents = vec![
+        new_entry(3, 3),
+        new_entry(4, 4),
+        new_entry(5, 5),
+        new_entry(6, 6),
+    ];
+    let max_u64 = u64::max_value();
+    let mut tests = vec![
+        (
+            2,
+            6,
+            max_u64,
+            Err(RaftError::Store(StorageError::Compacted)),
+        ),
+        (
+            3,
+            4,
+            max_u64,
+            Err(RaftError::Store(StorageError::Compacted)),
+        ),
+        (4, 5, max_u64, Ok(vec![new_entry(4, 4)])),
+        (4, 6, max_u64, Ok(vec![new_entry(4, 4), new_entry(5, 5)])),
+        (
+            4,
+            7,
+            max_u64,
+            Ok(vec![new_entry(4, 4), new_entry(5, 5), new_entry(6, 6)]),
+        ),
+        // even if maxsize is zero, the first entry should be returned
+        (4, 7, 0, Ok(vec![new_entry(4, 4)])),
+        // limit to 2
+        (
+            4,
+            7,
+            (size_of(&ents[1]) + size_of(&ents[2])) as u64,
+            Ok(vec![new_entry(4, 4), new_entry(5, 5)]),
+        ),
+        (
+            4,
+            7,
+            (size_of(&ents[1]) + size_of(&ents[2]) + size_of(&ents[3]) / 2) as u64,
+            Ok(vec![new_entry(4, 4), new_entry(5, 5)]),
+        ),
+        (
+            4,
+            7,
+            (size_of(&ents[1]) + size_of(&ents[2]) + size_of(&ents[3]) - 1) as u64,
+            Ok(vec![new_entry(4, 4), new_entry(5, 5)]),
+        ),
+        // all
+        (
+            4,
+            7,
+            (size_of(&ents[1]) + size_of(&ents[2]) + size_of(&ents[3])) as u64,
+            Ok(vec![new_entry(4, 4), new_entry(5, 5), new_entry(6, 6)]),
+        ),
+    ];
+    for (i, (lo, hi, maxsize, wentries)) in tests.drain(4..5).enumerate() {
+        test_storage_impls(|storage: &mut dyn StorageTestable| {
+            storage.set_entries(&ents);
+
+            let e = storage.entries(lo, hi, maxsize);
+            if e != wentries {
+                panic!("#{}: expect entries {:?}, got {:?}. Storage:\n{:#?}", i, wentries, e, storage);
+            }
+        });
+    }
+}
+
 // TODO: rewrite rest of tests
 
-//#[test]
-//fn test_storage_entries() {
-//    let ents = vec![
-//        new_entry(3, 3),
-//        new_entry(4, 4),
-//        new_entry(5, 5),
-//        new_entry(6, 6),
-//    ];
-//    let max_u64 = u64::max_value();
-//    let mut tests = vec![
-//        (
-//            2,
-//            6,
-//            max_u64,
-//            Err(RaftError::Store(StorageError::Compacted)),
-//        ),
-//        (
-//            3,
-//            4,
-//            max_u64,
-//            Err(RaftError::Store(StorageError::Compacted)),
-//        ),
-//        (4, 5, max_u64, Ok(vec![new_entry(4, 4)])),
-//        (4, 6, max_u64, Ok(vec![new_entry(4, 4), new_entry(5, 5)])),
-//        (
-//            4,
-//            7,
-//            max_u64,
-//            Ok(vec![new_entry(4, 4), new_entry(5, 5), new_entry(6, 6)]),
-//        ),
-//        // even if maxsize is zero, the first entry should be returned
-//        (4, 7, 0, Ok(vec![new_entry(4, 4)])),
-//        // limit to 2
-//        (
-//            4,
-//            7,
-//            (size_of(&ents[1]) + size_of(&ents[2])) as u64,
-//            Ok(vec![new_entry(4, 4), new_entry(5, 5)]),
-//        ),
-//        (
-//            4,
-//            7,
-//            (size_of(&ents[1]) + size_of(&ents[2]) + size_of(&ents[3]) / 2) as u64,
-//            Ok(vec![new_entry(4, 4), new_entry(5, 5)]),
-//        ),
-//        (
-//            4,
-//            7,
-//            (size_of(&ents[1]) + size_of(&ents[2]) + size_of(&ents[3]) - 1) as u64,
-//            Ok(vec![new_entry(4, 4), new_entry(5, 5)]),
-//        ),
-//        // all
-//        (
-//            4,
-//            7,
-//            (size_of(&ents[1]) + size_of(&ents[2]) + size_of(&ents[3])) as u64,
-//            Ok(vec![new_entry(4, 4), new_entry(5, 5), new_entry(6, 6)]),
-//        ),
-//    ];
-//    for (i, (lo, hi, maxsize, wentries)) in tests.drain(..).enumerate() {
-//        let storage = MemStorage::new();
-//        storage.wl().entries = ents.clone();
-//        let e = storage.entries(lo, hi, maxsize);
-//        if e != wentries {
-//            panic!("#{}: expect entries {:?}, got {:?}", i, wentries, e);
-//        }
-//    }
-//}
-//
 //#[test]
 //fn test_storage_last_index() {
 //    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];

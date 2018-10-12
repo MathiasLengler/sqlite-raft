@@ -41,12 +41,12 @@ impl From<InvalidEntryIndex> for Error {
 impl From<Error> for RaftError {
     fn from(err: Error) -> Self {
         match err {
-            Error::Rusqlite(err, backtrace) => {
-                eprintln!("{}", backtrace);
+            Error::Rusqlite(err, _backtrace) => {
+                //eprintln!("{}", backtrace);
                 RaftError::Store(RaftStorageError::Other(Box::new(err)))
             }
-            Error::Raft(err, backtrace) => {
-                eprintln!("{}", backtrace);
+            Error::Raft(err, _backtrace) => {
+                //eprintln!("{}", backtrace);
                 err
             }
             Error::InvalidEntryIndex(err) => {

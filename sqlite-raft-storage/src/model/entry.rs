@@ -53,7 +53,7 @@ impl SqliteEntries {
 
     pub fn query(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
         Self::validate_index_range(
-            low,
+            low - 1,
             high,
             SqliteEntry::first_index(&tx, core_id)?,
             SqliteEntry::last_index(&tx, core_id)?,

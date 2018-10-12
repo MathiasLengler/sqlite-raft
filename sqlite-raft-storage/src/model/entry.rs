@@ -265,6 +265,8 @@ impl SqliteEntry {
         tx.execute_named(Self::SQL_DELETE_GREATER_OR_EQUAL_INDEX, &Self::query_params(&self.index, &core_id))?;
         Ok(())
     }
+
+    // TODO: compact (truncate lower than self?)
 }
 
 impl From<Entry> for SqliteEntry {

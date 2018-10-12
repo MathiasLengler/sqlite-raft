@@ -6,11 +6,13 @@ use protobuf;
 use raft::{Error as RaftError, StorageError};
 use raft::eraftpb::{ConfState, Entry, Snapshot};
 use raft::storage::{MemStorage, Storage};
-use sqlite_raft_storage::storage_traits::{StorageMut, StorageTestable};
 use sqlite_raft_storage::SqliteStorage;
-use utils::temp_db::with_test_db_path;
+use sqlite_raft_storage::storage_traits::{StorageMut, StorageTestable};
 use std::path::PathBuf;
 use utils::storage::test_storage_impls;
+use utils::temp_db::with_test_db_path;
+
+// TODO: rewrite rest of tests
 
 // TODO extract these duplicated utility functions for tests
 fn new_entry(index: u64, term: u64) -> Entry {
@@ -128,51 +130,54 @@ fn test_storage_entries() {
     }
 }
 
-// TODO: rewrite rest of tests
 
-//#[test]
-//fn test_storage_last_index() {
-//    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
-//    let storage = MemStorage::new();
-//    storage.wl().entries = ents;
-//
-//    let wresult = Ok(5);
-//    let result = storage.last_index();
-//    if result != wresult {
-//        panic!("want {:?}, got {:?}", wresult, result);
-//    }
-//
-//    storage
-//        .wl()
-//        .append(&[new_entry(6, 5)])
-//        .expect("append failed");
-//    let wresult = Ok(6);
-//    let result = storage.last_index();
-//    if result != wresult {
-//        panic!("want {:?}, got {:?}", wresult, result);
-//    }
-//}
-//
-//#[test]
-//fn test_storage_first_index() {
-//    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
-//    let storage = MemStorage::new();
-//    storage.wl().entries = ents;
-//
-//    let wresult = Ok(4);
-//    let result = storage.first_index();
-//    if result != wresult {
-//        panic!("want {:?}, got {:?}", wresult, result);
-//    }
-//
-//    storage.wl().compact(4).expect("compact failed");
-//    let wresult = Ok(5);
-//    let result = storage.first_index();
-//    if result != wresult {
-//        panic!("want {:?}, got {:?}", wresult, result);
-//    }
-//}
-//
+#[test]
+fn test_storage_last_index() {
+    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
+
+    test_storage_impls(|storage: &mut dyn StorageTestable| {
+        storage.set_entries(&ents);
+
+        let wresult = Ok(5);
+        let result = storage.last_index();
+        if result != wresult {
+            panic!("want {:?}, got {:?}. Storage:\n{:#?}", wresult, result, storage);
+        }
+
+        storage.append(&[new_entry(6, 5)]).expect("append failed");
+
+        let wresult = Ok(6);
+        let result = storage.last_index();
+        if result != wresult {
+            panic!("want {:?}, got {:?}. Storage:\n{:#?}", wresult, result, storage);
+        }
+    });
+}
+
+// TODO: unignore when compact is implemented
+#[test]
+#[ignore]
+fn test_storage_first_index() {
+    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
+
+    test_storage_impls(|storage: &mut dyn StorageTestable| {
+        storage.set_entries(&ents);
+
+        let wresult = Ok(4);
+        let result = storage.first_index();
+        if result != wresult {
+            panic!("want {:?}, got {:?}. Storage:\n{:#?}", wresult, result, storage);
+        }
+
+        storage.compact(4).expect("compact failed");
+        let wresult = Ok(5);
+        let result = storage.first_index();
+        if result != wresult {
+            panic!("want {:?}, got {:?}. Storage:\n{:#?}", wresult, result, storage);
+        }
+    });
+}
+
 //#[test]
 //fn test_storage_compact() {
 //    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
@@ -231,75 +236,78 @@ fn test_storage_entries() {
 //        }
 //    }
 //}
-//
-//#[test]
-//fn test_storage_append() {
-//    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
-//    let mut tests = vec![
-//        (
-//            vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)],
-//            Ok(()),
-//            vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)],
-//        ),
-//        (
-//            vec![new_entry(3, 3), new_entry(4, 6), new_entry(5, 6)],
-//            Ok(()),
-//            vec![new_entry(3, 3), new_entry(4, 6), new_entry(5, 6)],
-//        ),
-//        (
-//            vec![
-//                new_entry(3, 3),
-//                new_entry(4, 4),
-//                new_entry(5, 5),
-//                new_entry(6, 5),
-//            ],
-//            Ok(()),
-//            vec![
-//                new_entry(3, 3),
-//                new_entry(4, 4),
-//                new_entry(5, 5),
-//                new_entry(6, 5),
-//            ],
-//        ),
-//        // truncate incoming entries, truncate the existing entries and append
-//        (
-//            vec![new_entry(2, 3), new_entry(3, 3), new_entry(4, 5)],
-//            Ok(()),
-//            vec![new_entry(3, 3), new_entry(4, 5)],
-//        ),
-//        // truncate the existing entries and append
-//        (
-//            vec![new_entry(4, 5)],
-//            Ok(()),
-//            vec![new_entry(3, 3), new_entry(4, 5)],
-//        ),
-//        // direct append
-//        (
-//            vec![new_entry(6, 6)],
-//            Ok(()),
-//            vec![
-//                new_entry(3, 3),
-//                new_entry(4, 4),
-//                new_entry(5, 5),
-//                new_entry(6, 6),
-//            ],
-//        ),
-//    ];
-//    for (i, (entries, wresult, wentries)) in tests.drain(..).enumerate() {
-//        let storage = MemStorage::new();
-//        storage.wl().entries = ents.clone();
-//
-//        let result = storage.wl().append(&entries);
-//        if result != wresult {
-//            panic!("#{}: want {:?}, got {:?}", i, wresult, result);
-//        }
-//        let e = &storage.wl().entries;
-//        if *e != wentries {
-//            panic!("#{}: want {:?}, entries {:?}", i, wentries, e);
-//        }
-//    }
-//}
-//
+
+#[test]
+fn test_storage_append() {
+    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
+
+    let mut tests = vec![
+        (
+            vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)],
+            Ok(()),
+            vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)],
+        ),
+        (
+            vec![new_entry(3, 3), new_entry(4, 6), new_entry(5, 6)],
+            Ok(()),
+            vec![new_entry(3, 3), new_entry(4, 6), new_entry(5, 6)],
+        ),
+        (
+            vec![
+                new_entry(3, 3),
+                new_entry(4, 4),
+                new_entry(5, 5),
+                new_entry(6, 5),
+            ],
+            Ok(()),
+            vec![
+                new_entry(3, 3),
+                new_entry(4, 4),
+                new_entry(5, 5),
+                new_entry(6, 5),
+            ],
+        ),
+        // truncate incoming entries, truncate the existing entries and append
+        (
+            vec![new_entry(2, 3), new_entry(3, 3), new_entry(4, 5)],
+            Ok(()),
+            vec![new_entry(3, 3), new_entry(4, 5)],
+        ),
+        // truncate the existing entries and append
+        (
+            vec![new_entry(4, 5)],
+            Ok(()),
+            vec![new_entry(3, 3), new_entry(4, 5)],
+        ),
+        // direct append
+        (
+            vec![new_entry(6, 6)],
+            Ok(()),
+            vec![
+                new_entry(3, 3),
+                new_entry(4, 4),
+                new_entry(5, 5),
+                new_entry(6, 6),
+            ],
+        ),
+    ];
+    for (i, (entries, wresult, wentries)) in tests.drain(..).enumerate() {
+        test_storage_impls(|storage: &mut dyn StorageTestable| {
+            storage.set_entries(&ents);
+
+            let result = storage.append(&entries);
+            if result != wresult {
+                panic!("#{}: want {:?}, got {:?}. Storage:\n{:#?}", i, wresult, result, storage);
+            }
+
+            let e = storage.clone_entries();
+            if e != wentries {
+                panic!("#{}: want {:?}, entries {:?}. Storage:\n{:#?}", i, wentries, e, storage);
+            }
+        });
+    }
+}
+
 //#[test]
 //fn test_storage_apply_snapshot() {
 //    let nodes = vec![1, 2, 3];

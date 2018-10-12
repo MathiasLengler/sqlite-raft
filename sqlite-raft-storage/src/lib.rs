@@ -145,7 +145,8 @@ impl Storage for SqliteStorage {
             SqliteEntry::first_index(tx, core_id)
         })?;
 
-        Ok(idx)
+        // Don't return first dummy entry
+        Ok(idx + 1)
     }
 
     fn last_index(&self) -> RaftResult<u64> {

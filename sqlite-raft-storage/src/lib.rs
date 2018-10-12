@@ -30,6 +30,7 @@ pub mod error;
 // TODO: TryFrom for "as" casts and proto conversions (take_)
 // TODO: persist current user db index (for user-db thread)
 
+#[derive(Debug)]
 pub struct SqliteStorage {
     conn: RwLock<Connection>,
     id: CoreId,

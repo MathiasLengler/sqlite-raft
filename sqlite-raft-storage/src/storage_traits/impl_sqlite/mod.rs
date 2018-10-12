@@ -10,25 +10,26 @@ use raft::eraftpb::Entry;
 use raft::eraftpb::HardState;
 use raft::eraftpb::Snapshot;
 use raft::Error as RaftError;
+use raft::Result as RaftResult;
 use raft::StorageError;
 use rusqlite::Transaction;
+use self::append::entries_trim_front;
 use SqliteStorage;
 use storage_traits::StorageMut;
 use storage_traits::StorageTestable;
-use self::append::entries_trim_front;
 
 mod append;
 
 impl StorageMut for SqliteStorage {
-    type StorageError = Error;
-
-    fn set_hardstate(&self, hs: HardState) -> Result<()> {
+    fn set_hardstate(&self, hs: HardState) -> RaftResult<()> {
         self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
             SqliteHardState::from(hs).insert_or_replace(tx, core_id)
-        })
+        })?;
+
+        Ok(())
     }
 
-    fn apply_snapshot(&self, snapshot: Snapshot) -> Result<()> {
+    fn apply_snapshot(&self, snapshot: Snapshot) -> RaftResult<()> {
         self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
             // handle check for old snapshot being applied
             let entry = {
@@ -52,18 +53,20 @@ impl StorageMut for SqliteStorage {
             sqlite_snapshot.insert_or_replace(tx, core_id)?;
 
             Ok(())
-        })
+        })?;
+
+        Ok(())
     }
 
-    fn create_snapshot(&self, _idx: u64, _cs: Option<ConfState>, _data: Vec<u8>) -> Result<()> {
+    fn create_snapshot(&self, _idx: u64, _cs: Option<ConfState>, _data: Vec<u8>) -> RaftResult<()> {
         unimplemented!()
     }
 
-    fn compact(&self, _compact_index: u64) -> Result<()> {
+    fn compact(&self, _compact_index: u64) -> RaftResult<()> {
         unimplemented!()
     }
 
-    fn append(&self, entries: &[Entry]) -> Result<()> {
+    fn append(&self, entries: &[Entry]) -> RaftResult<()> {
         if entries.is_empty() {
             return Ok(());
         }
@@ -73,7 +76,9 @@ impl StorageMut for SqliteStorage {
             let entries_tail = entries_trim_front(entries, current_first_idx);
             let sqlite_entries = SqliteEntries::from(entries_tail.to_vec());
             sqlite_entries.append(tx, core_id)
-        })
+        })?;
+
+        Ok(())
     }
 }
 

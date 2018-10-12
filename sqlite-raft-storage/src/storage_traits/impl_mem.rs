@@ -10,8 +10,6 @@ use storage_traits::StorageTestable;
 
 
 impl StorageMut for MemStorage {
-    type StorageError = RaftError;
-
     fn set_hardstate(&self, hs: HardState) -> RaftResult<()> {
         self.wl().set_hardstate(hs);
 

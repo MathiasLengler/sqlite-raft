@@ -52,15 +52,16 @@ impl SqliteEntries {
     }
 
     pub fn query(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
+        let high_inclusive = high - 1;
+
         Self::validate_index_range(
+            // Don't return first dummy entry
             low - 1,
-            high,
+            high_inclusive,
             SqliteEntry::first_index(&tx, core_id)?,
             SqliteEntry::last_index(&tx, core_id)?,
         )?;
 
-        let low = low;
-        let high_inclusive = high - 1;
 
         Self::query_inclusive_range(tx, core_id, low, high_inclusive)
     }
@@ -94,9 +95,9 @@ impl SqliteEntries {
     }
 
     // TODO: unit test (check inclusive)
-    fn validate_index_range(low: u64, high: u64, first_index: u64, last_index: u64) -> Result<()> {
+    fn validate_index_range(low: u64, high_inclusive: u64, first_index: u64, last_index: u64) -> Result<()> {
         SqliteEntry::validate_index(low, first_index, last_index)?;
-        SqliteEntry::validate_index(high, first_index, last_index)?;
+        SqliteEntry::validate_index(high_inclusive, first_index, last_index)?;
 
         // only contains dummy entries.
         if first_index == last_index {
@@ -323,6 +324,43 @@ mod tests {
 
         for (i, ((idx, first_index, last_index), exp_res)) in tests.into_iter().enumerate() {
             let res = SqliteEntry::validate_index(idx, first_index, last_index);
+
+            if res != exp_res {
+                panic!("#{}: expect res {:?}, got {:?}.", i, exp_res, res);
+            }
+        }
+    }
+
+    #[test]
+    fn test_validate_index_range() {
+        use error::index::BoundViolation::*;
+
+        let tests = vec![
+            ((3, 3, 3, 3), Err(RaftError::Store(RaftStorageError::Unavailable).into())),
+            // low = 2
+            ((2, 2, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooSmall)))),
+            ((2, 3, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooSmall)))),
+            ((2, 5, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooSmall)))),
+            ((2, 6, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooSmall)))),
+            // low = 3
+            ((3, 2, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooSmall)))),
+            ((3, 3, 3, 5), Ok(())),
+            ((3, 5, 3, 5), Ok(())),
+            ((3, 6, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooLarge)))),
+            // low = 5
+            ((5, 2, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooSmall)))),
+            ((5, 3, 3, 5), Ok(())),
+            ((5, 5, 3, 5), Ok(())),
+            ((5, 6, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooLarge)))),
+            // low = 6
+            ((6, 2, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooLarge)))),
+            ((6, 3, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooLarge)))),
+            ((6, 5, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooLarge)))),
+            ((6, 6, 3, 5), Err(Error::from(InvalidEntryIndex::from(TooLarge)))),
+        ];
+
+        for (i, ((low, high_inclusive, first_index, last_index), exp_res)) in tests.into_iter().enumerate() {
+            let res = SqliteEntries::validate_index_range(low, high_inclusive, first_index, last_index);
 
             if res != exp_res {
                 panic!("#{}: expect res {:?}, got {:?}.", i, exp_res, res);

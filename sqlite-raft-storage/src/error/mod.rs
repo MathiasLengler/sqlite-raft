@@ -38,19 +38,20 @@ impl From<InvalidEntryIndex> for Error {
     }
 }
 
+// TODO: replace eprintln with trace
 impl From<Error> for RaftError {
     fn from(err: Error) -> Self {
         match err {
             Error::Rusqlite(err, _backtrace) => {
-                //eprintln!("{}", backtrace);
+//                eprintln!("{}", backtrace);
                 RaftError::Store(RaftStorageError::Other(Box::new(err)))
             }
             Error::Raft(err, _backtrace) => {
-                //eprintln!("{}", backtrace);
+//                eprintln!("{}", backtrace);
                 err
             }
             Error::InvalidEntryIndex(err) => {
-                eprintln!("{}", err);
+//                eprintln!("{}", err);
                 err.into()
             }
         }

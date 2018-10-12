@@ -44,7 +44,7 @@ fn test_storage_term() {
         (6, Err(RaftError::Store(StorageError::Unavailable))),
     ];
 
-    for (i, (idx, wterm)) in tests.into_iter().enumerate() {
+    for (i, (idx, wterm)) in tests.drain(..).enumerate() {
         test_storage_impls(|storage: &mut dyn StorageTestable| {
             storage.set_entries(&ents);
 
@@ -116,7 +116,7 @@ fn test_storage_entries() {
             Ok(vec![new_entry(4, 4), new_entry(5, 5), new_entry(6, 6)]),
         ),
     ];
-    for (i, (lo, hi, maxsize, wentries)) in tests.drain(4..5).enumerate() {
+    for (i, (lo, hi, maxsize, wentries)) in tests.drain(..).enumerate() {
         test_storage_impls(|storage: &mut dyn StorageTestable| {
             storage.set_entries(&ents);
 

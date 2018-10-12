@@ -13,6 +13,15 @@ pub struct InvalidEntryIndex {
     pub backtrace: Backtrace,
 }
 
+impl From<BoundViolation> for InvalidEntryIndex {
+    fn from(kind: BoundViolation) -> Self {
+        InvalidEntryIndex {
+            kind,
+            ..Default::default()
+        }
+    }
+}
+
 
 impl From<InvalidEntryIndex> for RaftError {
     fn from(err: InvalidEntryIndex) -> Self {

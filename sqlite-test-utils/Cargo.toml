@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
 
 [dependencies]
+tempfile = "3.0.3"
+

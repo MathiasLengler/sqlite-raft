@@ -23,9 +23,9 @@ features = ["bundled"]
 protobuf-codegen-pure = "2.0.5"
 
 [dev-dependencies]
-tempfile = "3.0.3"
 serde_json = "1.0.27"
 bincode = "1.0.1"
+sqlite-test-utils = {path = "../sqlite-test-utils"}
 
 [features]
 default = ["blob"]

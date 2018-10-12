@@ -914,12 +914,15 @@ dependencies = [
  "serde 1.0.79 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.79 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "tempfile 3.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sqlite-test-utils 0.1.0",
 ]
 
 [[package]]
-name = "sqlite_test_utils"
+name = "sqlite-test-utils"
 version = "0.1.0"
+dependencies = [
+ "tempfile 3.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "strsim"

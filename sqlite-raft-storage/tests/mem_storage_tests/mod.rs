@@ -1,20 +1,10 @@
-// TODO: remove when all test are rewritten
-#![allow(unused_imports)]
-#![allow(dead_code)]
-
 use protobuf;
 use raft::{Error as RaftError, StorageError};
 use raft::eraftpb::{ConfState, Entry, Snapshot};
-use raft::storage::{MemStorage, Storage};
-use sqlite_raft_storage::SqliteStorage;
-use sqlite_raft_storage::storage_traits::{StorageMut, StorageTestable};
-use std::path::PathBuf;
+use sqlite_raft_storage::storage_traits::StorageTestable;
 use utils::storage::test_storage_impls;
-use utils::temp_db::with_test_db_path;
 
-// TODO: rewrite rest of tests
 // TODO: test_set_hardstate
-
 
 // TODO extract these duplicated utility functions for tests
 fn new_entry(index: u64, term: u64) -> Entry {
@@ -211,37 +201,37 @@ fn test_storage_compact() {
             if len != wlen {
                 panic!("#{}: want {}, term {}", i, wlen, len);
             }
-
         });
     }
 }
 
-//#[test]
-//fn test_storage_create_snapshot() {
-//    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
-//    let nodes = vec![1, 2, 3];
-//    let mut cs = ConfState::new();
-//    cs.set_nodes(nodes.clone());
-//    let data = b"data".to_vec();
-//
-//    let mut tests = vec![
-//        (4, Ok(new_snapshot(4, 4, nodes.clone(), data.clone()))),
-//        (5, Ok(new_snapshot(5, 5, nodes.clone(), data.clone()))),
-//    ];
-//    for (i, (idx, wresult)) in tests.drain(..).enumerate() {
-//        let storage = MemStorage::new();
-//        storage.wl().entries = ents.clone();
-//
-//        storage
-//            .wl()
-//            .create_snapshot(idx, Some(cs.clone()), data.clone())
-//            .expect("create snapshot failed");
-//        let result = storage.snapshot();
-//        if result != wresult {
-//            panic!("#{}: want {:?}, got {:?}", i, wresult, result);
-//        }
-//    }
-//}
+#[test]
+fn test_storage_create_snapshot() {
+    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
+    let nodes = vec![1, 2, 3];
+    let mut cs = ConfState::new();
+    cs.set_nodes(nodes.clone());
+    let data = b"data".to_vec();
+
+    let mut tests = vec![
+        (4, Ok(new_snapshot(4, 4, nodes.clone(), data.clone()))),
+        (5, Ok(new_snapshot(5, 5, nodes.clone(), data.clone()))),
+    ];
+    for (i, (idx, wresult)) in tests.drain(..).enumerate() {
+        test_storage_impls(|storage: &mut dyn StorageTestable| {
+            storage.set_entries(&ents);
+
+            storage
+                .create_snapshot(idx, Some(cs.clone()), data.clone())
+                .expect("create snapshot failed");
+
+            let result = storage.snapshot();
+            if result != wresult {
+                panic!("#{}: want {:?}, got {:?}", i, wresult, result);
+            }
+        });
+    }
+}
 
 #[test]
 fn test_storage_append() {
@@ -314,31 +304,30 @@ fn test_storage_append() {
     }
 }
 
-//#[test]
-//fn test_storage_apply_snapshot() {
-//    let nodes = vec![1, 2, 3];
-//    let data = b"data".to_vec();
-//
-//    let snapshots = vec![
-//        new_snapshot(4, 4, nodes.clone(), data.clone()),
-//        new_snapshot(3, 3, nodes.clone(), data.clone()),
-//    ];
-//
-//    let storage = MemStorage::new();
-//
-//    // Apply snapshot successfully
-//    let i = 0;
-//    let wresult = Ok(());
-//    let r = storage.wl().apply_snapshot(snapshots[i].clone());
-//    if r != wresult {
-//        panic!("#{}: want {:?}, got {:?}", i, wresult, r);
-//    }
-//
-//    // Apply snapshot fails due to StorageError::SnapshotOutOfDate
-//    let i = 1;
-//    let wresult = Err(RaftError::Store(StorageError::SnapshotOutOfDate));
-//    let r = storage.wl().apply_snapshot(snapshots[i].clone());
-//    if r != wresult {
-//        panic!("#{}: want {:?}, got {:?}", i, wresult, r);
-//    }
-//}
+#[test]
+fn test_storage_apply_snapshot() {
+    let nodes = vec![1, 2, 3];
+    let data = b"data".to_vec();
+
+    let snapshots = vec![
+        new_snapshot(4, 4, nodes.clone(), data.clone()),
+        new_snapshot(3, 3, nodes.clone(), data.clone()),
+    ];
+    test_storage_impls(|storage: &mut dyn StorageTestable| {
+        // Apply snapshot successfully
+        let i = 0;
+        let wresult = Ok(());
+        let r = storage.apply_snapshot(snapshots[i].clone());
+        if r != wresult {
+            panic!("#{}: want {:?}, got {:?}", i, wresult, r);
+        }
+
+        // Apply snapshot fails due to StorageError::SnapshotOutOfDate
+        let i = 1;
+        let wresult = Err(RaftError::Store(StorageError::SnapshotOutOfDate));
+        let r = storage.apply_snapshot(snapshots[i].clone());
+        if r != wresult {
+            panic!("#{}: want {:?}, got {:?}", i, wresult, r);
+        }
+    });
+}

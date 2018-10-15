@@ -57,8 +57,45 @@ impl StorageMut for SqliteStorage {
         Ok(())
     }
 
-    fn create_snapshot(&self, _idx: u64, _cs: Option<ConfState>, _data: Vec<u8>) -> RaftResult<()> {
-        unimplemented!()
+    fn create_snapshot(&self, idx: u64, cs: Option<ConfState>, data: Vec<u8>) -> RaftResult<()> {
+        self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            let sqlite_snapshot = SqliteSnapshot::query(tx, core_id)?;
+            let mut snapshot: Snapshot = sqlite_snapshot.into();
+
+            if idx <= snapshot.get_metadata().get_index() {
+                return Err(RaftError::Store(StorageError::SnapshotOutOfDate).into());
+            }
+
+            let last_index = SqliteEntry::last_index(tx, core_id)?;
+
+            if idx > last_index {
+                // TODO: return error
+                panic!(
+                    "snapshot {} is out of bound lastindex({})",
+                    idx,
+                    last_index
+                )
+            }
+
+            snapshot.mut_metadata().set_index(idx);
+
+            let entry_idx: Entry = SqliteEntry::query(tx, core_id, idx)?.into();
+
+            snapshot
+                .mut_metadata()
+                .set_term(entry_idx.get_term());
+            if let Some(cs) = cs {
+                snapshot.mut_metadata().set_conf_state(cs)
+            }
+            snapshot.set_data(data);
+
+            let sqlite_snapshot: SqliteSnapshot = snapshot.into();
+            sqlite_snapshot.insert_or_replace(tx, core_id)?;
+
+            Ok(())
+        })?;
+
+        Ok(())
     }
 
     /// Discards all log entries prior to compact_index.

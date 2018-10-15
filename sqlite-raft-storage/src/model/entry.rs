@@ -41,14 +41,14 @@ impl SqliteEntries {
     }
 
     pub fn append(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        if self.entries.is_empty() {
-            return Ok(());
+        match self.entries.first() {
+            None => Ok(()),
+            Some(first_entry) => {
+                first_entry.truncate_right(tx, core_id)?;
+
+                self.insert(tx, core_id)
+            },
         }
-
-        let first_entry = self.entries.first().unwrap();
-        first_entry.truncate_right(tx, core_id)?;
-
-        self.insert(tx, core_id)
     }
 
     pub fn query(tx: &Transaction, core_id: CoreId, low: u64, high: u64) -> Result<SqliteEntries> {
@@ -142,9 +142,11 @@ pub struct SqliteEntry {
 
 impl SqliteEntry {
     const SQL_DELETE: &'static str =
-        include_str!("../../res/sql/entry/delete.sql");
+        include_str!("../../res/sql/entry/delete_all.sql");
     const SQL_DELETE_GREATER_OR_EQUAL_INDEX: &'static str =
         include_str!("../../res/sql/entry/delete_greater_or_equal_index.sql");
+    const SQL_DELETE_SMALLER_INDEX: &'static str =
+        include_str!("../../res/sql/entry/delete_smaller_index.sql");
     const SQL_QUERY: &'static str =
         include_str!("../../res/sql/entry/query.sql");
     const SQL_QUERY_FIRST_INDEX: &'static str =
@@ -260,13 +262,19 @@ impl SqliteEntry {
 
     /// Truncate the log so this entry can be inserted at the end of the log.
     ///
-    /// In other words: delete all entries with an index greater or equal to this entry
+    /// In other words: delete all entries with an index greater or equal than this entry.
     fn truncate_right(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         tx.execute_named(Self::SQL_DELETE_GREATER_OR_EQUAL_INDEX, &Self::query_params(&self.index, &core_id))?;
         Ok(())
     }
 
-    // TODO: compact (truncate lower than self?)
+    /// Truncate the log so this entry would be the first entry in the log.
+    ///
+    /// In other words: delete all entries with an index smaller than this entry.
+    pub fn truncate_left(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        tx.execute_named(Self::SQL_DELETE_SMALLER_INDEX, &Self::query_params(&self.index, &core_id))?;
+        Ok(())
+    }
 }
 
 impl From<Entry> for SqliteEntry {

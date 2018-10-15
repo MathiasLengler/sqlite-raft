@@ -32,6 +32,7 @@ pub mod debug;
 // TODO: use in sqlite-raft-node
 // TODO: TryFrom for "as" casts and proto conversions (take_)
 // TODO: persist current user db index (for user-db thread)
+// TODO: refactor (tx, core_id) to single parameter (tx_ctx | tx_storage)
 
 // TODO: add conversion of SqliteStorage -> MemStorageCore
 // could be used for model testing (equality checking)

@@ -158,7 +158,6 @@ fn test_storage_last_index() {
 
 // TODO: enable when compact is implemented
 #[test]
-#[ignore]
 fn test_storage_first_index() {
     let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
 
@@ -180,38 +179,43 @@ fn test_storage_first_index() {
     });
 }
 
-//#[test]
-//fn test_storage_compact() {
-//    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
-//    let mut tests = vec![
-//        (2, Err(RaftError::Store(StorageError::Compacted)), 3, 3, 3),
-//        (3, Err(RaftError::Store(StorageError::Compacted)), 3, 3, 3),
-//        (4, Ok(()), 4, 4, 2),
-//        (5, Ok(()), 5, 5, 1),
-//    ];
-//    for (i, (idx, wresult, windex, wterm, wlen)) in tests.drain(..).enumerate() {
-//        let storage = MemStorage::new();
-//        storage.wl().entries = ents.clone();
-//
-//        let result = storage.wl().compact(idx);
-//        if result != wresult {
-//            panic!("#{}: want {:?}, got {:?}", i, wresult, result);
-//        }
-//        let index = storage.wl().entries[0].get_index();
-//        if index != windex {
-//            panic!("#{}: want {}, index {}", i, windex, index);
-//        }
-//        let term = storage.wl().entries[0].get_term();
-//        if term != wterm {
-//            panic!("#{}: want {}, term {}", i, wterm, term);
-//        }
-//        let len = storage.wl().entries.len();
-//        if len != wlen {
-//            panic!("#{}: want {}, term {}", i, wlen, len);
-//        }
-//    }
-//}
-//
+#[test]
+fn test_storage_compact() {
+    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];
+    let mut tests = vec![
+        (2, Err(RaftError::Store(StorageError::Compacted)), 3, 3, 3),
+        (3, Err(RaftError::Store(StorageError::Compacted)), 3, 3, 3),
+        (4, Ok(()), 4, 4, 2),
+        (5, Ok(()), 5, 5, 1),
+    ];
+    for (i, (idx, wresult, windex, wterm, wlen)) in tests.drain(..).enumerate() {
+        test_storage_impls(|storage: &mut dyn StorageTestable| {
+            storage.set_entries(&ents);
+
+            let result = storage.compact(idx);
+            if result != wresult {
+                panic!("#{}: want {:?}, got {:?}", i, wresult, result);
+            }
+
+            let entries = storage.clone_entries();
+
+            let index = entries[0].get_index();
+            if index != windex {
+                panic!("#{}: want {}, index {}", i, windex, index);
+            }
+            let term = entries[0].get_term();
+            if term != wterm {
+                panic!("#{}: want {}, term {}", i, wterm, term);
+            }
+            let len = entries.len();
+            if len != wlen {
+                panic!("#{}: want {}, term {}", i, wlen, len);
+            }
+
+        });
+    }
+}
+
 //#[test]
 //fn test_storage_create_snapshot() {
 //    let ents = vec![new_entry(3, 3), new_entry(4, 4), new_entry(5, 5)];

@@ -61,8 +61,34 @@ impl StorageMut for SqliteStorage {
         unimplemented!()
     }
 
-    fn compact(&self, _compact_index: u64) -> RaftResult<()> {
-        unimplemented!()
+    /// Discards all log entries prior to compact_index.
+    /// It is the application's responsibility to not attempt to compact an index
+    /// greater than RaftLog.applied.
+    fn compact(&self, compact_index: u64) -> RaftResult<()> {
+        self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+            let first_index = SqliteEntry::first_index(tx, core_id)?;
+            let last_index = SqliteEntry::last_index(tx, core_id)?;
+
+            if compact_index <= first_index {
+                return Err(RaftError::Store(StorageError::Compacted).into());
+            }
+            if compact_index > last_index {
+                // TODO: return error
+                panic!(
+                    "compact {} is out of bound lastindex({})",
+                    compact_index,
+                    last_index
+                )
+            }
+
+
+            let compact_entry = SqliteEntry::query(tx, core_id, compact_index)?;
+            compact_entry.truncate_left(tx, core_id)?;
+
+            Ok(())
+        })?;
+
+        Ok(())
     }
 
     fn append(&self, entries: &[Entry]) -> RaftResult<()> {

@@ -94,7 +94,6 @@ impl SqliteEntries {
         ]
     }
 
-    // TODO: unit test (check inclusive)
     fn validate_index_range(low: u64, high_inclusive: u64, first_index: u64, last_index: u64) -> Result<()> {
         SqliteEntry::validate_index(low, first_index, last_index)?;
         SqliteEntry::validate_index(high_inclusive, first_index, last_index)?;

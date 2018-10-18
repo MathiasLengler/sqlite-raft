@@ -4,7 +4,7 @@ use raft::StorageError as RaftStorageError;
 use std::fmt;
 use std::fmt::Display;
 
-#[derive(Debug, Fail, Default)]
+#[derive(Debug, Fail)]
 pub struct InvalidEntryIndex {
     pub kind: BoundViolation,
     pub first_index: u64,
@@ -17,7 +17,10 @@ impl From<BoundViolation> for InvalidEntryIndex {
     fn from(kind: BoundViolation) -> Self {
         InvalidEntryIndex {
             kind,
-            ..Default::default()
+            first_index: 0,
+            last_index: 0,
+            invalid_index: 0,
+            backtrace: Backtrace::new(),
         }
     }
 }
@@ -36,12 +39,12 @@ impl From<InvalidEntryIndex> for RaftError {
 
 impl Display for InvalidEntryIndex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Entry index was {}. Valid range [{}, {}), got {}.\n{}",
+        // TODO: validate interval
+        write!(f, "Entry index was {}. Valid range [{}, {}), got {}.",
                self.kind,
                self.first_index,
                self.last_index,
-               self.invalid_index,
-               self.backtrace)
+               self.invalid_index)
     }
 }
 

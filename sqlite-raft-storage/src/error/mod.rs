@@ -5,8 +5,10 @@ use raft;
 use raft::Error as RaftError;
 use raft::StorageError as RaftStorageError;
 use self::index::InvalidEntryIndex;
+use error::entries::NonSequentialEntryPair;
 
 pub mod index;
+pub mod entries;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -18,6 +20,8 @@ pub enum Error {
     Raft(#[cause] raft::Error, Backtrace),
     #[fail(display = "{}", _0)]
     InvalidEntryIndex(InvalidEntryIndex),
+    #[fail(display = "{}", _0)]
+    NonSequentialEntryPair(NonSequentialEntryPair),
 }
 
 impl From<rusqlite::Error> for Error {
@@ -38,6 +42,12 @@ impl From<InvalidEntryIndex> for Error {
     }
 }
 
+impl From<NonSequentialEntryPair> for Error {
+    fn from(err: NonSequentialEntryPair) -> Self {
+        Error::NonSequentialEntryPair(err)
+    }
+}
+
 // TODO: replace eprintln with trace
 impl From<Error> for RaftError {
     fn from(err: Error) -> Self {
@@ -52,6 +62,9 @@ impl From<Error> for RaftError {
             }
             Error::InvalidEntryIndex(err) => {
 //                eprintln!("{}", err);
+                err.into()
+            }
+            Error::NonSequentialEntryPair(err) => {
                 err.into()
             }
         }

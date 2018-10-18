@@ -11,7 +11,7 @@ use rusqlite::Transaction;
 use rusqlite::types::ToSql;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SqliteEntry {
     index: i64,
     term: i64,
@@ -132,6 +132,8 @@ impl SqliteEntry {
     }
 
     pub(super) fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        // TODO: debug assert invariants of collection (pre + post)?
+
         tx.execute_named(Self::SQL_INSERT, &self.as_named_params(&core_id))?;
         Ok(())
     }
@@ -155,6 +157,30 @@ impl SqliteEntry {
     pub fn truncate_left(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         tx.execute_named(Self::SQL_DELETE_SMALLER_INDEX, &Self::query_params(&self.index, &core_id))?;
         Ok(())
+    }
+
+    // TODO: test
+    pub(super) fn try_sequence(&self, previous_entry: &Self) -> Result<()> {
+        use error::entries::NonSequentialEntryPair;
+        use error::entries::SequenceViolation::*;
+
+        if self.index != previous_entry.index + 1 {
+            Err(NonSequentialEntryPair {
+                incompatible_entry: self.clone().into(),
+                previous_entry: previous_entry.clone().into(),
+                cause: IncompatibleIndex,
+                backtrace: Backtrace::new(),
+            }.into())
+        } else if self.term < previous_entry.term {
+            Err(NonSequentialEntryPair {
+                incompatible_entry: self.clone().into(),
+                previous_entry: previous_entry.clone().into(),
+                cause: DecreasingTerm,
+                backtrace: Backtrace::new(),
+            }.into())
+        } else {
+            Ok(())
+        }
     }
 }
 

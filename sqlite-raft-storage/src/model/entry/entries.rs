@@ -20,6 +20,25 @@ impl SqliteEntries {
     const SQL_QUERY_RANGE: &'static str =
         include_str!("../../../res/sql/entry/query_range.sql");
 
+    pub fn try_from_entry_vec(entries: Vec<Entry>) -> Result<Self> {
+        SqliteEntries {
+            entries: entries.into_iter().map(Into::into).collect(),
+        }.validate()
+    }
+
+    fn try_from_sqlite_entry_vec(entries: Vec<SqliteEntry>) -> Result<Self> {
+        SqliteEntries {
+            entries,
+        }.validate()
+    }
+
+    fn validate(self) -> Result<Self> {
+        // TODO: err entries ascending sequence with no gaps (index + term)
+        // try_fold with try_sequence
+
+        Ok(self)
+    }
+
     pub fn replace_all(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
         SqliteEntry::delete_all(&tx, core_id)?;
 
@@ -28,7 +47,10 @@ impl SqliteEntries {
         Ok(())
     }
 
-    pub fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+    fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
+        // TODO: err current last entry not appendable to first_entry
+        // try_sequence with self.first and
+
         for entry in &self.entries {
             entry.insert(&tx, core_id)?;
         }
@@ -42,7 +64,7 @@ impl SqliteEntries {
                 first_entry.truncate_right(tx, core_id)?;
 
                 self.insert(tx, core_id)
-            },
+            }
         }
     }
 
@@ -61,7 +83,7 @@ impl SqliteEntries {
         Self::query_inclusive_range(tx, core_id, low, high_inclusive)
     }
 
-    fn query_inclusive_range(tx: &Transaction, core_id: CoreId, low: u64, high_inclusive: u64) -> Result<SqliteEntries> {
+    fn query_inclusive_range(tx: &Transaction, core_id: CoreId, low: u64, high_inclusive: u64) -> Result<Self> {
         let low = low as i64;
         let high_inclusive = high_inclusive as i64;
         let mut stmt = tx.prepare(Self::SQL_QUERY_RANGE)?;
@@ -70,9 +92,9 @@ impl SqliteEntries {
             SqliteEntry::from_row,
         )?;
 
-        Ok(SqliteEntries {
-            entries: rows.collect::<RusqliteResult<Vec<_>>>()?,
-        })
+        let entries = rows.collect::<RusqliteResult<Vec<_>>>()?;
+
+        Self::try_from_sqlite_entry_vec(entries)
     }
 
     pub fn query_all(tx: &Transaction, core_id: CoreId) -> Result<SqliteEntries> {
@@ -106,14 +128,6 @@ impl Default for SqliteEntries {
     fn default() -> Self {
         SqliteEntries {
             entries: vec![SqliteEntry::default()],
-        }
-    }
-}
-
-impl From<Vec<Entry>> for SqliteEntries {
-    fn from(entries: Vec<Entry>) -> Self {
-        SqliteEntries {
-            entries: entries.into_iter().map(Into::into).collect(),
         }
     }
 }

@@ -45,7 +45,7 @@ impl StorageMut for SqliteStorage {
                 entry
             };
 
-            let sqlite_entries: SqliteEntries = vec![entry].into();
+            let sqlite_entries = SqliteEntries::try_from_entry_vec(vec![entry])?;
             sqlite_entries.replace_all(tx, core_id)?;
 
             let sqlite_snapshot: SqliteSnapshot = snapshot.into();
@@ -136,7 +136,7 @@ impl StorageMut for SqliteStorage {
         self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
             let current_first_idx = SqliteEntry::first_index(tx, core_id)?;
             let entries_tail = entries_trim_front(entries, current_first_idx);
-            let sqlite_entries = SqliteEntries::from(entries_tail.to_vec());
+            let sqlite_entries = SqliteEntries::try_from_entry_vec(entries_tail.to_vec())?;
             sqlite_entries.append(tx, core_id)
         })?;
 
@@ -146,7 +146,7 @@ impl StorageMut for SqliteStorage {
 
 impl StorageTestable for SqliteStorage {
     fn set_entries(&self, entries: &[Entry]) {
-        let sqlite_entries = SqliteEntries::from(entries.to_vec());
+        let sqlite_entries = SqliteEntries::try_from_entry_vec(entries.to_vec()).unwrap();
         self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
             sqlite_entries.replace_all(tx, core_id)
         }).unwrap();

@@ -77,6 +77,7 @@ impl PartialEq for Error {
 
         match (self, other) {
             (InvalidEntryIndex(err), InvalidEntryIndex(other_err)) => err == other_err,
+            (NonSequentialEntryPair(err), NonSequentialEntryPair(other_err)) => err == other_err,
             (Raft(err, _), Raft(other_err, _)) => err == other_err,
             _ => false
         }

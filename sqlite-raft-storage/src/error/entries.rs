@@ -29,7 +29,15 @@ impl From<NonSequentialEntryPair> for RaftError {
     }
 }
 
-#[derive(Debug, Fail)]
+impl PartialEq for NonSequentialEntryPair {
+    fn eq(&self, other: &NonSequentialEntryPair) -> bool {
+        self.cause == other.cause
+            && self.incompatible_entry == other.incompatible_entry
+            && self.previous_entry == other.previous_entry
+    }
+}
+
+#[derive(Debug, Fail, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum SequenceViolation {
     #[fail(display = "incompatible index")]
     IncompatibleIndex,

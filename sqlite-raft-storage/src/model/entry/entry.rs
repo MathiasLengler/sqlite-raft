@@ -222,25 +222,73 @@ impl Default for SqliteEntry {
 mod tests {
     use super::*;
     use error::Error;
+    use error::entries::NonSequentialEntryPair;
+    use error::entries::SequenceViolation;
+
+    // TODO extract these duplicated utility functions for tests
+    fn new_entry(index: i64, term: i64) -> SqliteEntry {
+        SqliteEntry {
+            index,
+            term,
+            ..Default::default()
+        }
+    }
 
     #[test]
     fn test_validate_index() {
         let tests = vec![
-            ((2, 3, 5), Err(Error::from(InvalidEntryIndex {
-                kind: BoundViolation::TooSmall,
-                ..Default::default()
-            }))),
+            ((2, 3, 5), Err(Error::from(InvalidEntryIndex::from(BoundViolation::TooSmall)))),
             ((3, 3, 5), Ok(())),
             ((4, 3, 5), Ok(())),
             ((5, 3, 5), Ok(())),
-            ((6, 3, 5), Err(Error::from(InvalidEntryIndex {
-                kind: BoundViolation::TooLarge,
-                ..Default::default()
-            }))),
+            ((6, 3, 5), Err(Error::from(InvalidEntryIndex::from(BoundViolation::TooLarge)))),
         ];
 
         for (i, ((idx, first_index, last_index), exp_res)) in tests.into_iter().enumerate() {
             let res = SqliteEntry::validate_index(idx, first_index, last_index);
+
+            if res != exp_res {
+                panic!("#{}: expect res {:?}, got {:?}.", i, exp_res, res);
+            }
+        }
+    }
+
+    #[test]
+    fn test_try_sequence() {
+        let tests = vec![
+            (new_entry(3, 3), new_entry(4,3), Ok(())),
+            (new_entry(3, 3), new_entry(4,4), Ok(())),
+            (new_entry(3, 3), new_entry(4,5), Ok(())),
+            // IncompatibleIndex
+            (new_entry(3, 3), new_entry(2,3), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(2,3).into(),
+                previous_entry: new_entry(3, 3).into(),
+                cause: SequenceViolation::IncompatibleIndex,
+                backtrace: Backtrace::new(),
+            }))),
+            (new_entry(3, 3), new_entry(3,3), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(3,3).into(),
+                previous_entry: new_entry(3, 3).into(),
+                cause: SequenceViolation::IncompatibleIndex,
+                backtrace: Backtrace::new(),
+            }))),
+            (new_entry(3, 3), new_entry(5,3), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(5,3).into(),
+                previous_entry: new_entry(3, 3).into(),
+                cause: SequenceViolation::IncompatibleIndex,
+                backtrace: Backtrace::new(),
+            }))),
+            // DecreasingTerm
+            (new_entry(3, 3), new_entry(4,2), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(4,2).into(),
+                previous_entry: new_entry(3, 3).into(),
+                cause: SequenceViolation::DecreasingTerm,
+                backtrace: Backtrace::new(),
+            }))),
+        ];
+
+        for (i, (previous_entry,  new_entry, exp_res)) in tests.into_iter().enumerate() {
+            let res = new_entry.try_sequence(&previous_entry);
 
             if res != exp_res {
                 panic!("#{}: expect res {:?}, got {:?}.", i, exp_res, res);

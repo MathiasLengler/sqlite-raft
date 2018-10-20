@@ -1,0 +1,8 @@
+[package]
+name = "model-test"
+version = "0.1.0"
+authors = ["Mathias Lengler <mathmatze@googlemail.com>"]
+
+[dependencies]
+model = "0.0.4"
+proptest = "0.7"

@@ -468,6 +468,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "model-test"
+version = "0.1.0"
+dependencies = [
+ "model 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proptest 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -896,7 +904,6 @@ name = "sqlite-raft-storage"
 version = "0.1.0"
 dependencies = [
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "model 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 2.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "raft 0.4.0",
  "rusqlite 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -1,4 +1,3 @@
-use error::Error;
 use error::Result;
 use model::core::CoreId;
 use raft::eraftpb::Entry;
@@ -7,7 +6,10 @@ use raft::StorageError as RaftStorageError;
 use rusqlite::Result as RusqliteResult;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
-use super::entry::SqliteEntry;
+use super::SqliteEntry;
+
+pub mod entry;
+
 
 // TODO: move Entries and Entry to modules
 // TODO: debug_assert entries ascending sequence with no gaps
@@ -19,7 +21,7 @@ pub struct SqliteEntries {
 
 impl SqliteEntries {
     const SQL_QUERY_RANGE: &'static str =
-        include_str!("../../../res/sql/entry/query_range.sql");
+        include_str!("../../../../res/sql/entry/query_range.sql");
 
     pub fn try_from_entry_vec(entries: Vec<Entry>) -> Result<Self> {
         SqliteEntries {

@@ -25,19 +25,19 @@ pub struct SqliteEntry {
 
 impl SqliteEntry {
     const SQL_DELETE: &'static str =
-        include_str!("../../../res/sql/entry/delete_all.sql");
+        include_str!("../../../../res/sql/entry/delete_all.sql");
     const SQL_DELETE_GREATER_OR_EQUAL_INDEX: &'static str =
-        include_str!("../../../res/sql/entry/delete_greater_or_equal_index.sql");
+        include_str!("../../../../res/sql/entry/delete_greater_or_equal_index.sql");
     const SQL_DELETE_SMALLER_INDEX: &'static str =
-        include_str!("../../../res/sql/entry/delete_smaller_index.sql");
+        include_str!("../../../../res/sql/entry/delete_smaller_index.sql");
     const SQL_QUERY: &'static str =
-        include_str!("../../../res/sql/entry/query.sql");
+        include_str!("../../../../res/sql/entry/query.sql");
     const SQL_QUERY_FIRST_INDEX: &'static str =
-        include_str!("../../../res/sql/entry/query_first_index.sql");
+        include_str!("../../../../res/sql/entry/query_first_index.sql");
     const SQL_QUERY_LAST_INDEX: &'static str =
-        include_str!("../../../res/sql/entry/query_last_index.sql");
+        include_str!("../../../../res/sql/entry/query_last_index.sql");
     const SQL_INSERT: &'static str =
-        include_str!("../../../res/sql/entry/insert.sql");
+        include_str!("../../../../res/sql/entry/insert.sql");
 
     fn assert_invariants(tx: &Transaction, core_id: CoreId) -> Result<()> {
         use super::SqliteEntries;

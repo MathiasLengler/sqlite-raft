@@ -1,5 +1,4 @@
 pub use self::entries::SqliteEntries;
-pub use self::entry::SqliteEntry;
+pub use self::entries::entry::SqliteEntry;
 
-mod entry;
 mod entries;

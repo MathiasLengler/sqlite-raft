@@ -1,3 +1,4 @@
+use error::Error;
 use error::index::BoundViolation;
 use error::index::InvalidEntryIndex;
 use error::Result;
@@ -6,6 +7,7 @@ use model::core::CoreId;
 use protobuf::ProtobufEnum;
 use raft::eraftpb::Entry;
 use raft::eraftpb::EntryType;
+use rusqlite::Error as RusqliteError;
 use rusqlite::Row;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
@@ -36,6 +38,28 @@ impl SqliteEntry {
         include_str!("../../../res/sql/entry/query_last_index.sql");
     const SQL_INSERT: &'static str =
         include_str!("../../../res/sql/entry/insert.sql");
+
+    fn assert_invariants(tx: &Transaction, core_id: CoreId) -> Result<()> {
+        use super::SqliteEntries;
+
+        if Self::is_not_empty(tx, core_id)? {
+            SqliteEntries::query_all(tx, core_id)?;
+        }
+
+        Ok(())
+    }
+
+    pub(super) fn is_not_empty(tx: &Transaction, core_id: CoreId) -> Result<bool> {
+        Ok(match SqliteEntry::last_index(tx, core_id) {
+            Ok(_) => {
+                true
+            }
+            Err(Error::Rusqlite(RusqliteError::QueryReturnedNoRows, _)) => {
+                false
+            }
+            Err(other_err) => Err(other_err)?
+        })
+    }
 
     fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 7] {
         [
@@ -132,9 +156,12 @@ impl SqliteEntry {
     }
 
     pub(super) fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        // TODO: debug assert invariants of collection (pre + post)?
+        debug_assert_eq!(Self::assert_invariants(tx, core_id), Ok(()), "SqliteEntry::insert precondition failed");
 
         tx.execute_named(Self::SQL_INSERT, &self.as_named_params(&core_id))?;
+
+        debug_assert_eq!(Self::assert_invariants(tx, core_id), Ok(()), "SqliteEntry::insert postcondition failed");
+
         Ok(())
     }
 
@@ -159,7 +186,6 @@ impl SqliteEntry {
         Ok(())
     }
 
-    // TODO: test
     pub(super) fn try_sequence(&self, previous_entry: &Self) -> Result<()> {
         use error::entries::NonSequentialEntryPair;
         use error::entries::SequenceViolation::*;
@@ -220,10 +246,10 @@ impl Default for SqliteEntry {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use error::Error;
     use error::entries::NonSequentialEntryPair;
     use error::entries::SequenceViolation;
+    use error::Error;
+    use super::*;
 
     // TODO extract these duplicated utility functions for tests
     fn new_entry(index: i64, term: i64) -> SqliteEntry {
@@ -256,38 +282,38 @@ mod tests {
     #[test]
     fn test_try_sequence() {
         let tests = vec![
-            (new_entry(3, 3), new_entry(4,3), Ok(())),
-            (new_entry(3, 3), new_entry(4,4), Ok(())),
-            (new_entry(3, 3), new_entry(4,5), Ok(())),
+            (new_entry(3, 3), new_entry(4, 3), Ok(())),
+            (new_entry(3, 3), new_entry(4, 4), Ok(())),
+            (new_entry(3, 3), new_entry(4, 5), Ok(())),
             // IncompatibleIndex
-            (new_entry(3, 3), new_entry(2,3), Err(Error::from(NonSequentialEntryPair {
-                incompatible_entry: new_entry(2,3).into(),
+            (new_entry(3, 3), new_entry(2, 3), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(2, 3).into(),
                 previous_entry: new_entry(3, 3).into(),
                 cause: SequenceViolation::IncompatibleIndex,
                 backtrace: Backtrace::new(),
             }))),
-            (new_entry(3, 3), new_entry(3,3), Err(Error::from(NonSequentialEntryPair {
-                incompatible_entry: new_entry(3,3).into(),
+            (new_entry(3, 3), new_entry(3, 3), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(3, 3).into(),
                 previous_entry: new_entry(3, 3).into(),
                 cause: SequenceViolation::IncompatibleIndex,
                 backtrace: Backtrace::new(),
             }))),
-            (new_entry(3, 3), new_entry(5,3), Err(Error::from(NonSequentialEntryPair {
-                incompatible_entry: new_entry(5,3).into(),
+            (new_entry(3, 3), new_entry(5, 3), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(5, 3).into(),
                 previous_entry: new_entry(3, 3).into(),
                 cause: SequenceViolation::IncompatibleIndex,
                 backtrace: Backtrace::new(),
             }))),
             // DecreasingTerm
-            (new_entry(3, 3), new_entry(4,2), Err(Error::from(NonSequentialEntryPair {
-                incompatible_entry: new_entry(4,2).into(),
+            (new_entry(3, 3), new_entry(4, 2), Err(Error::from(NonSequentialEntryPair {
+                incompatible_entry: new_entry(4, 2).into(),
                 previous_entry: new_entry(3, 3).into(),
                 cause: SequenceViolation::DecreasingTerm,
                 backtrace: Backtrace::new(),
             }))),
         ];
 
-        for (i, (previous_entry,  new_entry, exp_res)) in tests.into_iter().enumerate() {
+        for (i, (previous_entry, new_entry, exp_res)) in tests.into_iter().enumerate() {
             let res = new_entry.try_sequence(&previous_entry);
 
             if res != exp_res {

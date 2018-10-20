@@ -1,3 +1,4 @@
+use error::Error;
 use error::Result;
 use model::core::CoreId;
 use raft::eraftpb::Entry;
@@ -33,8 +34,18 @@ impl SqliteEntries {
     }
 
     fn validate(self) -> Result<Self> {
-        // TODO: err entries ascending sequence with no gaps (index + term)
-        // try_fold with try_sequence
+        match self.entries.first() {
+            None => {}
+            Some(first_entry) => {
+                self.entries.iter().skip(1).try_fold(
+                    first_entry,
+                    |previous_entry, entry| -> Result<&SqliteEntry> {
+                        entry.try_sequence(previous_entry)?;
+                        Ok(entry)
+                    },
+                )?;
+            }
+        }
 
         Ok(self)
     }
@@ -48,12 +59,21 @@ impl SqliteEntries {
     }
 
     fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        // TODO: err current last entry not appendable to first_entry
-        // try_sequence with self.first and
+        match self.entries.first() {
+            None => {}
+            Some(first_entry) => {
+                if SqliteEntry::is_not_empty(tx, core_id)? {
+                    let last_index = SqliteEntry::last_index(tx, core_id)?;
+                    let current_last_entry = SqliteEntry::query(tx, core_id, last_index)?;
+                    first_entry.try_sequence(&current_last_entry)?;
+                }
 
-        for entry in &self.entries {
-            entry.insert(&tx, core_id)?;
+                for entry in &self.entries {
+                    entry.insert(&tx, core_id)?;
+                }
+            }
         }
+
         Ok(())
     }
 
@@ -140,9 +160,9 @@ impl From<SqliteEntries> for Vec<Entry> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use error::Error;
     use error::index::InvalidEntryIndex;
+    use super::*;
 
     #[test]
     fn test_validate_index_range() {

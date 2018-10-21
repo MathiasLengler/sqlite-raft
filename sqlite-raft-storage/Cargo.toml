@@ -15,3 +15,5 @@ features = ["bundled"]
 [dev-dependencies]
 protobuf = "2.0.5"
 sqlite-test-utils = {path = "../sqlite-test-utils"}
+model = { git = "https://github.com/spacejam/sled"}
+proptest = "0.7"

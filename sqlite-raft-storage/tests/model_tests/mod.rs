@@ -1,4 +1,9 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::path::PathBuf;
+use raft::storage::MemStorage;
+use sqlite_raft_storage::SqliteStorage;
+use sqlite_raft_storage::storage_traits::StorageTestable;
+
 
 #[test]
 fn model_example() {
@@ -34,8 +39,19 @@ fn model_example() {
 }
 
 #[test]
-fn mode_storage() {
-    // TODO:
+fn model_storage() {
+    use utils::temp_db::with_test_db_path;
+
+
+    // TODO: implement model description
+    with_test_db_path(|test_db_path: PathBuf| {
+        let mut mem_storage = MemStorage::new();
+        test(&mut mem_storage);
+
+        let mut sqlite_storage = SqliteStorage::open(test_db_path).unwrap();
+        test(&mut sqlite_storage);
+    });
+
 
     model! {
         Model => let m = AtomicUsize::new(0),

@@ -57,6 +57,7 @@ impl StorageMut for SqliteStorage {
         Ok(())
     }
 
+    // TODO: implement API to generate snapshot data (SQLite backup API)
     fn create_snapshot(&self, idx: u64, cs: Option<ConfState>, data: Vec<u8>) -> RaftResult<()> {
         self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
             let sqlite_snapshot = SqliteSnapshot::query(tx, core_id)?;

@@ -51,6 +51,9 @@ use sqlite_raft_storage::SqliteStorage;
 
 type ProposeCallback = Box<Fn() + Send>;
 
+// TODO: add API for grpc thread (propose)
+// TODO: evaluate channel based callback
+
 #[derive(Serialize, SerDebug)]
 enum TransportMessage {
     Propose(Propose),
@@ -78,6 +81,10 @@ impl Propose {
     }
 }
 
+// TODO: trait for Node2Node Communication
+// TODO: use crossbeam channels
+// TODO: compare with new raft-rs testing harness
+// TODO: single thread round robin cluster?
 struct Router {
     senders: Vec<Sender<TransportMessage>>,
     receiver: Receiver<TransportMessage>,
@@ -162,6 +169,8 @@ fn launch_cluster(node_count: u64) -> Result<(), Error> {
     Ok(())
 }
 
+
+// TODO: extract node_config (storage impl, raft config, node_id, peers, router)
 fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool)
                -> Result<(), Error> {
     // Create a storage for Raft, and here we just use a simple memory storage.

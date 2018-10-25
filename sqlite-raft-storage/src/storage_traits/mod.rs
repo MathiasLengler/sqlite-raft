@@ -26,7 +26,6 @@ pub trait StorageMut: Storage {
     fn append(&self, entries: &[Entry]) -> RaftResult<()>;
 }
 
-// TODO: cfg test + impls
 pub trait StorageTestable: StorageMut + Debug {
     fn set_entries(&self, entries: &[Entry]);
 

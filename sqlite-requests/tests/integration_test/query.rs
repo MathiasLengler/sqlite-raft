@@ -51,7 +51,7 @@ fn test_query_indexed() {
 
             let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
             let expected_results = queued_params.iter().map(|params| {
-                let mapped_rows = expected_stmt.query_map(params, Country::from_indexed_rusqlite_row).unwrap();
+                let mapped_rows = expected_stmt.query_map(*params, Country::from_indexed_rusqlite_row).unwrap();
                 mapped_rows.map(|row| row.unwrap()).collect::<Vec<_>>()
             }).collect::<Vec<_>>();
 

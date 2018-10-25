@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run sqlite-raft-node" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="channel" value="DEFAULT" />
+    <option name="command" value="run --bin sqlite-raft-node" />
+    <option name="allFeatures" value="true" />
+    <option name="backtrace" value="SHORT" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/sqlite-raft-node" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

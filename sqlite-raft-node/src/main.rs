@@ -25,8 +25,12 @@ extern crate serde_derive;
 extern crate serdebug;
 
 extern crate bincode;
+extern crate sqlite_raft_storage;
+extern crate failure;
 
 mod log_entry;
+
+use failure::Error;
 
 use log::LevelFilter;
 use raft::prelude::*;
@@ -42,8 +46,13 @@ use std::time::{Duration, Instant};
 use log_entry::LogEntry;
 use log_entry::LogEntryFactory;
 use log_entry::LogEntryKey;
+use sqlite_raft_storage::storage_traits::StorageMut;
+use sqlite_raft_storage::SqliteStorage;
 
 type ProposeCallback = Box<Fn() + Send>;
+
+// TODO: add API for grpc thread (propose)
+// TODO: evaluate channel based callback
 
 #[derive(Serialize, SerDebug)]
 enum TransportMessage {
@@ -72,6 +81,10 @@ impl Propose {
     }
 }
 
+// TODO: trait for Node2Node Communication
+// TODO: use crossbeam channels
+// TODO: compare with new raft-rs testing harness
+// TODO: single thread round robin cluster?
 struct Router {
     senders: Vec<Sender<TransportMessage>>,
     receiver: Receiver<TransportMessage>,
@@ -117,17 +130,19 @@ impl Router {
 
 
 // A simple example about how to use the Raft library in Rust.
-fn main() {
+fn main() -> Result<(), Error> {
     init_log();
 
-    launch_cluster(3);
+    launch_cluster(3)?;
+
+    Ok(())
 }
 
 fn init_log() {
     TermLogger::init(LevelFilter::Debug, LogConfig::default()).unwrap();
 }
 
-fn launch_cluster(node_count: u64) {
+fn launch_cluster(node_count: u64) -> Result<(), Error> {
     let mut handles: Vec<JoinHandle<_>> = vec![];
 
     let node_ids = 1..=node_count;
@@ -148,15 +163,22 @@ fn launch_cluster(node_count: u64) {
     }
 
     for handle in handles {
-        handle.join().unwrap();
+        handle.join().unwrap()?;
     }
+
+    Ok(())
 }
 
-fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool) {
+
+// TODO: extract node_config (storage impl, raft config, node_id, peers, router)
+fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool)
+               -> Result<(), Error> {
     // Create a storage for Raft, and here we just use a simple memory storage.
     // You need to build your own persistent storage in your production.
     // Please check the Storage trait in src/storage.rs to see how to implement one.
-    let storage = MemStorage::new();
+    // let storage = MemStorage::new();
+
+    let storage = SqliteStorage::open(format!("res/debug/raft_storage_{}.sqlite3", node_id))?;
 
     // Create the configuration for the Raft node.
     let cfg = Config {
@@ -213,7 +235,7 @@ fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool) {
             }
             Ok(TransportMessage::Raft(m)) => r.step(m).unwrap(),
             Err(RecvTimeoutError::Timeout) => (),
-            Err(RecvTimeoutError::Disconnected) => return,
+            Err(RecvTimeoutError::Disconnected) => return Ok(()),
         }
 
         let d = t.elapsed();
@@ -226,15 +248,16 @@ fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool) {
             timeout -= d;
         }
 
-        on_ready(&mut r, &mut cbs, &router);
+        on_ready(&mut r, &mut cbs, &router)?;
     }
 }
 
-fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeCallback>, router: &Router) {
+fn on_ready<S: StorageMut>(r: &mut RawNode<S>, cbs: &mut HashMap<LogEntryKey, ProposeCallback>, router: &Router)
+                           -> Result<(), Error> {
 //    debug!("{} RawNode:\n{}", r.raft.tag, serde_json::to_string_pretty(&r).unwrap());
 
     if !r.has_ready() {
-        return;
+        return Ok(());
     }
 
     // The Raft is ready, we can do something now.
@@ -256,7 +279,6 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeC
     if !raft::is_empty_snap(&ready.snapshot) {
         // This is a snapshot, we need to apply the snapshot at first.
         r.mut_store()
-            .wl()
             // TODO: remove clone
             .apply_snapshot(ready.snapshot.clone())
             .unwrap();
@@ -264,12 +286,12 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeC
 
     if !ready.entries.is_empty() {
         // Append entries to the Raft log
-        r.mut_store().wl().append(&ready.entries).unwrap();
+        r.mut_store().append(&ready.entries).unwrap();
     }
 
     if let Some(ref hs) = ready.hs {
         // Raft HardState changed, and we need to persist it.
-        r.mut_store().wl().set_hardstate(hs.clone());
+        r.mut_store().set_hardstate(hs.clone())?;
     }
 
     if !is_leader {
@@ -316,6 +338,8 @@ fn on_ready(r: &mut RawNode<MemStorage>, cbs: &mut HashMap<LogEntryKey, ProposeC
 
     // Advance the Raft
     r.advance(ready);
+
+    Ok(())
 }
 
 fn send_propose(sender: mpsc::Sender<TransportMessage>, mut log_entry_factory: LogEntryFactory) {
@@ -323,7 +347,7 @@ fn send_propose(sender: mpsc::Sender<TransportMessage>, mut log_entry_factory: L
         // Wait some time and send the request to the Raft.
         thread::sleep(Duration::from_secs(10));
 
-        let propose_count = 3;
+        let propose_count = 1;
 
         let mut cb_rxs: Vec<Receiver<u64>> = vec![];
 
@@ -360,6 +384,5 @@ fn send_propose(sender: mpsc::Sender<TransportMessage>, mut log_entry_factory: L
         results.sort();
 
         assert_eq!(&results, &(0..propose_count).collect::<Vec<_>>())
-
     });
 }

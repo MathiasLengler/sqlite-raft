@@ -23,6 +23,7 @@ use std::fmt;
 use std::fmt::Debug;
 use std::path::Path;
 use std::sync::RwLock;
+use rusqlite::NO_PARAMS;
 
 pub(crate) mod model;
 pub mod storage_traits;
@@ -81,7 +82,7 @@ impl SqliteStorage {
 
     fn create_tables_if_not_exists(tx: &Transaction) -> Result<()> {
         let mut stmt = tx.prepare(SqliteStorage::SQL_EXISTS)?;
-        if !stmt.exists(&[])? {
+        if !stmt.exists(NO_PARAMS)? {
             tx.execute_batch(SqliteStorage::SQL_CREATE_TABLES)?;
         }
         Ok(())

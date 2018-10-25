@@ -16,7 +16,7 @@ raft = { path = "../raft-rs" }
 sqlite-requests = { path = "../sqlite-requests"}
 
 [dependencies.grpcio]
-version = "0.3.1"
+version = "0.4.0"
 default-features = false
 features = ["protobuf-codec"]
 

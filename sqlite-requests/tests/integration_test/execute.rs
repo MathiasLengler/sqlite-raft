@@ -19,7 +19,7 @@ fn test_execute_indexed() {
 
             let mut expected_stmt = expected_conn.prepare(&sql).unwrap();
             let expected_results = queued_params.iter().map(|params| {
-                expected_stmt.execute(params).unwrap()
+                expected_stmt.execute(*params).unwrap()
             }).collect::<Vec<_>>();
 
             assert_eq!(expected_results, mapped_execute_results);

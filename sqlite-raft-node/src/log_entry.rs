@@ -1,5 +1,8 @@
 use bincode::{self, Result as BincodeResult};
 
+// TODO: integrate sqlite-requests
+//  should be generic of the log entry content but allow debugging
+
 #[derive(Debug)]
 pub struct LogEntryFactory {
     node_id: u64,

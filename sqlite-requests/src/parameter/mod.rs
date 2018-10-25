@@ -23,6 +23,7 @@ impl QueuedParameters {
         Ok(())
     }
 
+    // TODO: sync with rusqlite API updates
     pub(crate) fn new_indexed(queued_indexed_parameters: &[&[&ToSql]]) -> Result<QueuedParameters> {
         Self::assert_slice(queued_indexed_parameters)?;
 

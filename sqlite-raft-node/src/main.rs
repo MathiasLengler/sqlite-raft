@@ -11,58 +11,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate bincode;
+extern crate failure;
 #[macro_use]
 extern crate log;
 extern crate raft;
-extern crate serde_json;
-extern crate simplelog;
 extern crate serde;
-
 #[macro_use]
 extern crate serde_derive;
-
+extern crate serde_json;
 #[macro_use]
 extern crate serdebug;
-
-extern crate bincode;
+extern crate simplelog;
 extern crate sqlite_raft_storage;
-extern crate failure;
-
-mod log_entry;
 
 use failure::Error;
-
 use log::LevelFilter;
+use log_entry::LogEntry;
+use log_entry::LogEntryFactory;
+use log_entry::LogEntryKey;
 use raft::prelude::*;
 use raft::storage::MemStorage;
+use router::Router;
 use simplelog::{Config as LogConfig, TermLogger};
+use sqlite_raft_storage::SqliteStorage;
+use sqlite_raft_storage::storage_traits::StorageMut;
 use std::collections::HashMap;
 use std::sync::mpsc::{self, RecvTimeoutError};
-use std::sync::mpsc::Sender;
 use std::sync::mpsc::Receiver;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
-use log_entry::LogEntry;
-use log_entry::LogEntryFactory;
-use log_entry::LogEntryKey;
-use sqlite_raft_storage::storage_traits::StorageMut;
-use sqlite_raft_storage::SqliteStorage;
+
+mod log_entry;
 
 type ProposeCallback = Box<Fn() + Send>;
+
+mod router;
 
 // TODO: add API for grpc thread (propose)
 // TODO: evaluate channel based callback
 
 #[derive(Serialize, SerDebug)]
-enum TransportMessage {
+pub enum TransportMessage {
     Propose(Propose),
     #[serde(skip_serializing)]
     Raft(Message),
 }
 
 #[derive(Serialize)]
-struct Propose {
+pub struct Propose {
     pub log_entry: LogEntry,
     #[serde(skip_serializing)]
     pub cb: ProposeCallback,
@@ -78,53 +76,6 @@ impl Propose {
 
     fn into_msg(self) -> TransportMessage {
         TransportMessage::Propose(self)
-    }
-}
-
-// TODO: trait for Node2Node Communication
-// TODO: use crossbeam channels
-// TODO: compare with new raft-rs testing harness
-// TODO: single thread round robin cluster?
-struct Router {
-    senders: Vec<Sender<TransportMessage>>,
-    receiver: Receiver<TransportMessage>,
-    own_node_id: u64,
-}
-
-impl Router {
-    pub fn new_mesh(node_count: u64) -> Vec<Router> {
-        let node_ids = 1..=node_count;
-
-        let (senders, receivers): (Vec<Sender<TransportMessage>>, Vec<Receiver<TransportMessage>>) =
-            node_ids
-                .map(|_| mpsc::channel::<TransportMessage>())
-                .unzip();
-
-        receivers.into_iter().enumerate().map(|(i, receiver)| {
-            let own_node_id = (i + 1) as u64;
-
-            Router {
-                senders: senders.clone(),
-                receiver,
-                own_node_id,
-            }
-        }).collect()
-    }
-
-    pub fn send_raft(&self, msg: Message) {
-        if msg.to == self.own_node_id {
-            panic!("Tried to send message to own node: {:?} ", msg)
-        }
-
-        self.get_sender(msg.to).send(TransportMessage::Raft(msg)).unwrap();
-    }
-
-    fn get_sender(&self, node_id: u64) -> &Sender<TransportMessage> {
-        &self.senders[(node_id - 1) as usize]
-    }
-
-    pub fn clone_own_sender(&self) -> Sender<TransportMessage> {
-        self.get_sender(self.own_node_id).clone()
     }
 }
 
@@ -156,7 +107,7 @@ fn launch_cluster(node_count: u64) -> Result<(), Error> {
             let peers: Vec<u64> = node_ids.collect();
             let propose = node_id == 1;
 
-            launch_node(node_id, peers, router, propose)
+            launch_node(NodeConfig { node_id, peers, router, propose })
         });
 
         handles.push(handle);
@@ -169,14 +120,26 @@ fn launch_cluster(node_count: u64) -> Result<(), Error> {
     Ok(())
 }
 
+struct NodeConfig {
+    pub node_id: u64,
+    pub peers: Vec<u64>,
+    pub router: Router,
+    pub propose: bool,
+}
 
 // TODO: extract node_config (storage impl, raft config, node_id, peers, router)
-fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool)
-               -> Result<(), Error> {
+fn launch_node(node_config: NodeConfig) -> Result<(), Error> {
     // Create a storage for Raft, and here we just use a simple memory storage.
     // You need to build your own persistent storage in your production.
     // Please check the Storage trait in src/storage.rs to see how to implement one.
     // let storage = MemStorage::new();
+
+    let NodeConfig {
+        node_id,
+        peers,
+        router,
+        propose,
+    } = node_config;
 
     let storage = SqliteStorage::open(format!("res/debug/raft_storage_{}.sqlite3", node_id))?;
 
@@ -226,8 +189,9 @@ fn launch_node(node_id: u64, peers: Vec<u64>, router: Router, propose: bool)
     // Use a HashMap to hold the `propose` callbacks.
     let mut cbs = HashMap::new();
 
+    // TODO: external stepping (debug)
     loop {
-        match router.receiver.recv_timeout(timeout) {
+        match router.receiver().recv_timeout(timeout) {
             Ok(TransportMessage::Propose(Propose { log_entry, cb })) => {
                 cbs.insert(log_entry.key(), cb);
 

@@ -49,6 +49,7 @@ impl SqliteEntry {
         Ok(())
     }
 
+    // TODO: replace hacky implementation
     pub(super) fn is_not_empty(tx: &Transaction, core_id: CoreId) -> Result<bool> {
         Ok(match SqliteEntry::last_index(tx, core_id) {
             Ok(_) => {

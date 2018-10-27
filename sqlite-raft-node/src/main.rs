@@ -12,6 +12,7 @@
 // limitations under the License.
 
 extern crate bincode;
+extern crate crossbeam_channel as channel;
 extern crate failure;
 #[macro_use]
 extern crate log;
@@ -25,6 +26,8 @@ extern crate serdebug;
 extern crate simplelog;
 extern crate sqlite_raft_storage;
 
+use channel::{Receiver, Sender};
+use channel::select;
 use failure::Error;
 use log::LevelFilter;
 use log_entry::LogEntry;
@@ -37,11 +40,10 @@ use simplelog::{Config as LogConfig, TermLogger};
 use sqlite_raft_storage::SqliteStorage;
 use sqlite_raft_storage::storage_traits::StorageMut;
 use std::collections::HashMap;
-use std::sync::mpsc::{self, RecvTimeoutError};
-use std::sync::mpsc::Receiver;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
+
 
 mod log_entry;
 
@@ -127,7 +129,6 @@ struct NodeConfig {
     pub propose: bool,
 }
 
-// TODO: extract node_config (storage impl, raft config, node_id, peers, router)
 fn launch_node(node_config: NodeConfig) -> Result<(), Error> {
     // Create a storage for Raft, and here we just use a simple memory storage.
     // You need to build your own persistent storage in your production.
@@ -191,15 +192,31 @@ fn launch_node(node_config: NodeConfig) -> Result<(), Error> {
 
     // TODO: external stepping (debug)
     loop {
-        match router.receiver().recv_timeout(timeout) {
-            Ok(TransportMessage::Propose(Propose { log_entry, cb })) => {
-                cbs.insert(log_entry.key(), cb);
+        fn on_msg<S: StorageMut>(msg: Option<TransportMessage>, r: &mut RawNode<S>, cbs: &mut HashMap<LogEntryKey, ProposeCallback>)
+                                 -> Result<bool, Error> {
+            match msg {
+                Some(msg) => {
+                    match msg {
+                        TransportMessage::Propose(Propose { log_entry, cb }) => {
+                            cbs.insert(log_entry.key(), cb);
 
-                r.propose(vec![], log_entry.to_vec_u8()).unwrap();
+                            r.propose(vec![], log_entry.to_vec_u8()).unwrap();
+                        }
+                        TransportMessage::Raft(m) => r.step(m).unwrap(),
+                    };
+
+                    Ok(true)
+                }
+                // channel closed
+                None => Ok(false),
             }
-            Ok(TransportMessage::Raft(m)) => r.step(m).unwrap(),
-            Err(RecvTimeoutError::Timeout) => (),
-            Err(RecvTimeoutError::Disconnected) => return Ok(()),
+        };
+
+        select! {
+            recv(router.receiver(), msg) => if !on_msg(msg, &mut r, &mut cbs)? {
+                return Ok(())
+            },
+            recv(channel::after(timeout)) => (),
         }
 
         let d = t.elapsed();
@@ -286,6 +303,8 @@ fn on_ready<S: StorageMut>(r: &mut RawNode<S>, cbs: &mut HashMap<LogEntryKey, Pr
             }
 
             if entry.get_entry_type() == EntryType::EntryNormal {
+                // TODO: Callback/Request manager
+
                 let log_entry = LogEntry::try_from(entry.get_data()).unwrap();
 
                 if let Some(cb) = cbs.remove(&log_entry.key()) {
@@ -306,7 +325,7 @@ fn on_ready<S: StorageMut>(r: &mut RawNode<S>, cbs: &mut HashMap<LogEntryKey, Pr
     Ok(())
 }
 
-fn send_propose(sender: mpsc::Sender<TransportMessage>, mut log_entry_factory: LogEntryFactory) {
+fn send_propose(sender: Sender<TransportMessage>, mut log_entry_factory: LogEntryFactory) {
     thread::spawn(move || {
         // Wait some time and send the request to the Raft.
         thread::sleep(Duration::from_secs(10));
@@ -320,7 +339,7 @@ fn send_propose(sender: mpsc::Sender<TransportMessage>, mut log_entry_factory: L
             // and get the result.
             println!("propose request {}", propose_index);
 
-            let (cb_tx, cb_rx) = mpsc::channel::<u64>();
+            let (cb_tx, cb_rx) = channel::unbounded::<u64>();
 
             cb_rxs.push(cb_rx);
 
@@ -328,13 +347,12 @@ fn send_propose(sender: mpsc::Sender<TransportMessage>, mut log_entry_factory: L
                 &mut log_entry_factory,
                 "Hello World!".to_string(),
                 Box::new(move || {
-                    cb_tx.send(propose_index).unwrap();
+                    cb_tx.send(propose_index);
                 }),
             ).into_msg();
 
             sender
-                .send(msg)
-                .unwrap();
+                .send(msg);
         }
 
         let mut results = cb_rxs.into_iter().map(|cb_rx| {

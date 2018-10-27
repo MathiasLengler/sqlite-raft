@@ -1,12 +1,9 @@
-
 use raft::prelude::*;
-use std::sync::mpsc;
-use std::sync::mpsc::Sender;
-use std::sync::mpsc::Receiver;
 use TransportMessage;
 
+use channel::{self, Receiver, Sender};
+
 // TODO: trait for Node2Node Communication
-// TODO: use crossbeam channels
 // TODO: compare with new raft-rs testing harness
 // TODO: single thread round robin cluster?
 
@@ -26,7 +23,7 @@ impl Router {
 
         let (senders, receivers): (Vec<Sender<TransportMessage>>, Vec<Receiver<TransportMessage>>) =
             node_ids
-                .map(|_| mpsc::channel::<TransportMessage>())
+                .map(|_| channel::unbounded::<TransportMessage>())
                 .unzip();
 
         receivers.into_iter().enumerate().map(|(i, receiver)| {
@@ -45,7 +42,7 @@ impl Router {
             panic!("Tried to send message to own node: {:?} ", msg)
         }
 
-        self.get_sender(msg.to).send(TransportMessage::Raft(msg)).unwrap();
+        self.get_sender(msg.to).send(TransportMessage::Raft(msg));
     }
 
     pub fn receiver(&self) -> &Receiver<TransportMessage> {

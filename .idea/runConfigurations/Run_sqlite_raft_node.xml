@@ -3,7 +3,7 @@
     <option name="channel" value="DEFAULT" />
     <option name="command" value="run --bin sqlite-raft-node" />
     <option name="allFeatures" value="true" />
-    <option name="backtrace" value="SHORT" />
+    <option name="backtrace" value="FULL" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$/sqlite-raft-node" />
     <envs />
     <method v="2" />

@@ -3,12 +3,14 @@ use model::core::CoreId;
 use raft::eraftpb::Snapshot;
 use raft::eraftpb::SnapshotMetadata;
 use rusqlite::Transaction;
+pub use self::builder::SnapshotDataBuilder;
 use self::node::SqliteConfState;
 pub use self::raw_snapshot::metadata::SqliteSnapshotMetadata;
 use self::raw_snapshot::RawSqliteSnapshot;
 
 pub mod node;
 mod raw_snapshot;
+mod builder;
 
 pub struct SqliteSnapshot {
     raw_snapshot: RawSqliteSnapshot,

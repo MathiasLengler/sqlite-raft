@@ -1,14 +1,16 @@
 use error::Result;
 use rusqlite::Transaction;
 use rusqlite::types::ToSql;
+pub use self::transaction::CoreTx;
 
+mod transaction;
 
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
 pub struct CoreId(i64);
 
 impl CoreId {
-    const SQL_EXISTS: &'static str = include_str!("../../res/sql/core/exists.sql");
-    const SQL_INSERT: &'static str = include_str!("../../res/sql/core/insert.sql");
+    const SQL_EXISTS: &'static str = include_str!("../../../res/sql/core/exists.sql");
+    const SQL_INSERT: &'static str = include_str!("../../../res/sql/core/insert.sql");
 
     pub fn as_named_param(&self) -> (&'static str, &ToSql) {
         (":core_id", &self.0)

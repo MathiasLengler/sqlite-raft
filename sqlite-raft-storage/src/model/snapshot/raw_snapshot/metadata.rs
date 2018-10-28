@@ -1,7 +1,6 @@
 use error::Result;
-use model::core::CoreId;
+use model::core::CoreTx;
 use rusqlite::Row;
-use rusqlite::Transaction;
 
 pub struct SqliteSnapshotMetadata {
     pub index: i64,
@@ -19,10 +18,10 @@ impl SqliteSnapshotMetadata {
         }
     }
 
-    pub fn query(tx: &Transaction, core_id: CoreId) -> Result<SqliteSnapshotMetadata> {
-        tx.query_row_named(
+    pub fn query(core_tx: &CoreTx) -> Result<SqliteSnapshotMetadata> {
+        core_tx.tx().query_row_named(
             SqliteSnapshotMetadata::SQL_QUERY,
-            &[core_id.as_named_param()],
+            &[core_tx.core_id().as_named_param()],
             SqliteSnapshotMetadata::from_row,
         ).map_err(Into::into)
     }

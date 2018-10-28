@@ -1,8 +1,8 @@
 use error::Result;
 use model::core::CoreId;
+use model::core::CoreTx;
 use model::snapshot::raw_snapshot::metadata::SqliteSnapshotMetadata;
 use rusqlite::Row;
-use rusqlite::Transaction;
 use rusqlite::types::ToSql;
 
 pub mod metadata;
@@ -32,20 +32,20 @@ impl RawSqliteSnapshot {
 
         RawSqliteSnapshot {
             data: row.get("data"),
-            metadata: SqliteSnapshotMetadata::from_row(row)
+            metadata: SqliteSnapshotMetadata::from_row(row),
         }
     }
 
-    pub fn query(tx: &Transaction, core_id: CoreId) -> Result<RawSqliteSnapshot> {
-        tx.query_row_named(
+    pub fn query(core_tx: &CoreTx) -> Result<RawSqliteSnapshot> {
+        core_tx.tx().query_row_named(
             RawSqliteSnapshot::SQL_QUERY,
-            &[core_id.as_named_param()],
+            &[core_tx.core_id().as_named_param()],
             RawSqliteSnapshot::from_row,
         ).map_err(Into::into)
     }
 
-    pub(super) fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        tx.execute_named(RawSqliteSnapshot::SQL_INSERT_OR_REPLACE, &self.as_named_params(&core_id))?;
+    pub(super) fn insert_or_replace(&self, core_tx: &CoreTx) -> Result<()> {
+        core_tx.tx().execute_named(RawSqliteSnapshot::SQL_INSERT_OR_REPLACE, &self.as_named_params(&core_tx.core_id()))?;
 
         Ok(())
     }

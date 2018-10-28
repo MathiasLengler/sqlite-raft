@@ -3,13 +3,13 @@ pub struct SnapshotDataBuilder {
 }
 
 impl SnapshotDataBuilder {
-    fn new(idx: u64) -> SnapshotDataBuilder {
+    pub fn new(idx: u64) -> SnapshotDataBuilder {
         SnapshotDataBuilder {
             idx
         }
     }
 
-    fn build() -> Vec<u8> {
+    pub fn build() -> Vec<u8> {
         // TODO
         unimplemented!()
     }

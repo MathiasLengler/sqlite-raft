@@ -1,10 +1,10 @@
 use failure::Backtrace;
 use failure::Fail;
+use raft::eraftpb::Entry;
 use raft::Error as RaftError;
 use raft::StorageError as RaftStorageError;
 use std::fmt;
 use std::fmt::Display;
-use raft::eraftpb::Entry;
 
 #[derive(Debug, Fail)]
 pub struct NonSequentialEntryPair {

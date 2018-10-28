@@ -1,9 +1,8 @@
-use SqliteStorage;
 use error::Result;
+use model::core::CoreTx;
 use model::entry::SqliteEntries;
 use model::entry::SqliteEntry;
-use rusqlite::Transaction;
-use model::core::CoreId;
+use SqliteStorage;
 
 #[derive(Debug)]
 pub struct SqliteStorageDebugView {
@@ -14,11 +13,11 @@ pub struct SqliteStorageDebugView {
 
 impl<'a> From<&'a SqliteStorage> for SqliteStorageDebugView {
     fn from(sqlite_storage: &SqliteStorage) -> Self {
-        sqlite_storage.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+        sqlite_storage.inside_transaction(|core_tx: &CoreTx| {
             Ok(Self {
-                query_all: SqliteEntries::query_all(tx, core_id),
-                first_index: SqliteEntry::first_index(tx, core_id),
-                last_index: SqliteEntry::last_index(tx, core_id),
+                query_all: SqliteEntries::query_all(core_tx),
+                first_index: SqliteEntry::first_index(core_tx),
+                last_index: SqliteEntry::last_index(core_tx),
             })
         }).unwrap()
     }

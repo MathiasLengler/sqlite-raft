@@ -1,8 +1,8 @@
 use error::Result;
 use model::core::CoreId;
+use model::core::CoreTx;
 use raft::eraftpb::HardState;
 use rusqlite::Row;
-use rusqlite::Transaction;
 use rusqlite::types::ToSql;
 
 pub struct SqliteHardState {
@@ -17,7 +17,7 @@ impl SqliteHardState {
     const SQL_INSERT_OR_REPLACE: &'static str =
         include_str!("../../res/sql/hard_state/insert_or_replace.sql");
 
-    pub fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 4] {
+    fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 4] {
         [
             (":term", &self.term),
             (":vote", &self.vote),
@@ -36,16 +36,16 @@ impl SqliteHardState {
         }
     }
 
-    pub fn query(tx: &Transaction, core_id: CoreId) -> Result<SqliteHardState> {
-        tx.query_row_named(
+    pub fn query(core_tx: &CoreTx) -> Result<SqliteHardState> {
+        core_tx.tx().query_row_named(
             SqliteHardState::SQL_QUERY,
-            &[core_id.as_named_param()],
+            &[core_tx.core_id().as_named_param()],
             SqliteHardState::from_row,
         ).map_err(Into::into)
     }
 
-    pub fn insert_or_replace(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        tx.execute_named(SqliteHardState::SQL_INSERT_OR_REPLACE, &self.as_named_params(&core_id))?;
+    pub fn insert_or_replace(&self, core_tx: &CoreTx) -> Result<()> {
+        core_tx.tx().execute_named(SqliteHardState::SQL_INSERT_OR_REPLACE, &self.as_named_params(&core_tx.core_id()))?;
 
         Ok(())
     }

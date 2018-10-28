@@ -1,11 +1,11 @@
+use error::entries::NonSequentialEntryPair;
 use failure::Backtrace;
-use rusqlite;
-use std::result;
 use raft;
 use raft::Error as RaftError;
 use raft::StorageError as RaftStorageError;
+use rusqlite;
 use self::index::InvalidEntryIndex;
-use error::entries::NonSequentialEntryPair;
+use std::result;
 
 pub mod index;
 pub mod entries;

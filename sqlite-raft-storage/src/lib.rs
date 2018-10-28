@@ -1,3 +1,6 @@
+// TODO: enable
+//#![deny(bare_trait_objects)]
+
 #[macro_use]
 extern crate failure;
 extern crate protobuf;
@@ -7,6 +10,7 @@ extern crate rusqlite;
 use debug::SqliteStorageDebugView;
 use error::Result;
 use model::core::CoreId;
+use model::core::CoreTx;
 use model::entry::SqliteEntries;
 use model::entry::SqliteEntry;
 use model::hard_state::SqliteHardState;
@@ -18,12 +22,12 @@ use raft::RaftState;
 use raft::Result as RaftResult;
 use raft::Storage;
 use rusqlite::Connection;
+use rusqlite::NO_PARAMS;
 use rusqlite::Transaction;
 use std::fmt;
 use std::fmt::Debug;
 use std::path::Path;
 use std::sync::RwLock;
-use rusqlite::NO_PARAMS;
 
 pub(crate) mod model;
 pub mod storage_traits;
@@ -63,17 +67,17 @@ impl SqliteStorage {
     }
 
     fn init(&self) -> Result<()> {
-        self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
-            tx.execute_batch(SqliteStorage::SQL_ON_OPEN)?;
+        self.inside_transaction(|core_tx: &CoreTx| {
+            core_tx.tx().execute_batch(SqliteStorage::SQL_ON_OPEN)?;
 
-            SqliteStorage::create_tables_if_not_exists(tx)?;
+            SqliteStorage::create_tables_if_not_exists(core_tx.tx())?;
 
-            if !core_id.exists(tx)? {
-                core_id.insert(tx)?;
+            if !core_tx.core_id().exists(core_tx.tx())? {
+                core_tx.core_id().insert(core_tx.tx())?;
 
-                SqliteHardState::default().insert_or_replace(tx, core_id)?;
-                SqliteSnapshot::default().insert_or_replace(tx, core_id)?;
-                SqliteEntries::default().replace_all(tx, core_id)?;
+                SqliteHardState::default().insert_or_replace(core_tx)?;
+                SqliteSnapshot::default().insert_or_replace(core_tx)?;
+                SqliteEntries::default().replace_all(core_tx)?;
             }
 
             Ok(())
@@ -88,13 +92,18 @@ impl SqliteStorage {
         Ok(())
     }
 
-    fn inside_transaction<T>(&self, f: impl FnOnce(&Transaction, CoreId) -> Result<T>) -> Result<T> {
+    fn inside_transaction<T>(&self, f: impl FnOnce(&CoreTx) -> Result<T>) -> Result<T> {
         // TODO: handle poisoned lock
         let mut wl_conn = self.conn.write().unwrap();
 
         let tx = wl_conn.transaction()?;
 
-        let res = f(&tx, self.id)?;
+
+        let res = {
+            let core_tx = CoreTx::new(&tx, self.id);
+
+            f(&core_tx)?
+        };
 
         tx.commit()?;
 
@@ -108,10 +117,10 @@ impl SqliteStorage {
 
 impl Storage for SqliteStorage {
     fn initial_state(&self) -> RaftResult<RaftState> {
-        let raft_state = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
+        let raft_state = self.inside_transaction(|core_tx: &CoreTx| {
             Ok(RaftState {
-                hard_state: SqliteHardState::query(tx, core_id)?.into(),
-                conf_state: SqliteConfState::query(tx, core_id)?.into(),
+                hard_state: SqliteHardState::query(core_tx)?.into(),
+                conf_state: SqliteConfState::query(core_tx)?.into(),
             })
         })?;
 
@@ -121,8 +130,8 @@ impl Storage for SqliteStorage {
     fn entries(&self, low: u64, high: u64, max_size: u64) -> RaftResult<Vec<Entry>> {
         use raft::util::limit_size;
 
-        let sqlite_entries: SqliteEntries = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
-            SqliteEntries::query(&tx, core_id, low, high)
+        let sqlite_entries: SqliteEntries = self.inside_transaction(|core_tx: &CoreTx| {
+            SqliteEntries::query(core_tx, low, high)
         })?;
 
         let mut entries: Vec<Entry> = sqlite_entries.into();
@@ -133,8 +142,8 @@ impl Storage for SqliteStorage {
     }
 
     fn term(&self, idx: u64) -> RaftResult<u64> {
-        let sqlite_entry: SqliteEntry = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
-            SqliteEntry::query(tx, core_id, idx)
+        let sqlite_entry: SqliteEntry = self.inside_transaction(|core_tx: &CoreTx| {
+            SqliteEntry::query(core_tx, idx)
         })?;
 
         let entry: Entry = sqlite_entry.into();
@@ -143,8 +152,8 @@ impl Storage for SqliteStorage {
     }
 
     fn first_index(&self) -> RaftResult<u64> {
-        let idx = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
-            SqliteEntry::first_index(tx, core_id)
+        let idx = self.inside_transaction(|core_tx: &CoreTx| {
+            SqliteEntry::first_index(core_tx)
         })?;
 
         // Don't return first dummy entry
@@ -152,16 +161,16 @@ impl Storage for SqliteStorage {
     }
 
     fn last_index(&self) -> RaftResult<u64> {
-        let idx = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
-            SqliteEntry::last_index(tx, core_id)
+        let idx = self.inside_transaction(|core_tx: &CoreTx| {
+            SqliteEntry::last_index(core_tx)
         })?;
 
         Ok(idx)
     }
 
     fn snapshot(&self) -> RaftResult<Snapshot> {
-        let sqlite_snapshot: SqliteSnapshot = self.inside_transaction(|tx: &Transaction, core_id: CoreId| {
-            SqliteSnapshot::query(tx, core_id)
+        let sqlite_snapshot: SqliteSnapshot = self.inside_transaction(|core_tx: &CoreTx| {
+            SqliteSnapshot::query(core_tx)
         })?;
 
         let snapshot: Snapshot = sqlite_snapshot.into();

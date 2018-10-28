@@ -4,12 +4,12 @@ use error::index::InvalidEntryIndex;
 use error::Result;
 use failure::Backtrace;
 use model::core::CoreId;
+use model::core::CoreTx;
 use protobuf::ProtobufEnum;
 use raft::eraftpb::Entry;
 use raft::eraftpb::EntryType;
 use rusqlite::Error as RusqliteError;
 use rusqlite::Row;
-use rusqlite::Transaction;
 use rusqlite::types::ToSql;
 
 
@@ -39,19 +39,19 @@ impl SqliteEntry {
     const SQL_INSERT: &'static str =
         include_str!("../../../../res/sql/entry/insert.sql");
 
-    fn assert_invariants(tx: &Transaction, core_id: CoreId) -> Result<()> {
+    fn assert_invariants(core_tx: &CoreTx) -> Result<()> {
         use super::SqliteEntries;
 
-        if Self::is_not_empty(tx, core_id)? {
-            SqliteEntries::query_all(tx, core_id)?;
+        if Self::is_not_empty(core_tx)? {
+            SqliteEntries::query_all(core_tx)?;
         }
 
         Ok(())
     }
 
     // TODO: replace hacky implementation
-    pub(super) fn is_not_empty(tx: &Transaction, core_id: CoreId) -> Result<bool> {
-        Ok(match SqliteEntry::last_index(tx, core_id) {
+    pub(super) fn is_not_empty(core_tx: &CoreTx) -> Result<bool> {
+        Ok(match SqliteEntry::last_index(core_tx) {
             Ok(_) => {
                 true
             }
@@ -113,36 +113,36 @@ impl SqliteEntry {
         Ok(())
     }
 
-    pub fn first_index(tx: &Transaction, core_id: CoreId) -> Result<u64> {
-        let index = tx.query_row_named(
+    pub fn first_index(core_tx: &CoreTx) -> Result<u64> {
+        let index = core_tx.tx().query_row_named(
             Self::SQL_QUERY_FIRST_INDEX,
-            &[core_id.as_named_param()],
+            &[core_tx.core_id().as_named_param()],
             Self::index_from_row,
         )?;
         Ok(index as u64)
     }
 
-    pub fn last_index(tx: &Transaction, core_id: CoreId) -> Result<u64> {
-        let index = tx.query_row_named(
+    pub fn last_index(core_tx: &CoreTx) -> Result<u64> {
+        let index = core_tx.tx().query_row_named(
             Self::SQL_QUERY_LAST_INDEX,
-            &[core_id.as_named_param()],
+            &[core_tx.core_id().as_named_param()],
             Self::index_from_row,
         )?;
         Ok(index as u64)
     }
 
-    pub fn query(tx: &Transaction, core_id: CoreId, idx: u64) -> Result<SqliteEntry> {
+    pub fn query(core_tx: &CoreTx, idx: u64) -> Result<SqliteEntry> {
         Self::validate_index(
             idx,
-            SqliteEntry::first_index(&tx, core_id)?,
-            SqliteEntry::last_index(&tx, core_id)?,
+            SqliteEntry::first_index(&core_tx)?,
+            SqliteEntry::last_index(&core_tx)?,
         )?;
 
         let idx = idx as i64;
 
-        let sqlite_entry = tx.query_row_named(
+        let sqlite_entry = core_tx.tx().query_row_named(
             Self::SQL_QUERY,
-            &Self::query_params(&idx, &core_id),
+            &Self::query_params(&idx, &core_tx.core_id()),
             Self::from_row,
         )?;
 
@@ -156,34 +156,34 @@ impl SqliteEntry {
         ]
     }
 
-    pub(super) fn insert(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        debug_assert_eq!(Self::assert_invariants(tx, core_id), Ok(()), "SqliteEntry::insert precondition failed");
+    pub(super) fn insert(&self, core_tx: &CoreTx) -> Result<()> {
+        debug_assert_eq!(Self::assert_invariants(core_tx), Ok(()), "SqliteEntry::insert precondition failed");
 
-        tx.execute_named(Self::SQL_INSERT, &self.as_named_params(&core_id))?;
+        core_tx.tx().execute_named(Self::SQL_INSERT, &self.as_named_params(&core_tx.core_id()))?;
 
-        debug_assert_eq!(Self::assert_invariants(tx, core_id), Ok(()), "SqliteEntry::insert postcondition failed");
+        debug_assert_eq!(Self::assert_invariants(core_tx), Ok(()), "SqliteEntry::insert postcondition failed");
 
         Ok(())
     }
 
-    pub(super) fn delete_all(tx: &Transaction, core_id: CoreId) -> Result<()> {
-        tx.execute_named(Self::SQL_DELETE, &[core_id.as_named_param()])?;
+    pub(super) fn delete_all(core_tx: &CoreTx) -> Result<()> {
+        core_tx.tx().execute_named(Self::SQL_DELETE, &[core_tx.core_id().as_named_param()])?;
         Ok(())
     }
 
     /// Truncate the log so this entry can be inserted at the end of the log.
     ///
     /// In other words: delete all entries with an index greater or equal than this entry.
-    pub(super) fn truncate_right(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        tx.execute_named(Self::SQL_DELETE_GREATER_OR_EQUAL_INDEX, &Self::query_params(&self.index, &core_id))?;
+    pub(super) fn truncate_right(&self, core_tx: &CoreTx) -> Result<()> {
+        core_tx.tx().execute_named(Self::SQL_DELETE_GREATER_OR_EQUAL_INDEX, &Self::query_params(&self.index, &core_tx.core_id()))?;
         Ok(())
     }
 
     /// Truncate the log so this entry would be the first entry in the log.
     ///
     /// In other words: delete all entries with an index smaller than this entry.
-    pub fn truncate_left(&self, tx: &Transaction, core_id: CoreId) -> Result<()> {
-        tx.execute_named(Self::SQL_DELETE_SMALLER_INDEX, &Self::query_params(&self.index, &core_id))?;
+    pub fn truncate_left(&self, core_tx: &CoreTx) -> Result<()> {
+        core_tx.tx().execute_named(Self::SQL_DELETE_SMALLER_INDEX, &Self::query_params(&self.index, &core_tx.core_id()))?;
         Ok(())
     }
 

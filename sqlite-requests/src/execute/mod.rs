@@ -1,12 +1,12 @@
+use connection::access::WriteAccess;
 use connection::AccessTransaction;
-use request::Request;
 use error::Result;
 use parameter::IndexedParameters;
 use parameter::NamedParameters;
 use parameter::QueuedParameters;
+use request::Request;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
-use connection::access::WriteAccess;
 
 mod proto_convert;
 
@@ -99,7 +99,7 @@ pub struct ExecuteResult {
 
 impl ExecuteResult {
     /// The number of rows that were changed or inserted or deleted.
-    pub fn changes(&self) -> usize {
+    pub fn changes(self) -> usize {
         self.changes
     }
 }

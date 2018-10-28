@@ -32,6 +32,7 @@ pub(crate) mod model;
 pub mod storage_traits;
 pub mod error;
 pub mod debug;
+pub mod snapshot_data;
 
 // TODO: use in sqlite-raft-node
 // TODO: TryFrom for "as" casts and proto conversions (take_)

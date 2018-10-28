@@ -1,5 +1,4 @@
-// TODO: enable
-//#![deny(bare_trait_objects)]
+#![deny(bare_trait_objects)]
 
 #[macro_use]
 extern crate failure;

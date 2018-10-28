@@ -91,7 +91,7 @@ impl SqliteNode {
         (self.node_id.into(), self.node_type.into())
     }
 
-    pub fn named_params<'a>(node_id: &'a i64, node_type: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 3] {
+    pub fn named_params<'a>(node_id: &'a i64, node_type: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a dyn ToSql); 3] {
         [
             (":node_id", node_id),
             (":node_type", node_type),

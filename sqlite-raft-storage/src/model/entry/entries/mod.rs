@@ -125,7 +125,7 @@ impl SqliteEntries {
                                     SqliteEntry::last_index(&core_tx)?)
     }
 
-    fn query_parameters<'a>(low: &'a i64, high_inclusive: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 3] {
+    fn query_parameters<'a>(low: &'a i64, high_inclusive: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a dyn ToSql); 3] {
         [
             (":low", low),
             (":high_inclusive", high_inclusive),

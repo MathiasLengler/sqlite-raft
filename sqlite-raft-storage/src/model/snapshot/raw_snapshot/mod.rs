@@ -18,7 +18,7 @@ impl RawSqliteSnapshot {
     const SQL_INSERT_OR_REPLACE: &'static str =
         include_str!("../../../../res/sql/snapshot/insert_or_replace.sql");
 
-    fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 4] {
+    fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a dyn ToSql); 4] {
         [
             (":data", &self.data),
             (":index", &self.metadata.index),

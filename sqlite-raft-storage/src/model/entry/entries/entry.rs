@@ -62,7 +62,7 @@ impl SqliteEntry {
         })
     }
 
-    fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 7] {
+    fn as_named_params<'a>(&'a self, core_id: &'a CoreId) -> [(&'static str, &'a dyn ToSql); 7] {
         [
             (":index", &self.index),
             (":term", &self.term),
@@ -149,7 +149,7 @@ impl SqliteEntry {
         Ok(sqlite_entry)
     }
 
-    fn query_params<'a>(idx: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a ToSql); 2] {
+    fn query_params<'a>(idx: &'a i64, core_id: &'a CoreId) -> [(&'static str, &'a dyn ToSql); 2] {
         [
             (":index", idx),
             core_id.as_named_param(),

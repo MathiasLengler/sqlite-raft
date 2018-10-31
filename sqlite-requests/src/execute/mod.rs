@@ -28,7 +28,7 @@ impl BulkExecute {
 impl<A: WriteAccess> Request<A> for BulkExecute {
     type Response = Vec<Vec<ExecuteResult>>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<'_, A>) -> Result<Self::Response> {
         self.executes.iter().map(|execute| {
             execute.apply_to_tx(tx)
         }).collect::<Result<Vec<_>>>()
@@ -44,14 +44,14 @@ pub struct Execute {
 }
 
 impl Execute {
-    pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Execute> {
+    pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&dyn ToSql]]) -> Result<Execute> {
         Ok(Execute {
             sql: sql.to_string(),
             queued_parameters: QueuedParameters::new_indexed(queued_indexed_parameters)?,
         })
     }
 
-    pub fn new_named(sql: &str, queued_named_parameters: &[&[(&str, &ToSql)]]) -> Result<Execute> {
+    pub fn new_named(sql: &str, queued_named_parameters: &[&[(&str, &dyn ToSql)]]) -> Result<Execute> {
         Ok(Execute {
             sql: sql.to_string(),
             queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
@@ -62,13 +62,13 @@ impl Execute {
 impl<A: WriteAccess> Request<A> for Execute {
     type Response = Vec<ExecuteResult>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<'_, A>) -> Result<Self::Response> {
         let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 
         let res = self.queued_parameters.map_parameter_variants(
             &mut stmt,
-            |stmt: &mut Statement, parameters: &IndexedParameters| {
+            |stmt: &mut Statement<'_>, parameters: &IndexedParameters| {
                 let changes = stmt.execute(
                     &parameters.as_arg(),
                 )?;
@@ -77,7 +77,7 @@ impl<A: WriteAccess> Request<A> for Execute {
                     changes,
                 })
             },
-            |stmt: &mut Statement, parameters: &NamedParameters| {
+            |stmt: &mut Statement<'_>, parameters: &NamedParameters| {
                 let changes = stmt.execute_named(
                     &parameters.as_arg(),
                 )?;

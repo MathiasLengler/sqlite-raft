@@ -25,7 +25,7 @@ impl QueuedParameters {
     }
 
     // TODO: sync with rusqlite API updates
-    pub(crate) fn new_indexed(queued_indexed_parameters: &[&[&ToSql]]) -> Result<QueuedParameters> {
+    pub(crate) fn new_indexed(queued_indexed_parameters: &[&[&dyn ToSql]]) -> Result<QueuedParameters> {
         Self::assert_slice(queued_indexed_parameters)?;
 
         let queued_vec = queued_indexed_parameters.iter()
@@ -35,7 +35,7 @@ impl QueuedParameters {
         Ok(QueuedParameters::Indexed(queued_vec))
     }
 
-    pub(crate) fn new_named(queued_named_parameters: &[&[(&str, &ToSql)]]) -> Result<QueuedParameters> {
+    pub(crate) fn new_named(queued_named_parameters: &[&[(&str, &dyn ToSql)]]) -> Result<QueuedParameters> {
         Self::assert_slice(queued_named_parameters)?;
 
         let queued_vec = queued_named_parameters.iter()
@@ -46,9 +46,9 @@ impl QueuedParameters {
     }
 
     pub(crate) fn map_parameter_variants<T>(&self,
-                                            stmt: &mut Statement,
-                                            mut indexed: impl FnMut(&mut Statement, &IndexedParameters) -> Result<T>,
-                                            mut named: impl FnMut(&mut Statement, &NamedParameters) -> Result<T>)
+                                            stmt: &mut Statement<'_>,
+                                            mut indexed: impl FnMut(&mut Statement<'_>, &IndexedParameters) -> Result<T>,
+                                            mut named: impl FnMut(&mut Statement<'_>, &NamedParameters) -> Result<T>)
                                             -> Result<Vec<T>> {
         match self {
             QueuedParameters::Indexed(ref queued_indexed_parameters) => {
@@ -88,7 +88,7 @@ pub struct IndexedParameters {
 }
 
 impl IndexedParameters {
-    fn new(parameters: &[&ToSql]) -> Result<IndexedParameters> {
+    fn new(parameters: &[&dyn ToSql]) -> Result<IndexedParameters> {
         Ok(IndexedParameters {
             parameters: parameters.iter().map(|parameter| {
                 Ok(parameter.to_sql()?.into_value())
@@ -96,8 +96,8 @@ impl IndexedParameters {
         })
     }
 
-    pub(crate) fn as_arg(&self) -> Vec<&ToSql> {
-        self.parameters.iter().map(|value| value as &ToSql).collect()
+    pub(crate) fn as_arg(&self) -> Vec<&dyn ToSql> {
+        self.parameters.iter().map(|value| value as &dyn ToSql).collect()
     }
 }
 
@@ -107,7 +107,7 @@ pub struct NamedParameters {
 }
 
 impl NamedParameters {
-    fn new(parameters: &[(&str, &ToSql)]) -> Result<NamedParameters> {
+    fn new(parameters: &[(&str, &dyn ToSql)]) -> Result<NamedParameters> {
         Ok(NamedParameters {
             parameters: parameters.iter().map(|(name, value)| {
                 Ok(NamedParameter {
@@ -118,7 +118,7 @@ impl NamedParameters {
         })
     }
 
-    pub(crate) fn as_arg(&self) -> Vec<(&str, &ToSql)> {
+    pub(crate) fn as_arg(&self) -> Vec<(&str, &dyn ToSql)> {
         self.parameters.iter().map(NamedParameter::as_arg).collect()
     }
 }
@@ -131,7 +131,7 @@ pub struct NamedParameter {
 }
 
 impl NamedParameter {
-    fn as_arg(&self) -> (&str, &ToSql) {
-        (self.name.as_str(), &self.value as &ToSql)
+    fn as_arg(&self) -> (&str, &dyn ToSql) {
+        (self.name.as_str(), &self.value as &dyn ToSql)
     }
 }

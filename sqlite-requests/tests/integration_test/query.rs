@@ -28,7 +28,7 @@ impl Country {
         Country { rank, name, alpha_2, alpha_3 }
     }
 
-    pub fn from_indexed_rusqlite_row(row: &Row) -> Self {
+    pub fn from_indexed_rusqlite_row(row: &Row<'_, '_>) -> Self {
         let rank: i32 = row.get(0);
         let name: String = row.get(1);
         let alpha_2: String = row.get(2);
@@ -40,7 +40,7 @@ impl Country {
 
 #[test]
 fn test_query_indexed() {
-    fn test_query_indexed_parameters(sql: &str, queued_params: &[&[&(ToSql)]]) {
+    fn test_query_indexed_parameters(sql: &str, queued_params: &[&[&(dyn ToSql)]]) {
         with_equal_connections(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
             let query = Query::new_indexed(&sql, queued_params).unwrap();
 
@@ -75,7 +75,7 @@ fn test_query_indexed() {
 
 #[test]
 fn test_query_named() {
-    fn test_query_named_parameters(sql: &str, queued_params: &[&[(&str, &ToSql)]]) {
+    fn test_query_named_parameters(sql: &str, queued_params: &[&[(&str, &dyn ToSql)]]) {
         with_equal_connections(ReadOnly, |mut test_conn: AccessConnection<ReadOnly>, expected_conn: Connection| {
             let query = Query::new_named(&sql, queued_params).unwrap();
             let query_results = test_conn.run(&query).unwrap();

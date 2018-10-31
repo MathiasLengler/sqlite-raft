@@ -9,7 +9,7 @@ mod serialization;
 
 fn indexed_test_cases<'a>(no_param: &'a str,
                           indexed_param: &'a str,
-                          indexed_params: &'a str, ) -> Vec<(&'a str, Vec<Vec<&'static ToSql>>)> {
+                          indexed_params: &'a str, ) -> Vec<(&'a str, Vec<Vec<&'static dyn ToSql>>)> {
     vec![
         (no_param, vec![vec![]]),
         (indexed_param, vec![vec![&"cn"]]),
@@ -21,7 +21,7 @@ fn indexed_test_cases<'a>(no_param: &'a str,
 
 fn named_test_cases<'a>(no_param: &'a str,
                         named_param: &'a str,
-                        named_params: &'a str, ) -> Vec<(&'a str, Vec<Vec<(&'static str, &'static ToSql)>>)> {
+                        named_params: &'a str, ) -> Vec<(&'a str, Vec<Vec<(&'static str, &'static dyn ToSql)>>)> {
     vec![
         (no_param, vec![vec![]]),
         (named_param, vec![vec![(&":alpha_2", &"cn")]]),

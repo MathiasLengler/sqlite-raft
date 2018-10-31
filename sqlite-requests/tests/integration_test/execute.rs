@@ -11,7 +11,7 @@ use sqlite_requests::execute::Execute;
 
 #[test]
 fn test_execute_indexed() {
-    fn test_execute_indexed_parameters(sql: &str, queued_params: &[&[&(ToSql)]]) {
+    fn test_execute_indexed_parameters(sql: &str, queued_params: &[&[&(dyn ToSql)]]) {
         with_equal_connections(WriteOnly, |mut test_conn: AccessConnection<WriteOnly>, expected_conn: Connection| {
             let execute = Execute::new_indexed(&sql, queued_params).unwrap();
             let execute_results = test_conn.run(&execute).unwrap();
@@ -42,7 +42,7 @@ fn test_execute_indexed() {
 
 #[test]
 fn test_execute_named() {
-    fn test_execute_named_parameters(sql: &str, queued_params: &[&[(&str, &ToSql)]]) {
+    fn test_execute_named_parameters(sql: &str, queued_params: &[&[(&str, &dyn ToSql)]]) {
         with_equal_connections(WriteOnly, |mut test_conn: AccessConnection<WriteOnly>, expected_conn: Connection| {
             let execute = Execute::new_named(&sql, queued_params).unwrap();
             let execute_results = test_conn.run(&execute).unwrap();

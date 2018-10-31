@@ -34,7 +34,7 @@ impl BulkQuery {
 impl<A: ReadAccess> Request<A> for BulkQuery {
     type Response = Vec<Vec<QueryResultSet>>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<'_, A>) -> Result<Self::Response> {
         self.queries.iter().map(|query| {
             query.apply_to_tx(tx)
         }).collect::<Result<Vec<_>>>()
@@ -51,14 +51,14 @@ pub struct Query {
 impl Query {
     // TODO: add single non-queued parameter convenience constructor
 
-    pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&ToSql]]) -> Result<Query> {
+    pub fn new_indexed(sql: &str, queued_indexed_parameters: &[&[&dyn ToSql]]) -> Result<Query> {
         Ok(Query {
             sql: sql.to_string(),
             queued_parameters: QueuedParameters::new_indexed(queued_indexed_parameters)?,
         })
     }
 
-    pub fn new_named(sql: &str, queued_named_parameters: &[&[(&str, &ToSql)]]) -> Result<Query> {
+    pub fn new_named(sql: &str, queued_named_parameters: &[&[(&str, &dyn ToSql)]]) -> Result<Query> {
         Ok(Query {
             sql: sql.to_string(),
             queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
@@ -69,13 +69,13 @@ impl Query {
 impl<A: ReadAccess> Request<A> for Query {
     type Response = Vec<QueryResultSet>;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<'_, A>) -> Result<Self::Response> {
         let tx = tx.as_mut_inner();
         let mut stmt = tx.prepare(&self.sql)?;
 
         let res = self.queued_parameters.map_parameter_variants(
             &mut stmt,
-            |stmt: &mut Statement, parameters: &IndexedParameters| {
+            |stmt: &mut Statement<'_>, parameters: &IndexedParameters| {
                 let rows = stmt.query_map(
                     &parameters.as_arg(),
                     QueryResultRow::query_map_arg(),
@@ -83,7 +83,7 @@ impl<A: ReadAccess> Request<A> for Query {
 
                 QueryResultSet::try_from(rows)
             },
-            |stmt: &mut Statement, parameters: &NamedParameters| {
+            |stmt: &mut Statement<'_>, parameters: &NamedParameters| {
                 let rows = stmt.query_map_named(
                     &parameters.as_arg(),
                     QueryResultRow::query_map_arg(),
@@ -133,7 +133,7 @@ impl QueryResultRow {
 
     pub fn get<T: FromSql>(&self, idx: usize) -> T {
         let value = &self.row[idx];
-        let value_ref: ValueRef = From::from(value);
+        let value_ref: ValueRef<'_> = From::from(value);
 
         FromSql::column_result(value_ref).unwrap()
     }
@@ -146,8 +146,8 @@ impl QueryResultRow {
         &self.row
     }
 
-    fn query_map_arg() -> impl FnMut(&Row) -> QueryResultRow {
-        |row: &Row| {
+    fn query_map_arg() -> impl FnMut(&Row<'_, '_>) -> QueryResultRow {
+        |row: &Row<'_, '_>| {
             let row: Vec<_> = (0..row.column_count())
                 .map(|row_index| {
                     let value: Value = row.get(row_index);

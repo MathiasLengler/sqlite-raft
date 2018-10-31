@@ -1,3 +1,4 @@
+use failure::Fail;
 use rusqlite;
 use std::result;
 

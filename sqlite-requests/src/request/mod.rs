@@ -37,7 +37,7 @@ pub enum SqliteRequest {
 impl<A: ReadAccess + WriteAccess> Request<A> for SqliteRequest {
     type Response = SqliteResponse;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<'_, A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteRequest::Query(sqlite_query) =>
                 SqliteResponse::Query(sqlite_query.apply_to_tx(tx)?),
@@ -96,7 +96,7 @@ pub enum SqliteQueryResponse {
 impl<A: ReadAccess> Request<A> for SqliteQuery {
     type Response = SqliteQueryResponse;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<'_, A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteQuery::Single(query) =>
                 SqliteQueryResponse::Single(query.apply_to_tx(tx)?),
@@ -124,7 +124,7 @@ pub enum SqliteExecuteResponse {
 impl<A: WriteAccess> Request<A> for SqliteExecute {
     type Response = SqliteExecuteResponse;
 
-    fn apply_to_tx(&self, tx: &mut AccessTransaction<A>) -> Result<Self::Response> {
+    fn apply_to_tx(&self, tx: &mut AccessTransaction<'_, A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteExecute::Single(execute) =>
                 SqliteExecuteResponse::Single(execute.apply_to_tx(tx)?),

@@ -27,7 +27,7 @@ impl<A: Access> AccessConnection<A> {
         self.inside_transaction(|tx| request.apply_to_tx(tx))
     }
 
-    pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessTransaction<A>) -> Result<T>) -> Result<T> {
+    pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessTransaction<'_, A>) -> Result<T>) -> Result<T> {
         let mut access_tx = self.access_transaction()?;
 
         let res = f(&mut access_tx)?;
@@ -37,7 +37,7 @@ impl<A: Access> AccessConnection<A> {
         Ok(res)
     }
 
-    fn access_transaction(&mut self) -> Result<AccessTransaction<A>> {
+    fn access_transaction(&mut self) -> Result<AccessTransaction<'_, A>> {
         Ok(AccessTransaction {
             tx: self.conn.transaction()?,
             _access: self.access.clone(),

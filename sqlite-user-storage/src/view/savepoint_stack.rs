@@ -3,7 +3,10 @@ use rusqlite::Connection;
 use rusqlite::Savepoint;
 use sqlite_requests::connection::access::ReadWrite;
 use sqlite_requests::connection::AccessConnection;
+use sqlite_requests::connection::AccessSavepoint;
+use sqlite_requests::request::Request;
 use sqlite_requests::request::SqliteRequest;
+use sqlite_requests::request::SqliteResponse;
 use std::path::Path;
 
 
@@ -41,14 +44,19 @@ pub struct SavepointStack<'conn> {
 }
 
 impl<'conn> SavepointStack<'conn> {
-    pub fn push(&mut self, request: SqliteRequest) -> Result<()> {
-        let (last_sp, index) = self.savepoints.last_mut().unwrap();
+    pub fn push(&mut self, request: SqliteRequest) -> Result<SqliteResponse> {
+        let (last_sp, last_index) = self.savepoints.last_mut().unwrap();
 
         let new_last_sp = last_sp.savepoint()?;
 
-        // cant execute request on savepoint
+        let mut access_sp = AccessSavepoint::new(new_last_sp, ReadWrite);
 
+        let response = request.apply_to_sp(&mut access_sp)?;
 
-        unimplemented!()
+        let new_last_sp = access_sp.into_inner();
+
+        self.savepoints.push((new_last_sp, last_index + 1));
+
+        Ok(response)
     }
 }

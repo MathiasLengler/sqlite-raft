@@ -1,9 +1,9 @@
-use error::Result;
-use rusqlite::Connection;
-use rusqlite::Transaction;
-use std::path::Path;
-use request::Request;
 use connection::access::Access;
+use error::Result;
+use request::Request;
+use rusqlite::Connection;
+use rusqlite::Savepoint;
+use std::path::Path;
 
 pub mod access;
 
@@ -24,11 +24,11 @@ impl<A: Access> AccessConnection<A> {
 
     pub fn run<R>(&mut self, request: &R) -> Result<R::Response>
         where R: Request<A> {
-        self.inside_transaction(|tx| request.apply_to_tx(tx))
+        self.inside_transaction(|tx| request.apply_to_sp(tx))
     }
 
-    pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessTransaction<A>) -> Result<T>) -> Result<T> {
-        let mut access_tx = self.access_transaction()?;
+    pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessSavepoint<A>) -> Result<T>) -> Result<T> {
+        let mut access_tx = self.access_savepoint()?;
 
         let res = f(&mut access_tx)?;
 
@@ -37,25 +37,32 @@ impl<A: Access> AccessConnection<A> {
         Ok(res)
     }
 
-    fn access_transaction(&mut self) -> Result<AccessTransaction<A>> {
-        Ok(AccessTransaction {
-            tx: self.conn.transaction()?,
+    fn access_savepoint(&mut self) -> Result<AccessSavepoint<A>> {
+        Ok(AccessSavepoint {
+            sp: self.conn.savepoint()?,
             _access: self.access.clone(),
         })
     }
 }
 
-pub struct AccessTransaction<'conn, A: Access> {
-    tx: Transaction<'conn>,
+pub struct AccessSavepoint<'conn, A: Access> {
+    sp: Savepoint<'conn>,
     _access: A,
 }
 
-impl<'conn, A: Access> AccessTransaction<'conn, A> {
-    pub fn as_mut_inner(&mut self) -> &mut Transaction<'conn> {
-        &mut self.tx
+impl<'conn, A: Access> AccessSavepoint<'conn, A> {
+    pub fn new(sp: Savepoint<'conn>, access: A) -> AccessSavepoint<'conn, A> {
+        AccessSavepoint {
+            sp,
+            _access: access,
+        }
     }
 
-    pub fn into_inner(self) -> Transaction<'conn> {
-        self.tx
+    pub fn as_mut_inner(&mut self) -> &mut Savepoint<'conn> {
+        &mut self.sp
+    }
+
+    pub fn into_inner(self) -> Savepoint<'conn> {
+        self.sp
     }
 }

@@ -1,9 +1,9 @@
-use error::Result;
+use crate::connection::access::Access;
+use crate::error::Result;
+use crate::request::Request;
 use rusqlite::Connection;
 use rusqlite::Transaction;
 use std::path::Path;
-use request::Request;
-use connection::access::Access;
 
 pub mod access;
 

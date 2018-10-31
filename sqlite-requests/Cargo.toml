@@ -7,6 +7,7 @@ description = "Represent SQLite queries and executes as request objects"
 license = "MIT"
 documentation = "https://docs.rs/sqlite-requests"
 repository = "https://github.com/MathiasLengler/sqlite-requests"
+edition = "2018"
 
 [dependencies]
 failure = "0.1.2"

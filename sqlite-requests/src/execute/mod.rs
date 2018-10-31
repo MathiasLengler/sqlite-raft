@@ -1,10 +1,10 @@
-use connection::access::WriteAccess;
-use connection::AccessTransaction;
-use error::Result;
-use parameter::IndexedParameters;
-use parameter::NamedParameters;
-use parameter::QueuedParameters;
-use request::Request;
+use crate::connection::access::WriteAccess;
+use crate::connection::AccessTransaction;
+use crate::error::Result;
+use crate::parameter::IndexedParameters;
+use crate::parameter::NamedParameters;
+use crate::parameter::QueuedParameters;
+use crate::request::Request;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
 

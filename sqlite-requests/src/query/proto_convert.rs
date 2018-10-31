@@ -1,14 +1,14 @@
-use proto::ProtoQueryRequest;
-use proto::ProtoQueryResponse;
-use proto::ProtoQueryResultSet;
-use proto::ProtoQueryResultRow;
-use proto::ProtoBulkQueryRequest;
-use proto::ProtoBulkQueryResponse;
-use proto::ProtoValue;
-use query::Query;
-use query::QueryResultSet;
-use query::QueryResultRow;
-use query::BulkQuery;
+use crate::proto::ProtoBulkQueryRequest;
+use crate::proto::ProtoBulkQueryResponse;
+use crate::proto::ProtoQueryRequest;
+use crate::proto::ProtoQueryResponse;
+use crate::proto::ProtoQueryResultRow;
+use crate::proto::ProtoQueryResultSet;
+use crate::proto::ProtoValue;
+use crate::query::BulkQuery;
+use crate::query::Query;
+use crate::query::QueryResultRow;
+use crate::query::QueryResultSet;
 
 impl From<Query> for ProtoQueryRequest {
     fn from(query: Query) -> Self {

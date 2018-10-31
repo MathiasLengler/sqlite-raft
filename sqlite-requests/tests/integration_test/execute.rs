@@ -1,13 +1,13 @@
-use integration_test::indexed_test_cases;
-use integration_test::named_test_cases;
+use crate::integration_test::indexed_test_cases;
+use crate::integration_test::named_test_cases;
+use crate::integration_test::queued_params_as_arg;
+use crate::utils::temp_db::with_equal_connections;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
-use sqlite_requests::connection::AccessConnection;
 use sqlite_requests::connection::access::WriteOnly;
+use sqlite_requests::connection::AccessConnection;
 use sqlite_requests::execute::BulkExecute;
 use sqlite_requests::execute::Execute;
-use utils::temp_db::with_equal_connections;
-use integration_test::queued_params_as_arg;
 
 #[test]
 fn test_execute_indexed() {

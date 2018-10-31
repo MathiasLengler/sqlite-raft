@@ -1,7 +1,7 @@
+use crate::proto::ProtoNull;
+use crate::proto::ProtoValue;
+use crate::proto::ProtoValue_oneof_value;
 use rusqlite::types::Value;
-use proto::ProtoValue;
-use proto::ProtoNull;
-use proto::ProtoValue_oneof_value;
 
 impl From<Value> for ProtoValue {
     fn from(value: Value) -> Self {

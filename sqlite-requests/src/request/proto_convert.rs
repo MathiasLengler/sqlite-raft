@@ -1,21 +1,21 @@
-use proto::ProtoSqliteRequest;
-use proto::ProtoSqliteRequest_oneof_request;
-use proto::ProtoSqliteResponse;
-use proto::ProtoSqliteResponse_oneof_response;
-use proto::ProtoSqliteQuery;
-use proto::ProtoSqliteQuery_oneof_query;
-use proto::ProtoSqliteQueryResponse;
-use proto::ProtoSqliteQueryResponse_oneof_response;
-use proto::ProtoSqliteExecute;
-use proto::ProtoSqliteExecute_oneof_execute;
-use proto::ProtoSqliteExecuteResponse;
-use proto::ProtoSqliteExecuteResponse_oneof_response;
-use request::SqliteRequest;
-use request::SqliteResponse;
-use request::SqliteQuery;
-use request::SqliteQueryResponse;
-use request::SqliteExecute;
-use request::SqliteExecuteResponse;
+use crate::proto::ProtoSqliteExecute;
+use crate::proto::ProtoSqliteExecute_oneof_execute;
+use crate::proto::ProtoSqliteExecuteResponse;
+use crate::proto::ProtoSqliteExecuteResponse_oneof_response;
+use crate::proto::ProtoSqliteQuery;
+use crate::proto::ProtoSqliteQuery_oneof_query;
+use crate::proto::ProtoSqliteQueryResponse;
+use crate::proto::ProtoSqliteQueryResponse_oneof_response;
+use crate::proto::ProtoSqliteRequest;
+use crate::proto::ProtoSqliteRequest_oneof_request;
+use crate::proto::ProtoSqliteResponse;
+use crate::proto::ProtoSqliteResponse_oneof_response;
+use crate::request::SqliteExecute;
+use crate::request::SqliteExecuteResponse;
+use crate::request::SqliteQuery;
+use crate::request::SqliteQueryResponse;
+use crate::request::SqliteRequest;
+use crate::request::SqliteResponse;
 
 impl From<SqliteRequest> for ProtoSqliteRequest {
     fn from(sqlite_request: SqliteRequest) -> Self {

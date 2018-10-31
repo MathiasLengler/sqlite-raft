@@ -1,7 +1,7 @@
-use std::path::Path;
+use crate::error::Result;
 use rusqlite::Connection;
-use error::Result;
 use rusqlite::OpenFlags;
+use std::path::Path;
 
 /// Implemented by different access levels used by `AccessConnection`.
 pub trait Access: Copy {

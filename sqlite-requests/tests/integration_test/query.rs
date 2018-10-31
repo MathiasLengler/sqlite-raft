@@ -1,15 +1,15 @@
-use integration_test::indexed_test_cases;
-use integration_test::named_test_cases;
-use integration_test::queued_params_as_arg;
+use crate::integration_test::indexed_test_cases;
+use crate::integration_test::named_test_cases;
+use crate::integration_test::queued_params_as_arg;
+use crate::utils::temp_db::with_equal_connections;
 use rusqlite::Connection;
 use rusqlite::Row;
 use rusqlite::types::ToSql;
-use sqlite_requests::connection::AccessConnection;
 use sqlite_requests::connection::access::ReadOnly;
+use sqlite_requests::connection::AccessConnection;
 use sqlite_requests::query::BulkQuery;
 use sqlite_requests::query::Query;
 use sqlite_requests::query::QueryResultRow;
-use utils::temp_db::with_equal_connections;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Country {

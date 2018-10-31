@@ -1,9 +1,10 @@
-use connection::AccessTransaction;
-use request::Request;
-use error::Result;
-use parameter::IndexedParameters;
-use parameter::NamedParameters;
-use parameter::QueuedParameters;
+use crate::connection::access::ReadAccess;
+use crate::connection::AccessTransaction;
+use crate::error::Result;
+use crate::parameter::IndexedParameters;
+use crate::parameter::NamedParameters;
+use crate::parameter::QueuedParameters;
+use crate::request::Request;
 use rusqlite;
 use rusqlite::Row;
 use rusqlite::Statement;
@@ -12,7 +13,6 @@ use rusqlite::types::ToSql;
 use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
 use std::result;
-use connection::access::ReadAccess;
 
 mod proto_convert;
 

@@ -1,14 +1,14 @@
-use connection::AccessTransaction;
-use error::Result;
-use execute::BulkExecute;
-use execute::Execute;
-use execute::ExecuteResult;
-use query::BulkQuery;
-use query::Query;
-use query::QueryResultSet;
-use connection::access::Access;
-use connection::access::WriteAccess;
-use connection::access::ReadAccess;
+use crate::connection::access::Access;
+use crate::connection::access::ReadAccess;
+use crate::connection::access::WriteAccess;
+use crate::connection::AccessTransaction;
+use crate::error::Result;
+use crate::execute::BulkExecute;
+use crate::execute::Execute;
+use crate::execute::ExecuteResult;
+use crate::query::BulkQuery;
+use crate::query::Query;
+use crate::query::QueryResultSet;
 
 mod proto_convert;
 

@@ -1,10 +1,10 @@
-use error::Error;
-use error::Result;
+use crate::error::Error;
+use crate::error::Result;
+use crate::value::serde::ValueDef;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
 use rusqlite::types::ToSqlOutput;
 use rusqlite::types::Value;
-use value::serde::ValueDef;
 
 mod proto_convert;
 

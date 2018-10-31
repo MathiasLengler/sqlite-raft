@@ -1,15 +1,15 @@
-use parameter::IndexedParameters;
-use parameter::NamedParameter;
-use parameter::NamedParameters;
-use parameter::QueuedParameters;
-use proto::ProtoIndexedParameters;
-use proto::ProtoNamedParameter;
-use proto::ProtoNamedParameters;
-use proto::ProtoQueuedIndexedParameters;
-use proto::ProtoQueuedNamedParameters;
-use proto::ProtoQueuedParameters;
-use proto::ProtoQueuedParameters_oneof_queued_parameters;
-use proto::ProtoValue;
+use crate::parameter::IndexedParameters;
+use crate::parameter::NamedParameter;
+use crate::parameter::NamedParameters;
+use crate::parameter::QueuedParameters;
+use crate::proto::ProtoIndexedParameters;
+use crate::proto::ProtoNamedParameter;
+use crate::proto::ProtoNamedParameters;
+use crate::proto::ProtoQueuedIndexedParameters;
+use crate::proto::ProtoQueuedNamedParameters;
+use crate::proto::ProtoQueuedParameters;
+use crate::proto::ProtoQueuedParameters_oneof_queued_parameters;
+use crate::proto::ProtoValue;
 
 impl From<QueuedParameters> for ProtoQueuedParameters {
     fn from(queued_parameters: QueuedParameters) -> Self {

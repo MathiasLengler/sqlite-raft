@@ -1,5 +1,5 @@
-use integration_test::serialization::sqlite_requests;
-use integration_test::serialization::sqlite_responses;
+use crate::integration_test::serialization::sqlite_requests;
+use crate::integration_test::serialization::sqlite_responses;
 use sqlite_requests::proto::ProtoSqliteRequest;
 use sqlite_requests::proto::ProtoSqliteResponse;
 use sqlite_requests::request::SqliteRequest;

@@ -6,5 +6,6 @@ members = [
     "sqlite-raft-node",
     "sqlite-raft-storage",
     "sqlite-requests",
-    "sqlite-test-utils"
+    "sqlite-test-utils",
+    "sqlite-user-storage"
 ]

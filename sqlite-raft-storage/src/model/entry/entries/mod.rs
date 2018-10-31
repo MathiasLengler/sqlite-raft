@@ -11,9 +11,6 @@ use super::SqliteEntry;
 pub mod entry;
 
 
-// TODO: move Entries and Entry to modules
-// TODO: debug_assert entries ascending sequence with no gaps
-
 #[derive(Debug)]
 pub struct SqliteEntries {
     entries: Vec<SqliteEntry>

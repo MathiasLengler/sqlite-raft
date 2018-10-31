@@ -1029,6 +1029,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqlite-user-storage"
+version = "0.1.0"
+dependencies = [
+ "failure 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rusqlite 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sqlite-requests 0.0.2",
+ "sqlite-test-utils 0.1.0",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -53,6 +53,7 @@ mod router;
 
 // TODO: add API for grpc thread (propose)
 // TODO: evaluate channel based callback
+// TODO: Cluster/Node struct to define API
 
 #[derive(Serialize, SerDebug)]
 pub enum TransportMessage {

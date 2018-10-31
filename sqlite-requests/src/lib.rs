@@ -9,8 +9,6 @@ extern crate failure;
 extern crate protobuf;
 extern crate rusqlite;
 extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 
 pub mod connection;
 pub mod error;

@@ -5,6 +5,7 @@ use rusqlite::Statement;
 use rusqlite::types::ToSql;
 use rusqlite::types::ToSqlOutput;
 use rusqlite::types::Value;
+use serde_derive::{Deserialize, Serialize};
 
 mod proto_convert;
 
@@ -82,7 +83,7 @@ impl<'a> IntoValue for ToSqlOutput<'a> {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IndexedParameters {
-    #[serde(with = "::value::serde")]
+    #[serde(with = "crate::value::serde")]
     parameters: Vec<Value>
 }
 

@@ -12,6 +12,7 @@ use rusqlite::types::FromSql;
 use rusqlite::types::ToSql;
 use rusqlite::types::Value;
 use rusqlite::types::ValueRef;
+use serde_derive::{Deserialize, Serialize};
 use std::result;
 
 mod proto_convert;
@@ -122,7 +123,7 @@ impl QueryResultSet {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct QueryResultRow {
-    #[serde(with = "::value::serde")]
+    #[serde(with = "crate::value::serde")]
     row: Vec<Value>
 }
 

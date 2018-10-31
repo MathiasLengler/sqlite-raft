@@ -1,5 +1,6 @@
 use rusqlite::types::Value;
 use serde::{Deserialize, Deserializer, Serializer};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 #[serde(remote = "Value")]

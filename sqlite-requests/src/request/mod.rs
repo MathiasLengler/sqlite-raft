@@ -9,6 +9,8 @@ use crate::execute::ExecuteResult;
 use crate::query::BulkQuery;
 use crate::query::Query;
 use crate::query::QueryResultSet;
+use serde_derive::{Deserialize, Serialize};
+
 
 mod proto_convert;
 

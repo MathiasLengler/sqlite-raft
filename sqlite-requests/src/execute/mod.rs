@@ -7,6 +7,7 @@ use crate::parameter::QueuedParameters;
 use crate::request::Request;
 use rusqlite::Statement;
 use rusqlite::types::ToSql;
+use serde_derive::{Deserialize, Serialize};
 
 mod proto_convert;
 

@@ -44,19 +44,27 @@ pub struct SavepointStack<'conn> {
 }
 
 impl<'conn> SavepointStack<'conn> {
-    pub fn push(&mut self, request: SqliteRequest) -> Result<SqliteResponse> {
-        let (last_sp, last_index) = self.savepoints.last_mut().unwrap();
+    // TODO: does not seem possible:
+    // to create a new savepoint, the old one is borrowed for the entire livetime of the new savepoint.
+    // As a vec gives us mut access of all elements, this seems to be a contradiction.
+    // TODO: evaluate own nested savepoint implementation using conn.execute_batch() (complexity?)
+    pub fn push(&'conn mut self, request: SqliteRequest) -> Result<()> {
+        let (new_last_sp, last_index) = {
+            let (last_sp, last_index) = self.savepoints.last_mut().unwrap();
 
-        let new_last_sp = last_sp.savepoint()?;
+            let new_last_sp = last_sp.savepoint()?;
 
-        let mut access_sp = AccessSavepoint::new(new_last_sp, ReadWrite);
+            (new_last_sp, last_index.clone())
+        };
 
-        let response = request.apply_to_sp(&mut access_sp)?;
+//        let mut access_sp = AccessSavepoint::new(new_last_sp, ReadWrite);
+//
+//        let response = request.apply_to_sp(&mut access_sp)?;
+//
+//        let new_last_sp = access_sp.into_inner();
 
-        let new_last_sp = access_sp.into_inner();
+        self.savepoints.push((new_last_sp, 1 + last_index.clone()));
 
-        self.savepoints.push((new_last_sp, last_index + 1));
-
-        Ok(response)
+        Ok(())
     }
 }

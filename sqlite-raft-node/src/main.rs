@@ -37,6 +37,7 @@ use sqlite_raft_storage::SqliteStorage;
 use std::thread;
 use std::thread::JoinHandle;
 use node::{Node, NodeConfig};
+use cluster::Cluster;
 
 
 mod log_entry;
@@ -45,6 +46,7 @@ type ProposeCallback = Box<Fn() + Send>;
 
 mod router;
 mod node;
+mod cluster;
 
 // TODO: add API for grpc thread (propose)
 // TODO: evaluate channel based callback
@@ -82,7 +84,7 @@ impl Propose {
 fn main() -> Result<(), Error> {
     init_log();
 
-    launch_cluster(3)?;
+    Cluster::launch_cluster(3)?;
 
     Ok(())
 }
@@ -91,38 +93,3 @@ fn init_log() {
     TermLogger::init(LevelFilter::Debug, LogConfig::default()).unwrap();
 }
 
-fn launch_cluster(node_count: u64) -> Result<(), Error> {
-    let mut handles: Vec<JoinHandle<_>> = vec![];
-
-    let node_ids = 1..=node_count;
-
-    let routers = Router::new_mesh(node_count);
-
-    for (node_id, router) in node_ids.clone().zip(routers) {
-        let node_ids = node_ids.clone();
-
-        let handle = thread::spawn(move || {
-            let peers: Vec<u64> = node_ids.collect();
-            let propose = node_id == 1;
-
-            let storage = SqliteStorage::open(format!("res/debug/raft_storage_{}.sqlite3", node_id))?;
-
-            let mut node = Node::new(NodeConfig {
-                node_id,
-                peers,
-                router,
-                propose,
-                storage,
-            })?;
-            node.run()
-        });
-
-        handles.push(handle);
-    }
-
-    for handle in handles {
-        handle.join().unwrap()?;
-    }
-
-    Ok(())
-}

@@ -155,7 +155,7 @@ impl<S: StorageMut> Node<S> {
             return Ok(());
         }
 
-        // The Raft is ready, we can do syomething now.
+        // The Raft is ready, we can do something now.
         let mut ready = self.r.ready();
 
 //    debug!("{} ready:\n{}", r.raft.tag, serde_json::to_string_pretty(&ready).unwrap());

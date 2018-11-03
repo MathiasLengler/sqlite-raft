@@ -13,7 +13,7 @@ use std::path::Path;
 // TODO: evaluate request/index/entry distinction
 // TODO: savepoint stack could be used for speculative execution of requests.
 // cache response, wait for committed entry from leader, return response
-// only consistent if state of execution the same of predecessor of commited entry (?)
+// only consistent if the execution had the same predecessor entry as the committed entry (?)
 
 
 /// TODO: Fundamental question:
@@ -28,7 +28,30 @@ use std::path::Path;
 ///         - only the user db/view thread writes and reads from it
 ///         - rest of coordination goes through channels
 /// - Black Box behaviour must be deterministic (its the Raft state machine)
-///
+/// - Query a specific index?
+///     - roll back to the index
+///         - can't work on other request in parallel
+///     - another instance
+///         - current view
+///             - does not need to do the snapshot stack trickery
+///             - enough for PoC
+///         - specific index view
+///             - snapshot stack to allow for forward and backwards modifications
+/// - Is there a requirement for a seed process after restart?
+///     - compare with committed entry behaviour and persistence in raft step logic
+///     - application of committed entries is async (raft logic can't block) =>
+///         - seed process required (?)
+///     - on startup:
+///         - raft sends all committed entries
+///             - slow
+///         - raft sends missing entries on demand
+///             - bidirectional request flow (would be unidirectional otherwise)
+///     - the specific index view does not actively follow the committed entries
+///         - read only view of entries would be convenient for implementation (required?)
+/// - Wrapper of SQL Request + Index seems to be beneficial
+///     - validation
+///     - do not execute duplicate requests
+///     - same for read only view of fixed index view
 ///
 /// # Attached DB
 /// - incompatible with savepoint stack for rollback:

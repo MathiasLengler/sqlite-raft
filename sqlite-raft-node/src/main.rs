@@ -123,6 +123,13 @@ fn launch_cluster(node_count: u64) -> Result<(), Error> {
     Ok(())
 }
 
+// TODO: add missing context
+struct Node<S: StorageMut> {
+    config: NodeConfig,
+    r: RawNode<S>,
+
+}
+
 struct NodeConfig {
     pub node_id: u64,
     pub peers: Vec<u64>,

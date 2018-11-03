@@ -52,6 +52,10 @@ use std::path::Path;
 ///     - validation
 ///     - do not execute duplicate requests
 ///     - same for read only view of fixed index view
+/// - Read only API parallel to Raft seems to be needed
+/// - Halt the world in event of snapshot?
+///     - could define "toxic" index for specific view
+///     - current view needs to be advanced far enough before snapshot gets applied
 ///
 /// # Attached DB
 /// - incompatible with savepoint stack for rollback:

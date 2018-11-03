@@ -294,6 +294,7 @@ fn on_ready<S: StorageMut>(r: &mut RawNode<S>, cbs: &mut HashMap<LogEntryKey, Pr
         for entry in committed_entries {
             let entry: Entry = entry;
 
+            // TODO: persist
             // Mostly, you need to save the last apply index to resume applying
             // after restart. Here we just ignore this because we use a Memory storage.
             _last_apply_index = entry.get_index();

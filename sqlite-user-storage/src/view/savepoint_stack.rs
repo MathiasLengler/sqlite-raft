@@ -10,10 +10,27 @@ use sqlite_requests::request::SqliteResponse;
 use std::path::Path;
 
 
-// TODO: evaluate savepoint stack with debug sql statements
-// sqlite_requests are currently incompatible with savepoints
-// only refactor requests if savepoint stack seems valid
-// evaluate request/index/entry distinction
+// TODO: evaluate request/index/entry distinction
+// TODO: savepoint stack could be used for speculative execution of requests.
+// cache response, wait for committed entry from leader, return response
+// only consistent if state of execution the same of predecessor of commited entry (?)
+
+
+/// TODO: Fundamental question:
+/// How does user storage get access to entries/sequence of requests?
+/// # Actor/Channel with new requests
+/// - Asynchronous (does not block the main raft state machine)
+/// - Keeps a up to date view of the committed entries
+/// - does need a private/hidden table in the user DB to persist the current applied index of the DB
+///     - otherwise there could be dropped requests.
+/// - Black Box behaviour must be deterministic (its the Raft state machine).
+///
+/// # Attached DB
+/// - incompatible with savepoint stack for rollback:
+///     - savepoints/transactions lock all attached DBs.
+///     - A locked DB cannot be detached.
+///     - Cannot read new entries from attached raft-DB while keeping savepoint stack for rollback (cant see updates).
+
 
 pub struct View {
     conn: Connection,
@@ -27,19 +44,9 @@ impl View {
 
         Ok(storage)
     }
-
-
-    fn test(&mut self) -> Result<()> {
-        let mut sp1 = self.conn.savepoint()?;
-
-        let sp2 = sp1.savepoint()?;
-
-        Ok(())
-    }
 }
 
 pub struct SavepointStack<'conn> {
-    access_conn: AccessConnection<ReadWrite>,
     savepoints: Vec<(Savepoint<'conn>, u64)>,
 }
 
@@ -68,3 +75,35 @@ impl<'conn> SavepointStack<'conn> {
         Ok(())
     }
 }
+
+///
+/// # Rollback
+/// SAVEPOINT 0
+/// #1 EXECUTE
+/// SAVEPOINT 1
+/// #2 EXECUTE
+/// SAVEPOINT 2
+/// #3 EXECUTE
+/// ROLLBACK TO 1
+/// DB State after #1 Execute
+///
+/// # Release
+/// SAVEPOINT 0
+/// #1 EXECUTE
+/// SAVEPOINT 1
+/// #2 EXECUTE
+/// SAVEPOINT 2
+/// #3 EXECUTE
+/// RELEASE 1
+///
+/// New state:
+/// SAVEPOINT 0
+/// #1 EXECUTE
+/// SAVEPOINT 1
+/// #2 EXECUTE
+/// #3 EXECUTE
+pub struct NestedSavepoint<'conn> {
+    conn: &'conn Connection,
+
+}
+

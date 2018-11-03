@@ -22,8 +22,13 @@ use std::path::Path;
 /// - Asynchronous (does not block the main raft state machine)
 /// - Keeps a up to date view of the committed entries
 /// - does need a private/hidden table in the user DB to persist the current applied index of the DB
-///     - otherwise there could be dropped requests.
-/// - Black Box behaviour must be deterministic (its the Raft state machine).
+///     - otherwise there could be dropped requests (inconsistent/nondeterministic)
+///     - could be a third "user db state db"
+///         - nice to have
+///         - only the user db/view thread writes and reads from it
+///         - rest of coordination goes through channels
+/// - Black Box behaviour must be deterministic (its the Raft state machine)
+///
 ///
 /// # Attached DB
 /// - incompatible with savepoint stack for rollback:

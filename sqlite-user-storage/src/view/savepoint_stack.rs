@@ -7,6 +7,8 @@ use sqlite_requests::connection::AccessSavepoint;
 use sqlite_requests::request::Request;
 use sqlite_requests::request::SqliteRequest;
 use sqlite_requests::request::SqliteResponse;
+use std::cell::RefCell;
+use std::cell::RefMut;
 use std::path::Path;
 
 
@@ -84,7 +86,7 @@ pub struct SavepointStack<'conn> {
 
 impl<'conn> SavepointStack<'conn> {
     // TODO: does not seem possible:
-    // to create a new savepoint, the old one is borrowed for the entire livetime of the new savepoint.
+    // to create a new savepoint, the old one is borrowed for the entire lifetime of the new savepoint.
     // As a vec gives us mut access of all elements, this seems to be a contradiction.
     // TODO: evaluate own nested savepoint implementation using conn.execute_batch() (complexity?)
     pub fn push(&'conn mut self, request: SqliteRequest) -> Result<()> {
@@ -107,35 +109,3 @@ impl<'conn> SavepointStack<'conn> {
         Ok(())
     }
 }
-
-///
-/// # Rollback
-/// SAVEPOINT 0
-/// #1 EXECUTE
-/// SAVEPOINT 1
-/// #2 EXECUTE
-/// SAVEPOINT 2
-/// #3 EXECUTE
-/// ROLLBACK TO 1
-/// DB State after #1 Execute
-///
-/// # Release
-/// SAVEPOINT 0
-/// #1 EXECUTE
-/// SAVEPOINT 1
-/// #2 EXECUTE
-/// SAVEPOINT 2
-/// #3 EXECUTE
-/// RELEASE 1
-///
-/// New state:
-/// SAVEPOINT 0
-/// #1 EXECUTE
-/// SAVEPOINT 1
-/// #2 EXECUTE
-/// #3 EXECUTE
-pub struct NestedSavepoint<'conn> {
-    conn: &'conn Connection,
-
-}
-

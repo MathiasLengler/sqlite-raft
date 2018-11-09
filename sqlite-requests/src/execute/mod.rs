@@ -1,5 +1,5 @@
 use connection::access::WriteAccess;
-use connection::AccessSavepoint;
+use connection::AccessConnectionRef;
 use error::Result;
 use parameter::IndexedParameters;
 use parameter::NamedParameters;
@@ -27,9 +27,9 @@ impl BulkExecute {
 impl<A: WriteAccess> Request<A> for BulkExecute {
     type Response = Vec<Vec<ExecuteResult>>;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response> {
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
         self.executes.iter().map(|execute| {
-            execute.apply_to_sp(sp)
+            execute.apply_to_conn(conn)
         }).collect::<Result<Vec<_>>>()
     }
 }
@@ -61,9 +61,8 @@ impl Execute {
 impl<A: WriteAccess> Request<A> for Execute {
     type Response = Vec<ExecuteResult>;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response> {
-        let tx = sp.as_mut_inner();
-        let mut stmt = tx.prepare(&self.sql)?;
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
+        let mut stmt = conn.prepare(&self.sql)?;
 
         let res = self.queued_parameters.map_parameter_variants(
             &mut stmt,

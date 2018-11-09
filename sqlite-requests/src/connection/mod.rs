@@ -2,8 +2,8 @@ use connection::access::Access;
 use error::Result;
 use request::Request;
 use rusqlite::Connection;
-use rusqlite::Savepoint;
 use std::path::Path;
+use std::ops::Deref;
 
 pub mod access;
 
@@ -13,6 +13,13 @@ pub struct AccessConnection<A: Access> {
 }
 
 impl<A: Access> AccessConnection<A> {
+    pub fn new(access: A, conn: Connection) -> AccessConnection<A> {
+        AccessConnection {
+            conn,
+            access,
+        }
+    }
+
     pub fn open<P: AsRef<Path>>(access: A, path: P) -> Result<AccessConnection<A>> {
         let conn = access.open(path)?;
 
@@ -24,45 +31,45 @@ impl<A: Access> AccessConnection<A> {
 
     pub fn run<R>(&mut self, request: &R) -> Result<R::Response>
         where R: Request<A> {
-        self.inside_transaction(|tx| request.apply_to_sp(tx))
+        self.inside_transaction(|tx| request.apply_to_conn(tx))
     }
 
-    pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessSavepoint<A>) -> Result<T>) -> Result<T> {
-        let mut access_tx = self.access_savepoint()?;
+    pub(crate) fn inside_transaction<T>(&mut self, mut f: impl FnMut(&mut AccessConnectionRef<A>) -> Result<T>) -> Result<T> {
+        let sp = self.conn.savepoint()?;
 
-        let res = f(&mut access_tx)?;
+        let res = {
+            let mut access_tx = AccessConnectionRef {
+                conn_ref: sp.deref(),
+                _access: self.access.clone(),
+            };
 
-        access_tx.into_inner().commit()?;
+            f(&mut access_tx)?
+        };
+
+        sp.commit()?;
 
         Ok(res)
     }
-
-    fn access_savepoint(&mut self) -> Result<AccessSavepoint<A>> {
-        Ok(AccessSavepoint {
-            sp: self.conn.savepoint()?,
-            _access: self.access.clone(),
-        })
-    }
 }
 
-pub struct AccessSavepoint<'conn, A: Access> {
-    sp: Savepoint<'conn>,
+pub struct AccessConnectionRef<'conn, A: Access> {
+    conn_ref: &'conn Connection,
     _access: A,
 }
 
-impl<'conn, A: Access> AccessSavepoint<'conn, A> {
-    pub fn new(sp: Savepoint<'conn>, access: A) -> AccessSavepoint<'conn, A> {
-        AccessSavepoint {
-            sp,
+impl<'conn, A: Access> AccessConnectionRef<'conn, A> {
+    pub fn new(conn_ref: &'conn Connection, access: A) -> AccessConnectionRef<'conn, A> {
+        AccessConnectionRef {
+            conn_ref,
             _access: access,
         }
     }
+}
 
-    pub fn as_mut_inner(&mut self) -> &mut Savepoint<'conn> {
-        &mut self.sp
-    }
+impl<'conn, A: Access> Deref for AccessConnectionRef<'conn, A> {
+    type Target = Connection;
 
-    pub fn into_inner(self) -> Savepoint<'conn> {
-        self.sp
+    fn deref(&self) -> &Connection {
+        self.conn_ref
     }
 }

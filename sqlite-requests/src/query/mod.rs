@@ -1,5 +1,5 @@
 use connection::access::ReadAccess;
-use connection::AccessSavepoint;
+use connection::AccessConnectionRef;
 use error::Result;
 use parameter::IndexedParameters;
 use parameter::NamedParameters;
@@ -33,9 +33,9 @@ impl BulkQuery {
 impl<A: ReadAccess> Request<A> for BulkQuery {
     type Response = Vec<Vec<QueryResultSet>>;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response> {
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
         self.queries.iter().map(|query| {
-            query.apply_to_sp(sp)
+            query.apply_to_conn(conn)
         }).collect::<Result<Vec<_>>>()
     }
 }
@@ -68,9 +68,8 @@ impl Query {
 impl<A: ReadAccess> Request<A> for Query {
     type Response = Vec<QueryResultSet>;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response> {
-        let tx = sp.as_mut_inner();
-        let mut stmt = tx.prepare(&self.sql)?;
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
+        let mut stmt = conn.prepare(&self.sql)?;
 
         let res = self.queued_parameters.map_parameter_variants(
             &mut stmt,

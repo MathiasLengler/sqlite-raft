@@ -1,7 +1,7 @@
 use connection::access::Access;
 use connection::access::ReadAccess;
 use connection::access::WriteAccess;
-use connection::AccessSavepoint;
+use connection::AccessConnectionRef;
 use error::Result;
 use execute::BulkExecute;
 use execute::Execute;
@@ -20,7 +20,7 @@ pub trait Request<A: Access> {
     /// The returned response type when running this query.
     type Response;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response>;
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response>;
 }
 
 
@@ -35,12 +35,12 @@ pub enum SqliteRequest {
 impl<A: ReadAccess + WriteAccess> Request<A> for SqliteRequest {
     type Response = SqliteResponse;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response> {
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteRequest::Query(sqlite_query) =>
-                SqliteResponse::Query(sqlite_query.apply_to_sp(sp)?),
+                SqliteResponse::Query(sqlite_query.apply_to_conn(conn)?),
             SqliteRequest::Execute(sqlite_execute) =>
-                SqliteResponse::Execute(sqlite_execute.apply_to_sp(sp)?),
+                SqliteResponse::Execute(sqlite_execute.apply_to_conn(conn)?),
         })
     }
 }
@@ -94,12 +94,12 @@ pub enum SqliteQueryResponse {
 impl<A: ReadAccess> Request<A> for SqliteQuery {
     type Response = SqliteQueryResponse;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response> {
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteQuery::Single(query) =>
-                SqliteQueryResponse::Single(query.apply_to_sp(sp)?),
+                SqliteQueryResponse::Single(query.apply_to_conn(conn)?),
             SqliteQuery::Bulk(bulk_query) =>
-                SqliteQueryResponse::Bulk(bulk_query.apply_to_sp(sp)?),
+                SqliteQueryResponse::Bulk(bulk_query.apply_to_conn(conn)?),
         })
     }
 }
@@ -122,12 +122,12 @@ pub enum SqliteExecuteResponse {
 impl<A: WriteAccess> Request<A> for SqliteExecute {
     type Response = SqliteExecuteResponse;
 
-    fn apply_to_sp(&self, sp: &mut AccessSavepoint<A>) -> Result<Self::Response> {
+    fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
         Ok(match self {
             SqliteExecute::Single(execute) =>
-                SqliteExecuteResponse::Single(execute.apply_to_sp(sp)?),
+                SqliteExecuteResponse::Single(execute.apply_to_conn(conn)?),
             SqliteExecute::Bulk(bulk_execute) =>
-                SqliteExecuteResponse::Bulk(bulk_execute.apply_to_sp(sp)?),
+                SqliteExecuteResponse::Bulk(bulk_execute.apply_to_conn(conn)?),
         })
     }
 }

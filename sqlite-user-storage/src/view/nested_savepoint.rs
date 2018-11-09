@@ -2,7 +2,7 @@ use error::Result;
 use rusqlite::Connection;
 use rusqlite::Savepoint;
 use sqlite_requests::connection::access::ReadWrite;
-use sqlite_requests::connection::AccessSavepoint;
+use sqlite_requests::connection::AccessConnectionRef;
 use sqlite_requests::request::Request;
 use sqlite_requests::request::SqliteRequest;
 
@@ -60,7 +60,7 @@ impl<'conn> NestedSavepoint<'conn> {
 
         let mut sp = self.conn.savepoint()?;
 
-        let mut access_sp = AccessSavepoint::new(sp, ReadWrite);
+        let mut access_sp = AccessConnectionRef::new(sp.deref(), ReadWrite);
 
         let response = request.apply_to_sp(&mut access_sp)?;
 

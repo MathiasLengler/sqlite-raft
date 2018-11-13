@@ -1,10 +1,12 @@
-use error::Result;
 use rusqlite::Connection;
 use rusqlite::Savepoint;
+
+use error::Result;
 use sqlite_requests::connection::access::ReadWrite;
 use sqlite_requests::connection::AccessConnectionRef;
 use sqlite_requests::request::Request;
 use sqlite_requests::request::SqliteRequest;
+use sqlite_requests::request::SqliteResponse;
 
 /// # Rollback
 /// SAVEPOINT 0
@@ -32,50 +34,72 @@ use sqlite_requests::request::SqliteRequest;
 /// #2 EXECUTE
 /// #3 EXECUTE
 pub struct NestedSavepoint<'conn> {
-    conn: &'conn mut Connection,
+    conn: &'conn Connection,
     depth: u64,
 }
 
 impl<'conn> NestedSavepoint<'conn> {
-    fn new(conn: &mut Connection) -> NestedSavepoint {
+    fn new(conn: &Connection) -> NestedSavepoint {
         NestedSavepoint {
             conn,
             depth: 0,
         }
     }
-    fn sql_savepoint(name: &str) -> String {
-        format!("SAVEPOINT {}", name)
+    fn sql_savepoint(depth: u64) -> String {
+        format!("SAVEPOINT {}", Self::savepoint_name(depth))
     }
-    fn sql_release(name: &str) -> String {
-        format!("RELEASE {}", name)
+    // TODO: when is this used?
+    fn sql_release(depth: u64) -> String {
+        format!("RELEASE {}", Self::savepoint_name(depth))
     }
-    fn sql_rollback(name: &str) -> String {
-        format!("ROLLBACK TO {}", name)
+    fn sql_rollback(depth: u64) -> String {
+        format!("ROLLBACK TO {}", Self::savepoint_name(depth))
+    }
+    fn savepoint_name(depth: u64) -> String {
+        format!("_nested_sp_{}", depth)
     }
 
-    pub fn push(&mut self, request: SqliteRequest) -> Result<()> {
-        // TODO: create own savepoint
-        // TODO: clean up savepoint on error
-        // TODO: separate request from nested savepoint
-
-        let mut sp = self.conn.savepoint()?;
-
-        let mut access_sp = AccessConnectionRef::new(sp.deref(), ReadWrite);
-
-        let response = request.apply_to_sp(&mut access_sp)?;
-
-        let sp = access_sp.into_inner();
-
-        sp.commit()?;
+    fn savepoint(&mut self) -> Result<()> {
+        self.conn.execute_batch(&Self::sql_savepoint(self.depth))?;
 
         self.depth += 1;
 
         Ok(())
     }
 
+    pub fn push(&mut self, request: SqliteRequest) -> Result<SqliteResponse> {
+        // TODO: separate request from nested savepoint (?)
+
+        self.savepoint()?;
+
+        match self.apply_request(request) {
+            Ok(response) => Ok(response),
+            Err(err) => {
+                // TODO: clean up savepoint on error
+                let old_depth = self.depth - 1;
+
+                self.rollback_to(old_depth)?;
+
+                Err(err)
+            }
+        }
+    }
+
+    fn apply_request(&self, request: SqliteRequest) -> Result<SqliteResponse> {
+        let mut access_conn = AccessConnectionRef::new(&self.conn, ReadWrite);
+
+        let response = request.apply_to_conn(&mut access_conn)?;
+
+        Ok(response)
+    }
+
     // TODO:
     pub fn rollback_to(&mut self, depth: u64) -> Result<()> {
-        unimplemented!()
+        self.conn.execute_batch(&Self::sql_rollback(depth))?;
+
+        self.depth = depth;
+
+        Ok(())
     }
 }
 

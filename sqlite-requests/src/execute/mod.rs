@@ -90,7 +90,13 @@ impl<A: WriteAccess> Request<A> for Execute {
     }
 }
 
-
+// TODO: fix cached changes value to ensure deterministic execution independent of previous executes
+// (across transaction/savepoint/rollback)
+// changes gets updated only by: INSERT, UPDATE or DELETE
+// e.g. CREATE TABLE returns changes of previous execute.
+// 0 should be fine in this case (Option not needed)
+//
+// TODO: evaluate sqlite parser for this differentiation, otherwise hack with prefix check
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ExecuteResult {
     changes: usize

@@ -1,5 +1,4 @@
 use rusqlite::Connection;
-use rusqlite::Savepoint;
 
 use error::Result;
 use sqlite_requests::connection::access::ReadWrite;
@@ -33,13 +32,15 @@ use sqlite_requests::request::SqliteResponse;
 /// SAVEPOINT 1
 /// #2 EXECUTE
 /// #3 EXECUTE
+#[derive(Debug)]
 pub struct NestedSavepoint<'conn> {
     conn: &'conn Connection,
     depth: u64,
 }
 
+// TODO: API for: commit/rollback everything, drop guard
 impl<'conn> NestedSavepoint<'conn> {
-    fn new(conn: &Connection) -> NestedSavepoint {
+    pub fn new(conn: &Connection) -> NestedSavepoint {
         NestedSavepoint {
             conn,
             depth: 0,
@@ -67,7 +68,7 @@ impl<'conn> NestedSavepoint<'conn> {
         Ok(())
     }
 
-    pub fn push(&mut self, request: SqliteRequest) -> Result<SqliteResponse> {
+    pub fn push(&mut self, request: &SqliteRequest) -> Result<SqliteResponse> {
         // TODO: separate request from nested savepoint (?)
 
         self.savepoint()?;
@@ -75,17 +76,14 @@ impl<'conn> NestedSavepoint<'conn> {
         match self.apply_request(request) {
             Ok(response) => Ok(response),
             Err(err) => {
-                // TODO: clean up savepoint on error
-                let old_depth = self.depth - 1;
-
-                self.rollback_to(old_depth)?;
+                self.pop()?;
 
                 Err(err)
             }
         }
     }
 
-    fn apply_request(&self, request: SqliteRequest) -> Result<SqliteResponse> {
+    fn apply_request(&self, request: &SqliteRequest) -> Result<SqliteResponse> {
         let mut access_conn = AccessConnectionRef::new(&self.conn, ReadWrite);
 
         let response = request.apply_to_conn(&mut access_conn)?;
@@ -93,9 +91,19 @@ impl<'conn> NestedSavepoint<'conn> {
         Ok(response)
     }
 
-    // TODO:
+    pub fn pop(&mut self) -> Result<()> {
+        ensure!(self.depth > 0, "No nested savepoint to pop.");
+
+        let old_depth = self.depth - 1;
+
+        self.rollback_to(old_depth)
+    }
+
     pub fn rollback_to(&mut self, depth: u64) -> Result<()> {
+        ensure!(self.depth > depth, "Rollback target depth must be less than current depth.");
+
         self.conn.execute_batch(&Self::sql_rollback(depth))?;
+        self.conn.execute_batch(&Self::sql_release(depth))?;
 
         self.depth = depth;
 

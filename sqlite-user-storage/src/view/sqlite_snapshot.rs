@@ -1,4 +1,4 @@
 // TODO:
 pub struct SqliteDatabaseImage {
-    data: Vec<u8>
+    pub data: Vec<u8>
 }

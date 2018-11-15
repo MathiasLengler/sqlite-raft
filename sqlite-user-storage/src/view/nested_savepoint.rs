@@ -36,20 +36,20 @@ use sqlite_requests::request::SqliteResponse;
 pub struct NestedSavepoint<'conn> {
     conn: &'conn Connection,
     depth: u64,
+    committed: bool,
 }
 
-// TODO: API for: commit/rollback everything, drop guard
 impl<'conn> NestedSavepoint<'conn> {
     pub fn new(conn: &Connection) -> NestedSavepoint {
         NestedSavepoint {
             conn,
             depth: 0,
+            committed: false,
         }
     }
     fn sql_savepoint(depth: u64) -> String {
         format!("SAVEPOINT {}", Self::savepoint_name(depth))
     }
-    // TODO: when is this used?
     fn sql_release(depth: u64) -> String {
         format!("RELEASE {}", Self::savepoint_name(depth))
     }
@@ -69,7 +69,7 @@ impl<'conn> NestedSavepoint<'conn> {
     }
 
     pub fn push(&mut self, request: &SqliteRequest) -> Result<SqliteResponse> {
-        // TODO: separate request from nested savepoint (?)
+        // TODO: separate request from nested savepoint (closure ?)
 
         self.savepoint()?;
 
@@ -109,5 +109,25 @@ impl<'conn> NestedSavepoint<'conn> {
 
         Ok(())
     }
+
+    pub fn commit(mut self) -> Result<()> {
+        self.committed = true;
+        self.conn.execute_batch(&Self::sql_release(0))?;
+        Ok(())
+    }
+
+    pub fn rollback_all(mut self) -> Result<()> {
+        self.rollback_to(0)?;
+
+        Ok(())
+    }
 }
 
+#[allow(unused_must_use)]
+impl<'conn> Drop for NestedSavepoint<'conn> {
+    fn drop(&mut self) {
+        if !self.committed {
+            self.rollback_all();
+        }
+    }
+}

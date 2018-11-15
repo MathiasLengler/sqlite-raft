@@ -16,6 +16,7 @@ fn request_test_cases() -> Vec<SqliteRequest> {
     vec![
         Execute::new_indexed("CREATE TABLE Test (value INTEGER NOT NULL UNIQUE)", &[&[]]).unwrap().into(),
         Execute::new_indexed("INSERT INTO Test VALUES (13)", &[&[]]).unwrap().into(),
+        Execute::new_indexed("CREATE TABLE Test2 (value INTEGER NOT NULL UNIQUE)", &[&[]]).unwrap().into(),
         Query::new_indexed("SELECT * FROM Test", &[&[]]).unwrap().into(),
         Execute::new_indexed("INSERT INTO Test VALUES (42)", &[&[]]).unwrap().into(),
         Query::new_indexed("SELECT * FROM Test", &[&[]]).unwrap().into(),
@@ -46,8 +47,6 @@ fn test_nested_savepoint_push() {
         for (request, expected_response) in test_cases() {
             let actual_response = nested_sp.push(&request).unwrap();
 
-            eprintln!("actual_response = {:?}", actual_response);
-
             assert_eq!(actual_response, expected_response);
         }
     })
@@ -67,15 +66,9 @@ fn test_nested_savepoint_rollback_to() {
 
             nested_sp.rollback_to(rollback_depth).unwrap();
 
-            eprintln!("nested_sp = {:?}", nested_sp);
-
             let mut test_cases = test_cases();
 
-            eprintln!("test_cases = {:?}", test_cases);
-
             for (request, expected_response) in test_cases.drain((rollback_depth as usize)..) {
-                eprintln!("request = {:?}", request);
-
                 let actual_response = nested_sp.push(&request).unwrap();
 
                 assert_eq!(actual_response, expected_response, "Rollback depth: {}", rollback_depth)

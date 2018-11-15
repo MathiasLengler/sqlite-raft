@@ -56,6 +56,25 @@ impl Execute {
             queued_parameters: QueuedParameters::new_named(queued_named_parameters)?,
         })
     }
+
+    /// Patches cached changes to ensure deterministic execution independent of previous executes.
+    /// Relevant across a transaction/savepoint/rollback.
+    /// Changes gets updated only by: INSERT, UPDATE or DELETE
+    /// For other execute statements a `0` is returned instead.
+    /// e.g. CREATE TABLE returns changes of previous execute, with this patch it returns `0`.
+    ///
+    /// TODO: evaluate sqlite parser for this differentiation
+    fn patch_changes(&self) -> impl Fn(usize) -> usize {
+        let pass_changes = self.sql.starts_with("INSERT")
+            || self.sql.starts_with("UPDATE")
+            || self.sql.starts_with("DELETE");
+
+        move |changes| if pass_changes {
+            changes
+        } else {
+            0
+        }
+    }
 }
 
 impl<A: WriteAccess> Request<A> for Execute {
@@ -64,12 +83,16 @@ impl<A: WriteAccess> Request<A> for Execute {
     fn apply_to_conn(&self, conn: &AccessConnectionRef<A>) -> Result<Self::Response> {
         let mut stmt = conn.prepare(&self.sql)?;
 
+        let patch_changes = self.patch_changes();
+
         let res = self.queued_parameters.map_parameter_variants(
             &mut stmt,
             |stmt: &mut Statement, parameters: &IndexedParameters| {
                 let changes = stmt.execute(
                     &parameters.as_arg(),
                 )?;
+
+                let changes = patch_changes(changes);
 
                 Ok(ExecuteResult {
                     changes,
@@ -79,6 +102,8 @@ impl<A: WriteAccess> Request<A> for Execute {
                 let changes = stmt.execute_named(
                     &parameters.as_arg(),
                 )?;
+
+                let changes = patch_changes(changes);
 
                 Ok(ExecuteResult {
                     changes,
@@ -90,13 +115,6 @@ impl<A: WriteAccess> Request<A> for Execute {
     }
 }
 
-// TODO: fix cached changes value to ensure deterministic execution independent of previous executes
-// (across transaction/savepoint/rollback)
-// changes gets updated only by: INSERT, UPDATE or DELETE
-// e.g. CREATE TABLE returns changes of previous execute.
-// 0 should be fine in this case (Option not needed)
-//
-// TODO: evaluate sqlite parser for this differentiation, otherwise hack with prefix check
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ExecuteResult {
     changes: usize

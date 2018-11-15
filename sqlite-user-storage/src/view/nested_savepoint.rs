@@ -116,10 +116,8 @@ impl<'conn> NestedSavepoint<'conn> {
         Ok(())
     }
 
-    pub fn rollback_all(mut self) -> Result<()> {
-        self.rollback_to(0)?;
-
-        Ok(())
+    pub fn rollback_all(&mut self) -> Result<()> {
+        self.rollback_to(0)
     }
 }
 

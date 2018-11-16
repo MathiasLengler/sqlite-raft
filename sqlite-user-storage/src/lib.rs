@@ -42,8 +42,25 @@
 //!     - savepoints/transactions lock all attached DBs.
 //!     - A locked DB cannot be detached.
 //!     - Cannot read new entries from attached raft-DB while keeping savepoint stack for rollback (cant see updates).
+//!
 //! TODO: Fundamental question:
 //! How does user storage get access to entries/sequence of requests?
+//!
+//! Current sketch for solution:
+//!
+//! user/view thread has two connections
+//! gets notified if a new committed entry has been added or a request for specific index query has come in
+//! reads needed entries from raft-db
+//! gets sqlite-request from entry
+//! hidden view table in user db to mark current index (simpler than attached state db for each view)
+//! sends sqlite-response via channel to
+//!
+//! TODO: What is the request architecture?
+//! Propose/Simple request:
+//!
+//! Request for query at specific index:
+//!
+//! TODO: How can this be integrated into to manual raft step logic?
 
 #[macro_use]
 extern crate failure;

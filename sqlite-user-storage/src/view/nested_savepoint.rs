@@ -7,31 +7,6 @@ use sqlite_requests::request::Request;
 use sqlite_requests::request::SqliteRequest;
 use sqlite_requests::request::SqliteResponse;
 
-/// # Rollback
-/// SAVEPOINT 0
-/// #1 EXECUTE
-/// SAVEPOINT 1
-/// #2 EXECUTE
-/// SAVEPOINT 2
-/// #3 EXECUTE
-/// ROLLBACK TO 1
-/// DB State after #1 Execute
-///
-/// # Release
-/// SAVEPOINT 0
-/// #1 EXECUTE
-/// SAVEPOINT 1
-/// #2 EXECUTE
-/// SAVEPOINT 2
-/// #3 EXECUTE
-/// RELEASE 1
-///
-/// New state:
-/// SAVEPOINT 0
-/// #1 EXECUTE
-/// SAVEPOINT 1
-/// #2 EXECUTE
-/// #3 EXECUTE
 #[derive(Debug)]
 pub struct NestedSavepoint<'conn> {
     conn: &'conn Connection,

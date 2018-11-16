@@ -10,8 +10,6 @@ use sqlite_requests::{
 };
 use sqlite_requests::connection::access::ReadWrite;
 
-// TODO: fix execute result caching in sqlite-requests
-
 fn request_test_cases() -> Vec<SqliteRequest> {
     vec![
         Execute::new_indexed("CREATE TABLE Test (value INTEGER NOT NULL UNIQUE)", &[&[]]).unwrap().into(),

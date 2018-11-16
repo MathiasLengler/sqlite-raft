@@ -207,7 +207,7 @@ impl<S: StorageMut> Node<S> {
             for entry in committed_entries {
                 let entry: Entry = entry;
 
-                // TODO: persist
+                // TODO: persist and implement in sqlite_storage: last_apply_index
                 // Mostly, you need to save the last apply index to resume applying
                 // after restart. Here we just ignore this because we use a Memory storage.
                 _last_apply_index = entry.get_index();
@@ -240,6 +240,8 @@ impl<S: StorageMut> Node<S> {
         Ok(())
     }
 
+    // TODO: remove hacky propose
+    //  Debug API should allow the cluster to report a stable system (callback style hook)
     fn send_propose(sender: Sender<TransportMessage>, mut log_entry_factory: LogEntryFactory) {
         thread::spawn(move || {
             // Wait some time and send the request to the Raft.

@@ -58,10 +58,11 @@ impl Execute {
     }
 
     /// Patches cached changes to ensure deterministic execution independent of previous executes.
-    /// Relevant across a transaction/savepoint/rollback.
-    /// Changes gets updated only by: INSERT, UPDATE or DELETE
+    /// Changes get updated only by: INSERT, UPDATE or DELETE
     /// For other execute statements a `0` is returned instead.
-    /// e.g. CREATE TABLE returns changes of previous execute, with this patch it returns `0`.
+    /// # Example:
+    /// natively in rusqlite `CREATE TABLE` returns changes of previous execute,
+    /// with this patch it returns `0` instead.
     ///
     /// TODO: evaluate sqlite parser for this differentiation
     fn patch_changes(&self) -> impl Fn(usize) -> usize {

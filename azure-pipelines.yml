@@ -3,17 +3,19 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-trigger:
-- master
 
-pool:
-  vmImage: 'Ubuntu-16.04'
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+jobs:
+  - job: test
+    pool:
+      vmImage: 'Ubuntu 16.04'
+    steps:
+      - script: curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
+        displayName: 'Install rustc'
+      - script: |
+          export PATH=$PATH:$HOME/.cargo/bin
+          cargo build --verbose
+        displayName: 'Build'
+      - script: |
+          export PATH=$PATH:$HOME/.cargo/bin
+          cargo test --verbose -- --test-threads=1
+        displayName: 'Test'

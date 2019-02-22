@@ -1,4 +1,4 @@
 [submodule "raft-rs"]
 	path = raft-rs
-	url = git@github.com:MathiasLengler/raft-rs.git
+	url = https://github.com/MathiasLengler/raft-rs.git
 	branch = my_master

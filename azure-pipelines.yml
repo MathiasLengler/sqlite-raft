@@ -3,12 +3,15 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-
+checkout: self
+  submodules:
 jobs:
   - job: test
     pool:
       vmImage: 'Ubuntu 16.04'
     steps:
+      - checkout: self
+        submodules: recursive
       - script: curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
         displayName: 'Install rustc'
       - script: |

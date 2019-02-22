@@ -36,5 +36,5 @@ jobs:
         displayName: 'Build'
       - script: |
           export PATH=$PATH:$HOME/.cargo/bin
-          cargo test --verbose -- --test-threads=1
+          RUST_BACKTRACE=1 cargo test --verbose -- --test-threads=1
         displayName: 'Test'

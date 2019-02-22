@@ -28,6 +28,11 @@ jobs:
           sudo chown $USER /usr/local/bin/protoc
           sudo chown -R $USER /usr/local/include/google
         displayName: 'Install protoc'
+      - script: |
+          sudo add-apt-repository ppa:jonathonf/backports
+          sudo apt-get update
+          sudo apt-get install sqlite3
+        displayName: 'Install sqlite3'
       - script: curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
         displayName: 'Install rustc'
       - script: |
